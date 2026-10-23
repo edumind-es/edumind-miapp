@@ -52,8 +52,8 @@ const EDUmindFooter = lazy(() => import("./components/EDUmindFooter"));
 
 function RouteFallback() {
   return (
-    <div className="min-h-[40vh] flex items-center justify-center text-slate-400 text-sm">
-      Cargando modulo...
+    <div className="min-h-[40vh] flex items-center justify-center lam-mono">
+      Cargando módulo
     </div>
   );
 }

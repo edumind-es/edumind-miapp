@@ -6,11 +6,20 @@
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { ReactNode } from "react";
-import { motion } from "framer-motion";
+// Diálogo de confirmación en modo EDUmind-Lámina: recuadro de papel con filete de
+// tinta, botones mono. Sin animación de rebote ni sombra.
 
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface ConfirmationDialogProps {
@@ -39,37 +48,36 @@ export function ConfirmationDialog({
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="w-full max-w-md rounded-2xl border border-white/10 bg-[#171c28] p-6 shadow-2xl"
-            >
-                <h2 className="text-lg font-semibold text-white">{title}</h2>
-                <div className="mt-3 text-sm leading-6 text-slate-300">{description}</div>
+        <div
+            className="fixed inset-0 z-[90] flex items-center justify-center px-4"
+            style={{ background: "rgba(23, 24, 26, 0.55)" }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirmation-dialog-title"
+        >
+            <div className="w-full max-w-md bg-paper border-2 border-ink p-6">
+                <span className={cn("lam-mono", destructive && "text-alert")}>
+                    {destructive ? "Acción irreversible" : "Confirmación"}
+                </span>
+                <h2 id="confirmation-dialog-title" className="mt-2 text-[22px] font-bold leading-tight">
+                    {title}
+                </h2>
+                <div className="mt-3 text-[15px] leading-6 text-ink-2">{description}</div>
 
                 <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        disabled={busy}
-                        className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-200 transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
+                    <button type="button" onClick={onCancel} disabled={busy} className="lam-btn lam-btn-sm lam-btn-ghost">
                         {cancelLabel}
                     </button>
                     <button
                         type="button"
                         onClick={onConfirm}
                         disabled={busy}
-                        className={cn(
-                            "rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60",
-                            destructive ? "bg-rose-600 hover:bg-rose-500" : "bg-blue-600 hover:bg-blue-500"
-                        )}
+                        className={cn("lam-btn lam-btn-sm", destructive && "!bg-alert !border-alert")}
                     >
                         {busy ? "Procesando..." : confirmLabel}
                     </button>
                 </div>
-            </motion.div>
+            </div>
         </div>
     );
 }
