@@ -21,17 +21,6 @@ import { AdminLayout } from "../../layouts/AdminLayout";
 import { authFetch } from "@/lib/auth-client";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { NoticeBanner } from "@/components/NoticeBanner";
-import {
-    Upload,
-    Check,
-    X,
-    Edit,
-    Trash2,
-    Download,
-    RefreshCw,
-    CheckCircle,
-    AlertCircle
-} from "lucide-react";
 
 interface TrainingItem {
     id: number;
@@ -235,25 +224,24 @@ export default function DatasetBuilder() {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-white">
+                        <h1 className="text-[26px] font-bold tracking-[-0.02em]">
                             Dataset Builder
                         </h1>
-                        <p className="text-slate-400">
+                        <p className="text-ink-2">
                             Curar y gestionar datos de entrenamiento
                         </p>
                     </div>
                     <div className="flex gap-3">
                         <button
                             onClick={fetchItems}
-                            className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                            className="lam-btn lam-btn-sm lam-btn-ghost"
                         >
-                            <RefreshCw className="w-5 h-5 text-slate-400" />
+                            Actualizar
                         </button>
                         <button
                             onClick={handleExport}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                            className="lam-btn lam-btn-sm"
                         >
-                            <Download className="w-4 h-4" />
                             Exportar JSONL
                         </button>
                     </div>
@@ -261,28 +249,28 @@ export default function DatasetBuilder() {
 
                 {/* Stats */}
                 {stats && (
-                    <div className="grid grid-cols-4 gap-4">
-                        <div className="bg-[#1a1f2e] border border-white/10 rounded-lg p-4">
-                            <p className="text-sm text-slate-400">Total Items</p>
-                            <p className="text-2xl font-bold text-white">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="border-t border-hair pt-3">
+                            <p className="lam-mono">Total items</p>
+                            <p className="font-extrabold text-[32px] tracking-[-0.03em]">
                                 {stats.total_items}
                             </p>
                         </div>
-                        <div className="bg-[#1a1f2e] border border-white/10 rounded-lg p-4">
-                            <p className="text-sm text-slate-400">Verificados</p>
-                            <p className="text-2xl font-bold text-green-400">
+                        <div className="border-t border-hair pt-3">
+                            <p className="lam-mono">Verificados</p>
+                            <p className="font-extrabold text-[32px] tracking-[-0.03em] text-ok">
                                 {stats.verified_items}
                             </p>
                         </div>
-                        <div className="bg-[#1a1f2e] border border-white/10 rounded-lg p-4">
-                            <p className="text-sm text-slate-400">Pendientes</p>
-                            <p className="text-2xl font-bold text-yellow-400">
+                        <div className="border-t border-hair pt-3">
+                            <p className="lam-mono">Pendientes</p>
+                            <p className="font-extrabold text-[32px] tracking-[-0.03em]">
                                 {stats.pending_items}
                             </p>
                         </div>
-                        <div className="bg-[#1a1f2e] border border-white/10 rounded-lg p-4">
-                            <p className="text-sm text-slate-400">Documentos</p>
-                            <p className="text-2xl font-bold text-blue-400">
+                        <div className="border-t border-hair pt-3">
+                            <p className="lam-mono">Documentos</p>
+                            <p className="font-extrabold text-[32px] tracking-[-0.03em]">
                                 {stats.total_documents}
                             </p>
                         </div>
@@ -290,7 +278,7 @@ export default function DatasetBuilder() {
                 )}
 
                 {/* Upload Area */}
-                <div className="bg-[#1a1f2e] border border-dashed border-white/20 rounded-xl p-8">
+                <div className="bg-card border border-dashed border-ink p-8">
                     <input
                         type="file"
                         id="file-upload"
@@ -302,11 +290,10 @@ export default function DatasetBuilder() {
                         htmlFor="file-upload"
                         className="flex flex-col items-center cursor-pointer"
                     >
-                        <Upload className="w-12 h-12 text-slate-500 mb-4" />
-                        <p className="text-white font-medium">
+                        <p className="lam-mono lam-mono-ink">
                             {uploading ? "Subiendo..." : "Subir archivo"}
                         </p>
-                        <p className="text-sm text-slate-500 mt-1">
+                        <p className="text-sm text-ink-3 mt-1">
                             PDF, DOCX, XLSX, PPTX, MD, JSON, PNG
                         </p>
                     </label>
@@ -319,10 +306,7 @@ export default function DatasetBuilder() {
                             <button
                                 key={f}
                                 onClick={() => setFilter(f)}
-                                className={`px-4 py-2 rounded-lg transition-colors ${filter === f
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-white/10 text-slate-400 hover:bg-white/20"
-                                    }`}
+                                className={`font-mono text-[11px] uppercase tracking-[0.12em] px-4 py-2 border border-ink transition-colors ${filter === f ? "bg-ink text-paper" : "text-ink hover:bg-paper-2"}`}
                             >
                                 {f === "all"
                                     ? "Todos"
@@ -335,40 +319,39 @@ export default function DatasetBuilder() {
                     {selectedIds.length > 0 && (
                         <button
                             onClick={handleBulkVerify}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                            className="lam-btn lam-btn-sm"
                         >
-                            <CheckCircle className="w-4 h-4" />
                             Verificar ({selectedIds.length})
                         </button>
                     )}
                 </div>
 
                 {/* Items Table */}
-                <div className="bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden">
-                    <table className="w-full">
-                        <thead className="bg-white/5">
+                <div className="lam-panel !p-0 overflow-hidden">
+                    <table className="lam-table">
+                        <thead>
                             <tr>
                                 <th className="p-4 text-left">
                                     <input
                                         type="checkbox"
                                         checked={selectedIds.length === items.length && items.length > 0}
                                         onChange={selectAll}
-                                        className="rounded"
+                                        className=""
                                     />
                                 </th>
-                                <th className="p-4 text-left text-sm text-slate-400">
+                                <th className="p-4">
                                     Instrucción
                                 </th>
-                                <th className="p-4 text-left text-sm text-slate-400">
+                                <th className="p-4">
                                     Respuesta
                                 </th>
-                                <th className="p-4 text-left text-sm text-slate-400">
+                                <th className="p-4">
                                     Fuente
                                 </th>
-                                <th className="p-4 text-left text-sm text-slate-400">
+                                <th className="p-4">
                                     Estado
                                 </th>
-                                <th className="p-4 text-left text-sm text-slate-400">
+                                <th className="p-4">
                                     Acciones
                                 </th>
                             </tr>
@@ -376,13 +359,13 @@ export default function DatasetBuilder() {
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="p-8 text-center text-slate-400">
+                                    <td colSpan={6} className="p-8 text-center text-ink-2">
                                         Cargando...
                                     </td>
                                 </tr>
                             ) : items.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="p-8 text-center text-slate-400">
+                                    <td colSpan={6} className="p-8 text-center text-ink-2">
                                         No hay items. Sube archivos para empezar.
                                     </td>
                                 </tr>
@@ -390,14 +373,14 @@ export default function DatasetBuilder() {
                                 items.map((item) => (
                                     <tr
                                         key={item.id}
-                                        className="border-t border-white/5 hover:bg-white/5"
+                                        className="border-t border-hair hover:bg-card"
                                     >
                                         <td className="p-4">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedIds.includes(item.id)}
                                                 onChange={() => toggleSelect(item.id)}
-                                                className="rounded"
+                                                className=""
                                             />
                                         </td>
                                         <td className="p-4">
@@ -410,11 +393,11 @@ export default function DatasetBuilder() {
                                                             instruction: e.target.value,
                                                         })
                                                     }
-                                                    className="w-full bg-white/10 border border-white/20 rounded p-2 text-white text-sm"
+                                                    className="lam-textarea text-sm"
                                                     rows={3}
                                                 />
                                             ) : (
-                                                <p className="text-white text-sm line-clamp-2">
+                                                <p className="text-ink text-sm line-clamp-2">
                                                     {item.instruction}
                                                 </p>
                                             )}
@@ -429,31 +412,25 @@ export default function DatasetBuilder() {
                                                             output: e.target.value,
                                                         })
                                                     }
-                                                    className="w-full bg-white/10 border border-white/20 rounded p-2 text-white text-sm"
+                                                    className="lam-textarea text-sm"
                                                     rows={3}
                                                 />
                                             ) : (
-                                                <p className="text-slate-300 text-sm line-clamp-2">
+                                                <p className="text-ink-2 text-sm line-clamp-2">
                                                     {item.output}
                                                 </p>
                                             )}
                                         </td>
                                         <td className="p-4">
-                                            <span className="text-xs text-slate-500 bg-white/10 px-2 py-1 rounded">
+                                            <span className="lam-mono">
                                                 {item.source}
                                             </span>
                                         </td>
                                         <td className="p-4">
                                             {item.is_verified ? (
-                                                <span className="flex items-center gap-1 text-green-400 text-sm">
-                                                    <CheckCircle className="w-4 h-4" />
-                                                    Verificado
-                                                </span>
+                                                <span className="lam-stamp">Verificado</span>
                                             ) : (
-                                                <span className="flex items-center gap-1 text-yellow-400 text-sm">
-                                                    <AlertCircle className="w-4 h-4" />
-                                                    Pendiente
-                                                </span>
+                                                <span className="lam-stamp !border-vigencia !text-vigencia">Pendiente</span>
                                             )}
                                         </td>
                                         <td className="p-4">
@@ -462,15 +439,15 @@ export default function DatasetBuilder() {
                                                     <>
                                                         <button
                                                             onClick={handleSaveEdit}
-                                                            className="p-2 bg-green-600/20 text-green-400 rounded hover:bg-green-600/30"
+                                                            className="px-2 py-1 font-mono text-[11px] uppercase tracking-[0.12em] border border-ink hover:bg-ink hover:text-paper"
                                                         >
-                                                            <Check className="w-4 h-4" />
+                                                            Guardar
                                                         </button>
                                                         <button
                                                             onClick={() => setEditingId(null)}
-                                                            className="p-2 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30"
+                                                            className="px-2 py-1 font-mono text-[11px] uppercase tracking-[0.12em] border border-ink hover:bg-ink hover:text-paper"
                                                         >
-                                                            <X className="w-4 h-4" />
+                                                            Cancelar
                                                         </button>
                                                     </>
                                                 ) : (
@@ -478,25 +455,25 @@ export default function DatasetBuilder() {
                                                         {!item.is_verified && (
                                                             <button
                                                                 onClick={() => handleVerify(item.id)}
-                                                                className="p-2 bg-green-600/20 text-green-400 rounded hover:bg-green-600/30"
+                                                                className="px-2 py-1 font-mono text-[11px] uppercase tracking-[0.12em] border border-ink hover:bg-ink hover:text-paper"
                                                                 title="Verificar"
                                                             >
-                                                                <Check className="w-4 h-4" />
+                                                                Verificar
                                                             </button>
                                                         )}
                                                         <button
                                                             onClick={() => handleEdit(item)}
-                                                            className="p-2 bg-blue-600/20 text-blue-400 rounded hover:bg-blue-600/30"
+                                                            className="px-2 py-1 font-mono text-[11px] uppercase tracking-[0.12em] border border-ink hover:bg-ink hover:text-paper"
                                                             title="Editar"
                                                         >
-                                                            <Edit className="w-4 h-4" />
+                                                            Editar
                                                         </button>
                                                         <button
                                                             onClick={() => setPendingDeleteId(item.id)}
-                                                            className="p-2 bg-red-600/20 text-red-400 rounded hover:bg-red-600/30"
+                                                            className="px-2 py-1 font-mono text-[11px] uppercase tracking-[0.12em] border border-alert text-alert hover:bg-alert hover:text-paper"
                                                             title="Eliminar"
                                                         >
-                                                            <Trash2 className="w-4 h-4" />
+                                                            Eliminar
                                                         </button>
                                                     </>
                                                 )}

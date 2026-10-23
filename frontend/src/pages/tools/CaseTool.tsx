@@ -19,7 +19,6 @@
 import { useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2 } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 
@@ -57,8 +56,8 @@ export default function CaseTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
-                    {!output && !loading && <span className="text-slate-500">El supuesto generado aparecerá aquí...</span>}
+                <div className="lam-prose">
+                    {!output && !loading && <span className="text-ink-3">El supuesto generado aparecerá aquí...</span>}
                     {output && <div className="whitespace-pre-wrap">{output}</div>}
                 </div>
             }
@@ -67,41 +66,41 @@ export default function CaseTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Cuerpo y Especialidad</label>
-                    <input type="text" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white mb-2"
+                    <label className="lam-label">Cuerpo y Especialidad</label>
+                    <input type="text" className="lam-input mb-2"
                         placeholder="Cuerpo" value={formData.cuerpo} onChange={e => setFormData({ ...formData, cuerpo: e.target.value })} />
-                    <input type="text" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                    <input type="text" className="lam-input"
                         placeholder="Especialidad" value={formData.especialidad} onChange={e => setFormData({ ...formData, especialidad: e.target.value })} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Nº Preguntas</label>
-                        <input type="number" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Nº Preguntas</label>
+                        <input type="number" className="lam-input"
                             value={formData.numero_preguntas} onChange={e => setFormData({ ...formData, numero_preguntas: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Tiempo (min)</label>
-                        <input type="number" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Tiempo (min)</label>
+                        <input type="number" className="lam-input"
                             value={formData.tiempo_respuesta} onChange={e => setFormData({ ...formData, tiempo_respuesta: e.target.value })} />
                     </div>
                 </div>
 
                 <div className="space-y-4 pt-2">
-                    <label className="flex items-center gap-2 text-white cursor-pointer">
+                    <label className="flex items-center gap-2 text-ink cursor-pointer">
                         <input type="checkbox" checked={formData.incluir_nee.startsWith("Sí")}
                             onChange={e => setFormData({ ...formData, incluir_nee: e.target.checked ? "Sí, incluir adaptaciones" : "No" })} />
                         Incluir NEAE/Diversidad
                     </label>
-                    <label className="flex items-center gap-2 text-white cursor-pointer">
+                    <label className="flex items-center gap-2 text-ink cursor-pointer">
                         <input type="checkbox" checked={formData.incluir_normativa.startsWith("Sí")}
                             onChange={e => setFormData({ ...formData, incluir_normativa: e.target.checked ? "Sí, estatal y autonómica" : "No" })} />
                         Incluir Marco Normativo
                     </label>
                 </div>
 
-                <button type="submit" disabled={loading} className="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2">
-                    {loading && <Loader2 className="animate-spin" />} Generar Supuesto
+                <button type="submit" disabled={loading} className="lam-btn lam-btn-block">
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>} Generar Supuesto
                 </button>
             </form>
         </GeneratorLayout>

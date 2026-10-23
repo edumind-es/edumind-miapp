@@ -16,9 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Indicador de generación en servidor en modo EDUmind-Lámina: panel con filete,
+// barra de progreso de 4px y consejos en texto. Sin iconos ni animación.
+
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Clock, Cpu, Sparkles, Loader2 } from "lucide-react";
 
 interface ServerLoadingProps {
     isLoading: boolean;
@@ -73,82 +74,50 @@ export function ServerLoadingIndicator({
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-6 bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-white/10 rounded-xl space-y-4"
-        >
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <motion.div
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="p-3 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl"
-                    >
-                        {modelType === "quality" ? (
-                            <Sparkles className="w-6 h-6 text-purple-400" />
-                        ) : (
-                            <Cpu className="w-6 h-6 text-blue-400" />
-                        )}
-                    </motion.div>
-                    <div>
-                        <h3 className="text-white font-bold">
-                            {modelType === "quality" ? "EDUmind en modo calidad" : "EDUmind en modo ágil"}
-                        </h3>
-                        <p className="text-slate-400 text-sm">
-                            {modelType === "quality"
-                                ? "Preparando una respuesta más cuidada y estructurada..."
-                                : `Procesando${taskType ? ` ${taskType}` : ""}...`}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Time indicator */}
-                <div className="flex items-center gap-2 text-slate-300">
-                    <Clock className="w-4 h-4" />
-                    <span className="font-mono text-sm">
-                        {remaining > 0 ? `~${formatTime(remaining)} restante` : "Casi listo..."}
-                    </span>
-                </div>
+        <div className="lam-panel space-y-4">
+            <div className="lam-panel-head">
+                <span className="lam-mono lam-mono-ink">
+                    {modelType === "quality" ? "EDUmind · modo calidad" : "EDUmind · modo ágil"}
+                </span>
+                <span className="lam-mono">
+                    {remaining > 0 ? `~${formatTime(remaining)} restante` : "Casi listo"}
+                </span>
             </div>
 
-            {/* Progress bar */}
+            <p className="m-0 text-ink-2 text-sm">
+                {modelType === "quality"
+                    ? "Preparando una respuesta más cuidada y estructurada."
+                    : `Procesando${taskType ? ` ${taskType}` : ""}.`}
+            </p>
+
+            {/* Barra de progreso: rectángulo de 4px */}
             <div className="space-y-2">
-                <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                    <motion.div
-                        className={`h-full ${modelType === "quality"
-                            ? "bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500"
-                            : "bg-gradient-to-r from-blue-500 to-cyan-500"
-                            }`}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                        transition={{ duration: 0.5 }}
-                    />
+                <div
+                    className="lam-progress"
+                    role="progressbar"
+                    aria-valuenow={Math.round(progress)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                >
+                    <i style={{ width: `${progress}%` }} />
                 </div>
-                <div className="flex justify-between text-xs text-slate-500">
-                    <span>Tiempo transcurrido: {formatTime(elapsed)}</span>
-                    <span>{Math.round(progress)}%</span>
+                <div className="flex justify-between">
+                    <span className="lam-mono">Transcurrido {formatTime(elapsed)}</span>
+                    <span className="lam-mono lam-mono-ink">{Math.round(progress)} %</span>
                 </div>
             </div>
 
-            {/* Animated tip carousel */}
-            <motion.div
-                key={tip}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2 p-3 bg-white/5 rounded-lg"
-            >
-                <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
-                <span className="text-sm text-slate-300">{tips[tip]}</span>
-            </motion.div>
+            {/* Consejo rotatorio */}
+            <div key={tip} className="flex items-start gap-3 py-2 border-t border-hair">
+                <span className="text-ink-3">—</span>
+                <span className="text-sm text-ink-2">{tips[tip]}</span>
+            </div>
 
-            {/* Quality model explanation */}
             {modelType === "quality" && (
-                <div className="text-xs text-slate-500 text-center border-t border-white/5 pt-3">
-                    La app está usando el motor disponible más estable para esta solicitud.
-                </div>
+                <p className="m-0 lam-mono pt-2 border-t border-hair">
+                    Se usa el motor disponible más estable para esta solicitud
+                </p>
             )}
-        </motion.div>
+        </div>
     );
 }

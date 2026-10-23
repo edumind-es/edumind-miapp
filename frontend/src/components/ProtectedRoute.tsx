@@ -15,7 +15,7 @@ interface ProtectedRouteProps {
 
 function AccessFallback() {
     return (
-        <div className="min-h-[40vh] flex items-center justify-center text-slate-400 text-sm">
+        <div className="min-h-[40vh] flex items-center justify-center lam-mono">
             Verificando acceso...
         </div>
     );

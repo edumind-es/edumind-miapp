@@ -7,32 +7,15 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import {
-    Plus, Users, Calendar, BookOpen,
-    ChevronRight, Loader2, AlertCircle
-} from "lucide-react";
 import { NoticeBanner } from "@/components/NoticeBanner";
 import { classroomService } from "@/lib/classroom-service";
 import type { TeacherClass, CreateClassRequest } from "@/lib/classroom-service";
 
+// Colores de clase: paleta desaturada de Los Cinco Mundos y señales Lámina
 const COLORS = [
-    "#3B82F6", "#8B5CF6", "#10B981", "#F59E0B",
-    "#EF4444", "#EC4899", "#06B6D4", "#6366F1"
+    "#c05f3c", "#c19a2e", "#7ba24f", "#6c8fb3",
+    "#4a5f68", "#4f7a3f", "#b03a2e", "#17181a"
 ];
-
-const container = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: { staggerChildren: 0.1 }
-    }
-};
-
-const item = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1 }
-};
 
 export default function ClassManager() {
     const [classes, setClasses] = useState<TeacherClass[]>([]);
@@ -60,36 +43,23 @@ export default function ClassManager() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-            {/* Background Orbs */}
-            <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
-
-            <main className="relative container mx-auto px-4 py-10 z-10">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+        <div className="min-h-screen bg-paper text-ink">
+            <main className="lam-wrap py-12">
+                {/* Cabecera */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-10">
                     <div>
-                        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white/50">
-                            Mis Clases
-                        </h1>
-                        <p className="text-slate-400 mt-2">
-                            Gestiona tus grupos, horarios y vincula recursos generados por IA
+                        <p className="lam-eyebrow mb-4">EDUmind · Aula</p>
+                        <h1 className="lam-h1">Mis <span className="light">clases</span></h1>
+                        <p className="lam-lede mt-5">
+                            Gestiona tus grupos, horarios y vincula recursos generados por IA.
                         </p>
                     </div>
-                    <div className="flex gap-3">
-                        <Link
-                            to="/planner"
-                            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors"
-                        >
-                            <Calendar size={18} />
-                            Planner Semanal
+                    <div className="flex flex-wrap gap-3">
+                        <Link to="/planner" className="lam-btn lam-btn-ghost">
+                            Planificador semanal
                         </Link>
-                        <button
-                            onClick={() => setShowModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
-                        >
-                            <Plus size={18} />
-                            Nueva Clase
+                        <button type="button" onClick={() => setShowModal(true)} className="lam-btn">
+                            Nueva clase
                         </button>
                     </div>
                 </div>
@@ -105,32 +75,28 @@ export default function ClassManager() {
                 ) : null}
 
                 {error && (
-                    <div className="flex items-center gap-3 p-4 bg-red-500/20 border border-red-500/30 rounded-lg mb-6 text-red-200">
-                        <AlertCircle size={20} />
-                        {error}
+                    <div className="lam-note alert mb-6">
+                        <span className="tag">Error</span>
+                        <p className="m-0">{error}</p>
                     </div>
                 )}
 
                 {/* Loading state */}
                 {loading && (
                     <div className="flex items-center justify-center py-20">
-                        <Loader2 className="animate-spin text-blue-400" size={48} />
+                        <span className="lam-mono animate-pulse">Cargando clases</span>
                     </div>
                 )}
 
-                {/* Empty state */}
+                {/* Estado vacío */}
                 {!loading && classes.length === 0 && !error && (
-                    <div className="text-center py-20">
-                        <BookOpen className="mx-auto text-slate-500 mb-4" size={64} />
-                        <h2 className="text-2xl font-semibold mb-2">Sin clases todavía</h2>
-                        <p className="text-slate-400 mb-6">
-                            Crea tu primera clase para empezar a organizar tu docencia
+                    <div className="border-t-2 border-rule pt-6 max-w-[60ch]">
+                        <span className="lam-mono">Sin clases todavía</span>
+                        <h2 className="text-[26px] font-bold tracking-[-0.02em] mt-2 mb-2">Crea tu primera clase</h2>
+                        <p className="text-ink-2 mb-6">
+                            Empieza a organizar tu docencia: grupos, horario y recursos vinculados.
                         </p>
-                        <button
-                            onClick={() => setShowModal(true)}
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
-                        >
-                            <Plus size={20} />
+                        <button type="button" onClick={() => setShowModal(true)} className="lam-btn">
                             Crear mi primera clase
                         </button>
                     </div>
@@ -138,16 +104,11 @@ export default function ClassManager() {
 
                 {/* Classes Grid */}
                 {!loading && classes.length > 0 && (
-                    <motion.div
-                        variants={container}
-                        initial="hidden"
-                        animate="show"
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                    >
+                    <ul className="lam-rules">
                         {classes.map((cls) => (
                             <ClassCard key={cls.id} teacherClass={cls} />
                         ))}
-                    </motion.div>
+                    </ul>
                 )}
             </main>
 
@@ -168,42 +129,24 @@ export default function ClassManager() {
 
 function ClassCard({ teacherClass }: { teacherClass: TeacherClass }) {
     return (
-        <motion.div variants={item}>
-            <Link
-                to={`/classroom/${teacherClass.id}`}
-                className="group block relative h-full p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:-translate-y-1"
-                style={{
-                    borderLeftWidth: '4px',
-                    borderLeftColor: teacherClass.color
-                }}
-            >
-                <div className="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 className="text-xl font-semibold text-white group-hover:text-blue-200 transition-colors">
-                            {teacherClass.name}
-                        </h3>
-                        <p className="text-slate-400 text-sm">{teacherClass.subject}</p>
-                    </div>
-                    <span
-                        className="px-2 py-1 rounded-full text-xs font-medium"
-                        style={{ background: `${teacherClass.color}30`, color: teacherClass.color }}
-                    >
-                        {teacherClass.academic_year}
-                    </span>
-                </div>
-
-                <div className="flex items-center gap-4 text-slate-400 text-sm">
-                    <div className="flex items-center gap-1">
-                        <Users size={14} />
-                        <span>{teacherClass.student_count} alumnos</span>
-                    </div>
-                </div>
-
-                <div className="mt-4 flex items-center text-sm font-medium text-white/50 group-hover:text-white transition-colors">
-                    Ver detalles <ChevronRight className="ml-1 w-4 h-4" />
-                </div>
+        <li className="!py-5">
+            {/* El color de la clase solo aparece como filete izquierdo */}
+            <span className="w-[3px] self-stretch shrink-0" style={{ background: teacherClass.color }} aria-hidden="true" />
+            <div className="flex-1 min-w-0">
+                <h3 className="m-0 text-[20px] font-bold">
+                    <Link to={`/classroom/${teacherClass.id}`} className="no-underline hover:underline underline-offset-4">
+                        {teacherClass.name}
+                    </Link>
+                </h3>
+                <p className="m-0 mt-1 text-ink-2">{teacherClass.subject}</p>
+                <p className="lam-mono mt-2">
+                    {teacherClass.academic_year} · {teacherClass.student_count} alumnos
+                </p>
+            </div>
+            <Link to={`/classroom/${teacherClass.id}`} className="lam-btn lam-btn-sm lam-btn-ghost self-center shrink-0">
+                Ver
             </Link>
-        </motion.div>
+        </li>
     );
 }
 
@@ -242,33 +185,30 @@ function CreateClassModal({
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-slate-800 rounded-2xl p-6 w-full max-w-md border border-white/10"
-            >
-                <h2 className="text-2xl font-bold mb-6">Nueva Clase</h2>
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: "rgba(23, 24, 26, 0.55)" }} role="dialog" aria-modal="true">
+            <div className="bg-paper p-6 w-full max-w-md border-2 border-ink">
+                <span className="lam-mono">Aula</span>
+                <h2 className="text-[22px] font-bold leading-tight mt-2 mb-6">Nueva clase</h2>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm text-slate-400 mb-1">Curso</label>
+                            <label className="lam-label">Curso</label>
                             <input
                                 type="text"
                                 placeholder="Ej: 3º ESO"
-                                className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2"
+                                className="lam-input"
                                 value={formData.course}
                                 onChange={(e) => setFormData({ ...formData, course: e.target.value })}
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm text-slate-400 mb-1">Grupo</label>
+                            <label className="lam-label">Grupo</label>
                             <input
                                 type="text"
                                 placeholder="Ej: A"
-                                className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2"
+                                className="lam-input"
                                 value={formData.group}
                                 onChange={(e) => setFormData({ ...formData, group: e.target.value })}
                                 required
@@ -277,11 +217,11 @@ function CreateClassModal({
                     </div>
 
                     <div>
-                        <label className="block text-sm text-slate-400 mb-1">Materia</label>
+                        <label className="lam-label">Materia</label>
                         <input
                             type="text"
                             placeholder="Ej: Educación Física"
-                            className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2"
+                            className="lam-input"
                             value={formData.subject}
                             onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                             required
@@ -290,44 +230,48 @@ function CreateClassModal({
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm text-slate-400 mb-1">Curso Escolar</label>
+                            <label className="lam-label">Curso Escolar</label>
                             <input
                                 type="text"
                                 placeholder="2025-2026"
-                                className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2"
+                                className="lam-input"
                                 value={formData.academic_year}
                                 onChange={(e) => setFormData({ ...formData, academic_year: e.target.value })}
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm text-slate-400 mb-1">Nº Alumnos</label>
+                            <label className="lam-label">Nº Alumnos</label>
                             <input
                                 type="number"
                                 min={1}
                                 max={50}
-                                className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2"
+                                className="lam-input"
                                 value={formData.student_count}
                                 onChange={(e) => setFormData({ ...formData, student_count: parseInt(e.target.value) })}
                                 required
                             />
-                            <p className="text-xs text-slate-500 mt-1">
+                            <p className="text-xs text-ink-3 mt-1">
                                 Se generarán {formData.student_count} códigos (A01, A02...)
                             </p>
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm text-slate-400 mb-2">Color</label>
+                        <label className="lam-label">Color</label>
                         <div className="flex gap-2 flex-wrap">
                             {COLORS.map((color) => (
                                 <button
                                     key={color}
                                     type="button"
-                                    className="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110"
+                                    aria-label={`Color ${color}`}
+                                    aria-pressed={formData.color === color}
+                                    className="w-8 h-8 border-2 transition-colors"
                                     style={{
                                         backgroundColor: color,
-                                        borderColor: formData.color === color ? 'white' : 'transparent'
+                                        borderColor: formData.color === color ? 'var(--ink)' : 'transparent',
+                                        outline: formData.color === color ? '2px solid var(--paper)' : 'none',
+                                        outlineOffset: '-4px'
                                     }}
                                     onClick={() => setFormData({ ...formData, color })}
                                 />
@@ -336,24 +280,15 @@ function CreateClassModal({
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 py-2 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
-                        >
+                        <button type="button" onClick={onClose} className="lam-btn lam-btn-sm lam-btn-ghost flex-1">
                             Cancelar
                         </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                        >
-                            {loading && <Loader2 className="animate-spin" size={18} />}
-                            Crear Clase
+                        <button type="submit" disabled={loading} className="lam-btn lam-btn-sm flex-1">
+                            {loading ? "Creando..." : "Crear clase"}
                         </button>
                     </div>
                 </form>
-            </motion.div>
+            </div>
         </div>
     );
 }

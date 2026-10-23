@@ -16,19 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useState, type ReactNode } from "react";
+// Layout de administración en modo EDUmind-Lámina: barra superior en papel con
+// filete de 2px, enlaces mono y estado activo por inversión de tinta. Sin iconos.
+
+import type { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-    LayoutDashboard,
-    Database,
-    Cpu,
-    Users,
-    Settings,
-    FileText,
-    LogOut,
-    Menu,
-    X
-} from "lucide-react";
 import { authFetch, clearLegacyAuthState } from "@/lib/auth-client";
 import { ADMIN_PORTAL_PATH, buildAdminPortalPath } from "@/lib/admin-portal";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -38,18 +30,22 @@ interface AdminLayoutProps {
 }
 
 const NAV_ITEMS = [
-    { path: ADMIN_PORTAL_PATH, icon: LayoutDashboard, label: "Dashboard" },
-    { path: buildAdminPortalPath("/dataset"), icon: Database, label: "Dataset Builder" },
-    { path: buildAdminPortalPath("/training"), icon: Cpu, label: "Training Pipeline" },
-    { path: buildAdminPortalPath("/users"), icon: Users, label: "Usuarios" },
-    { path: buildAdminPortalPath("/config"), icon: Settings, label: "Configuración" },
-    { path: buildAdminPortalPath("/logs"), icon: FileText, label: "Logs" },
+    { path: ADMIN_PORTAL_PATH, label: "Panel" },
+    { path: buildAdminPortalPath("/dataset"), label: "Dataset" },
+    { path: buildAdminPortalPath("/training"), label: "Entrenamiento" },
+    { path: buildAdminPortalPath("/users"), label: "Usuarios" },
+    { path: buildAdminPortalPath("/config"), label: "Configuración" },
+    { path: buildAdminPortalPath("/logs"), label: "Logs" },
 ];
+
+const linkBase =
+    "font-mono text-[11px] uppercase tracking-[0.14em] px-3 py-2 border border-transparent transition-colors duration-150";
+const linkIdle = `${linkBase} text-ink-2 hover:text-ink hover:border-ink`;
+const linkActive = `${linkBase} bg-ink text-paper border-ink`;
 
 export function AdminLayout({ children }: AdminLayoutProps) {
     const location = useLocation();
     const navigate = useNavigate();
-    const [sidebarOpen, setSidebarOpen] = useState(true);
     const { clearSessionState, user } = useAuthSession();
 
     const handleLogout = async () => {
@@ -73,72 +69,37 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     };
 
     return (
-        <div className="flex h-screen bg-[#0f1117]">
-            {/* Sidebar */}
-            <aside
-                className={`${sidebarOpen ? "w-64" : "w-20"
-                    } bg-[#1a1f2e] border-r border-white/10 flex flex-col transition-all duration-300`}
-            >
-                {/* Header */}
-                <div className="p-4 border-b border-white/10 flex items-center justify-between">
-                    {sidebarOpen && (
-                        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                            EDUmind Admin
-                        </h1>
-                    )}
-                    <button
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                        {sidebarOpen ? (
-                            <X className="w-5 h-5 text-slate-400" />
-                        ) : (
-                            <Menu className="w-5 h-5 text-slate-400" />
-                        )}
-                    </button>
-                </div>
-
-                {/* Navigation */}
-                <nav className="flex-1 p-4 space-y-2">
-                    {NAV_ITEMS.map((item) => {
-                        const isActive = location.pathname === item.path;
-                        return (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                        ? "bg-blue-600/20 text-blue-400 border border-blue-500/30"
-                                        : "text-slate-400 hover:bg-white/10 hover:text-white"
-                                    }`}
-                            >
-                                <item.icon className="w-5 h-5 flex-shrink-0" />
-                                {sidebarOpen && <span>{item.label}</span>}
-                            </Link>
-                        );
-                    })}
-                </nav>
-
-                {/* User & Logout */}
-                <div className="p-4 border-t border-white/10">
-                    {sidebarOpen && user?.username && (
-                        <div className="mb-4 px-4 py-2 bg-white/5 rounded-lg">
-                            <p className="text-sm text-slate-400">Logged in as</p>
-                            <p className="text-white font-medium">{user.username}</p>
+        <div className="min-h-screen bg-paper text-ink flex flex-col">
+            <header className="sticky top-0 z-40 bg-paper">
+                <div className="worlds-bar" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+                <nav className="border-b-2 border-rule" aria-label="Administración">
+                    <div className="lam-wrap flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3">
+                        <Link to={ADMIN_PORTAL_PATH} className="lam-mono lam-mono-ink">
+                            EDUmind <span className="text-ink-3">·</span> Administración
+                        </Link>
+                        <div className="flex flex-wrap items-center gap-1">
+                            {NAV_ITEMS.map((item) => (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    className={location.pathname === item.path ? linkActive : linkIdle}
+                                >
+                                    {item.label}
+                                </Link>
+                            ))}
                         </div>
-                    )}
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                    >
-                        <LogOut className="w-5 h-5" />
-                        {sidebarOpen && <span>Cerrar Sesión</span>}
-                    </button>
-                </div>
-            </aside>
+                        <div className="flex items-center gap-3 pl-4 border-l border-hair">
+                            {user?.username ? <span className="lam-mono lam-mono-ink">{user.username}</span> : null}
+                            <button type="button" onClick={handleLogout} className={linkIdle}>
+                                Salir
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+            </header>
 
-            {/* Main Content */}
-            <main className="flex-1 overflow-y-auto">
-                <div className="p-8">{children}</div>
+            <main className="flex-1">
+                <div className="lam-wrap py-10">{children}</div>
             </main>
         </div>
     );

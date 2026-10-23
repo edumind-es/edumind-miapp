@@ -19,7 +19,6 @@
 import { useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2 } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { EDUCATION_LEVELS } from "@/lib/education-levels";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
@@ -55,8 +54,8 @@ export default function SessionTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
-                    {!output && !loading && <span className="text-slate-500">La sesión generada aparecerá aquí...</span>}
+                <div className="lam-prose">
+                    {!output && !loading && <span className="text-ink-3">La sesión generada aparecerá aquí...</span>}
                     {output && <div className="whitespace-pre-wrap">{output}</div>}
                 </div>
             }
@@ -65,15 +64,15 @@ export default function SessionTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Tema o Contenido</label>
-                    <input type="text" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                    <label className="lam-label">Tema o Contenido</label>
+                    <input type="text" className="lam-input"
                         placeholder="Ej. Ecuaciones de primer grado, La Célula..."
                         value={formData.tema} onChange={e => setFormData({ ...formData, tema: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Curso y Grupo</label>
-                    <select className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                    <label className="lam-label">Curso y Grupo</label>
+                    <select className="lam-input"
                         value={formData.curso} onChange={e => setFormData({ ...formData, curso: e.target.value })} required>
                         {EDUCATION_LEVELS.map((level) => (
                             <optgroup key={level.stage} label={level.stage}>
@@ -86,14 +85,14 @@ export default function SessionTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Enfoque Metodológico (Opcional)</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-32 resize-none"
+                    <label className="lam-label">Enfoque Metodológico (Opcional)</label>
+                    <textarea className="lam-input h-32 resize-none"
                         placeholder="Ej. Aprendizaje Cooperativo, Gamificación, Flipped Classroom..."
                         value={formData.descripcion} onChange={e => setFormData({ ...formData, descripcion: e.target.value })} />
                 </div>
 
-                <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2">
-                    {loading && <Loader2 className="animate-spin" />} Generar Sesión
+                <button type="submit" disabled={loading} className="lam-btn lam-btn-block">
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>} Generar Sesión
                 </button>
             </form>
         </GeneratorLayout>
