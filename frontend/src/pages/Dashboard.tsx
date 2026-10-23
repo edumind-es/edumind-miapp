@@ -16,33 +16,41 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { BookOpen, FileText, PenTool, Layout, Users, ClipboardCheck } from "lucide-react";
+// Panel de herramientas en modo EDUmind-Lámina: lista de filete numerada, sin rejilla
+// de tarjetas, sin iconos. El perfil se resuelve igual que antes (sesión o ?role=).
+
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
-const TOOLS = {
+interface Tool {
+    id: string;
+    title: string;
+    desc: string;
+    link: string;
+}
+
+const TOOLS: Record<"docente" | "opositor" | "centro", Tool[]> = {
     docente: [
-        { id: "planning", title: "Planificación Semanal", icon: Layout, desc: "Construye sesiones fechadas con criterios, DUA y recursos reales de aula.", color: "text-emerald-400 bg-emerald-400/10", link: "/tools/planning" },
-        { id: "situation", title: "Situación de Aprendizaje", icon: BookOpen, desc: "Crea situaciones de aprendizaje LOMLOE.", color: "text-blue-400 bg-blue-400/10", link: "/tools/situation" },
-        { id: "stem", title: "Proyectos STEM", icon: PenTool, desc: "Diseña proyectos Maker y Polos Creativos.", color: "text-purple-400 bg-purple-400/10", link: "/tools/stem" },
-        { id: "diversity", title: "Plan de Inclusión", icon: Users, desc: "Intervención para NEAE y diversidad.", color: "text-pink-400 bg-pink-400/10", link: "/tools/diversity" },
-        { id: "reinforcement_plan", title: "Plan de Refuerzo", icon: ClipboardCheck, desc: "Plan de refuerzo anonimo con base curricular de Galicia.", color: "text-cyan-400 bg-cyan-400/10", link: "/tools/reinforcement_plan" },
-        { id: "session", title: "Diseño de Sesiones", icon: ClipboardCheck, desc: "Planificación detallada sesión a sesión.", color: "text-orange-400 bg-orange-400/10", link: "/tools/session" },
+        { id: "planning", title: "Planificación semanal", desc: "Construye sesiones fechadas con criterios, DUA y recursos reales de aula.", link: "/tools/planning" },
+        { id: "situation", title: "Situación de aprendizaje", desc: "Crea situaciones de aprendizaje LOMLOE.", link: "/tools/situation" },
+        { id: "stem", title: "Proyectos STEM", desc: "Diseña proyectos Maker y Polos Creativos.", link: "/tools/stem" },
+        { id: "diversity", title: "Plan de inclusión", desc: "Intervención para NEAE y diversidad.", link: "/tools/diversity" },
+        { id: "reinforcement_plan", title: "Plan de refuerzo", desc: "Plan de refuerzo anónimo con base curricular oficial.", link: "/tools/reinforcement_plan" },
+        { id: "session", title: "Diseño de sesiones", desc: "Planificación detallada sesión a sesión.", link: "/tools/session" },
     ],
     opositor: [
-        { id: "case", title: "Supuestos Prácticos", icon: FileText, desc: "Entrenamiento y resolución de casos.", color: "text-blue-400 bg-blue-400/10", link: "/tools/case" },
-        { id: "topic", title: "Desarrollo de Temas", icon: BookOpen, desc: "Generación de temas de estudio.", color: "text-emerald-400 bg-emerald-400/10", link: "/tools/topic" },
-        { id: "defense", title: "Defensa Oral", icon: Users, desc: "Preparación de la defensa y debate.", color: "text-pink-400 bg-pink-400/10", link: "/tools/defense" },
-        { id: "idea", title: "Mentor / Lluvia de Ideas", icon: Layout, desc: "Consultas creativas para tu oposición.", color: "text-cyan-400 bg-cyan-400/10", link: "/tools/idea" },
+        { id: "case", title: "Supuestos prácticos", desc: "Entrenamiento y resolución de casos.", link: "/tools/case" },
+        { id: "topic", title: "Desarrollo de temas", desc: "Generación de temas de estudio.", link: "/tools/topic" },
+        { id: "defense", title: "Defensa oral", desc: "Preparación de la defensa y debate.", link: "/tools/defense" },
+        { id: "idea", title: "Mentor y lluvia de ideas", desc: "Consultas creativas para tu oposición.", link: "/tools/idea" },
     ],
     centro: [
-        { id: "minutes", title: "Actas de Reunión", icon: ClipboardCheck, desc: "Redacción formal de actas (Claustro, CCP...).", color: "text-yellow-400 bg-yellow-400/10", link: "/tools/minutes" },
-        { id: "institution_doc", title: "Documentación Institucional", icon: FileText, desc: "PGA, RRI, Planes de Centro...", color: "text-purple-400 bg-purple-400/10", link: "/tools/institution_doc" },
-        { id: "inspection_report", title: "Inspección Educativa", icon: FileText, desc: "Informes, actas y respuestas técnicas para requerimientos de inspección.", color: "text-amber-400 bg-amber-400/10", link: "/tools/inspection_report" },
-        { id: "reinforcement_plan", title: "Plan de Refuerzo", icon: Users, desc: "Plan de refuerzo por area con enfoque privacy-first y seguimiento.", color: "text-cyan-400 bg-cyan-400/10", link: "/tools/reinforcement_plan" },
-        { id: "normativa", title: "Aplicación Normativa", icon: BookOpen, desc: "Consultas legales sobre convivencia (Galicia).", color: "text-red-400 bg-red-400/10", link: "/tools/normativa" },
-    ]
+        { id: "minutes", title: "Actas de reunión", desc: "Redacción formal de actas (claustro, CCP...).", link: "/tools/minutes" },
+        { id: "institution_doc", title: "Documentación institucional", desc: "PGA, RRI, planes de centro...", link: "/tools/institution_doc" },
+        { id: "inspection_report", title: "Inspección educativa", desc: "Informes, actas y respuestas técnicas para requerimientos de inspección.", link: "/tools/inspection_report" },
+        { id: "reinforcement_plan", title: "Plan de refuerzo", desc: "Plan de refuerzo por área con enfoque privacy-first y seguimiento.", link: "/tools/reinforcement_plan" },
+        { id: "normativa", title: "Aplicación normativa", desc: "Consultas legales sobre convivencia (Galicia).", link: "/tools/normativa" },
+    ],
 };
 
 const ROLE_TO_TOOLS_KEY: Record<string, keyof typeof TOOLS> = {
@@ -61,45 +69,90 @@ const ROLE_LABELS: Record<string, string> = {
     centro: "Centro",
 };
 
+const PROFILE_SWITCH: Array<{ key: keyof typeof TOOLS; label: string }> = [
+    { key: "docente", label: "Docentes" },
+    { key: "opositor", label: "Opositores" },
+    { key: "centro", label: "Centros" },
+];
+
 export default function Dashboard() {
     const { user } = useAuthSession();
+    const [searchParams] = useSearchParams();
     const sessionRole = user?.role ?? "";
-    const toolsKey = ROLE_TO_TOOLS_KEY[sessionRole] ?? "docente";
+    const requestedRole = searchParams.get("role") ?? "";
+    const toolsKey = ROLE_TO_TOOLS_KEY[requestedRole] ?? ROLE_TO_TOOLS_KEY[sessionRole] ?? "docente";
     const tools = TOOLS[toolsKey];
-    const roleLabel = ROLE_LABELS[sessionRole] ?? "Usuario";
+    const roleLabel = ROLE_LABELS[requestedRole] ?? ROLE_LABELS[sessionRole] ?? "EDUmind";
 
     return (
-        <div className="min-h-screen bg-[#0f1117] p-8 text-white">
-            <div className="max-w-6xl mx-auto">
-                <header className="mb-12">
-                    <h1 className="text-3xl font-bold mb-2">
-                        {user ? `Panel de ${roleLabel}` : "Panel EDUmind"}
+        <main className="lam-wrap pb-16">
+            <div className="lam-cols pt-12">
+                <div>
+                    <p className="lam-eyebrow mb-4">EDUmind · Panel de herramientas</p>
+                    <h1 className="lam-h1 mb-6">
+                        Panel <span className="light">{roleLabel}</span>
                     </h1>
-                    {user && (
-                        <p className="text-slate-500 text-sm mb-1">
-                            Conectado como <span className="text-slate-300 font-medium">{user.username}</span>
-                        </p>
-                    )}
-                    <p className="text-slate-400">Selecciona una herramienta para comenzar a generar contenido.</p>
-                </header>
+                    <p className="lam-lede mb-8">Selecciona una herramienta para empezar a generar contenido.</p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {tools.map((tool) => (
-                        <Link key={tool.id} to={tool.link}>
-                            <motion.div
-                                whileHover={{ y: -5 }}
-                                className="bg-[#1a1f2e] border border-white/5 p-6 rounded-2xl hover:border-white/20 transition-all cursor-pointer group"
-                            >
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${tool.color} group-hover:scale-110 transition-transform`}>
-                                    <tool.icon className="w-6 h-6" />
+                    <ul className="lam-rules">
+                        {tools.map((tool, index) => (
+                            <li key={`${toolsKey}-${tool.id}`} className="!py-5">
+                                <span className="font-sans font-extrabold text-[28px] leading-none text-mental w-12 shrink-0 pt-1">
+                                    {String(index + 1).padStart(2, "0")}
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                    <h2 className="m-0 text-[20px] font-bold">
+                                        <Link to={tool.link} className="no-underline hover:underline underline-offset-4">
+                                            {tool.title}
+                                        </Link>
+                                    </h2>
+                                    <p className="m-0 mt-1 text-ink-2 max-w-[60ch]">{tool.desc}</p>
                                 </div>
-                                <h3 className="text-lg font-bold mb-2">{tool.title}</h3>
-                                <p className="text-sm text-slate-400 leading-relaxed">{tool.desc}</p>
-                            </motion.div>
-                        </Link>
-                    ))}
+                                <Link to={tool.link} className="lam-btn lam-btn-sm lam-btn-ghost self-center shrink-0">
+                                    Abrir
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
+
+                <aside className="lam-aside">
+                    <div className="lam-mono mb-3">Perfil</div>
+                    <div className="lam-seg w-full">
+                        {PROFILE_SWITCH.map((profile) => (
+                            <Link
+                                key={profile.key}
+                                to={`/dashboard?role=${profile.key}`}
+                                className={`flex-1 text-center font-mono text-[11px] uppercase tracking-[0.12em] py-3 border-r border-ink last:border-r-0 ${
+                                    toolsKey === profile.key ? "bg-ink text-paper" : "hover:bg-paper-2"
+                                }`}
+                            >
+                                {profile.label}
+                            </Link>
+                        ))}
+                    </div>
+                    <dl className="lam-spec mt-6">
+                        {user ? (
+                            <div>
+                                <dt>Sesión</dt>
+                                <dd>{user.username}</dd>
+                            </div>
+                        ) : null}
+                        <div>
+                            <dt>Herramientas</dt>
+                            <dd>{tools.length} disponibles</dd>
+                        </div>
+                        <div>
+                            <dt>Currículo</dt>
+                            <dd>LOMLOE · 17 territorios · Infantil, Primaria y Secundaria</dd>
+                        </div>
+                        <div>
+                            <dt>Datos</dt>
+                            <dd>Sin nombre ni identificadores del alumnado</dd>
+                        </div>
+                    </dl>
+                </aside>
             </div>
-        </div>
+        </main>
     );
 }

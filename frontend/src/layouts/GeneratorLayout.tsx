@@ -17,7 +17,6 @@
  */
 
 import { isValidElement, useEffect, useMemo, useState, type ReactNode } from "react";
-import { ArrowLeft, Copy, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { exportService } from "@/lib/export-service";
 import { authFetch } from "@/lib/auth-client";
@@ -213,190 +212,143 @@ export function GeneratorLayout({
         }
     };
 
+    const usagePercent = Math.min((usage / LIMIT) * 100, 100);
+    const exportButtons: Array<{ format: "pdf" | "html" | "txt"; label: string }> = [
+        { format: "pdf", label: "PDF" },
+        { format: "html", label: "HTML" },
+        { format: "txt", label: "TXT" },
+    ];
+
     return (
-        <div className="min-h-screen bg-[#0f1117] text-white">
-            <div className="lg:hidden sticky top-0 z-20 bg-[#0f1117]/95 backdrop-blur border-b border-white/10 p-3">
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setMobileView("form")}
-                        className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                            mobileView === "form"
-                                ? "bg-blue-600 text-white"
-                                : "bg-white/5 text-slate-300 hover:bg-white/10"
-                        }`}
-                    >
+        <div className="min-h-screen bg-paper text-ink">
+            {/* Conmutador móvil formulario / resultado */}
+            <div className="lg:hidden sticky top-[62px] z-20 bg-paper border-b border-hair px-4 py-3">
+                <div className="lam-seg w-full">
+                    <button type="button" onClick={() => setMobileView("form")} aria-pressed={mobileView === "form"} className="flex-1">
                         Formulario
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => setMobileView("output")}
-                        className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                            mobileView === "output"
-                                ? "bg-blue-600 text-white"
-                                : "bg-white/5 text-slate-300 hover:bg-white/10"
-                        }`}
-                    >
+                    <button type="button" onClick={() => setMobileView("output")} aria-pressed={mobileView === "output"} className="flex-1">
                         Resultado
                     </button>
                 </div>
             </div>
 
             <div className="flex flex-col lg:flex-row lg:min-h-screen">
-                {/* Left Panel: Form */}
+                {/* Panel izquierdo: formulario */}
                 <section
-                    className={`bg-[#0f1117] border-b border-white/10 lg:border-b-0 lg:border-r lg:border-white/10 lg:w-[38%] lg:min-w-[360px] xl:min-w-[420px] ${
+                    className={`bg-paper border-b border-hair lg:border-b-0 lg:border-r lg:border-hair lg:w-[38%] lg:min-w-[360px] xl:min-w-[420px] ${
                         mobileView === "form" ? "flex flex-col" : "hidden lg:flex lg:flex-col"
                     }`}
                 >
-                    <div className="p-4 sm:p-6 border-b border-white/10">
-                        <Link to="/" className="inline-flex items-center text-sm text-slate-400 hover:text-white mb-4 transition-colors">
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Volver
+                    <div className="p-5 sm:p-7 border-b-2 border-rule">
+                        <Link to="/" className="lam-mono lam-mono-ink inline-block mb-5 hover:underline underline-offset-4">
+                            ← Volver
                         </Link>
-                        <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                            {title}
-                        </h1>
-                        <p className="text-sm text-slate-400 mt-1">{description}</p>
+                        <p className="lam-eyebrow mb-3">EDUmind · Generador</p>
+                        <h1 className="m-0 text-[26px] sm:text-[30px] font-bold leading-[1.05] tracking-[-0.02em]">{title}</h1>
+                        <p className="mt-3 text-[15px] leading-6 text-ink-2 max-w-[48ch]">{description}</p>
 
-                        <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/10">
-                            <div className="flex justify-between text-xs text-slate-400 mb-1">
-                                <span>Uso Demo en la Nube</span>
-                                <span>{usage}/{LIMIT}</span>
+                        <div className="mt-5 pt-4 border-t border-hair">
+                            <div className="flex justify-between lam-mono mb-2">
+                                <span>Uso demo en la nube</span>
+                                <span className="lam-mono-ink">{usage} / {LIMIT}</span>
                             </div>
-                            <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                                <div className="h-full bg-blue-500 transition-all" style={{ width: `${Math.min((usage / LIMIT) * 100, 100)}%` }} />
+                            <div className="lam-progress" role="progressbar" aria-valuenow={usage} aria-valuemin={0} aria-valuemax={LIMIT}>
+                                <i style={{ width: `${usagePercent}%` }} />
                             </div>
                             {usage >= LIMIT && (
-                                <div className="mt-2 text-xs text-red-300">
-                                    🔒 Límite alcanzado. <a href="#" className="underline font-bold">Instala EDUmind Local</a> para uso ilimitado.
-                                </div>
+                                <p className="mt-3 text-[13px] text-alert">
+                                    Límite alcanzado. <a href="#" className="underline underline-offset-4 font-semibold">Instala EDUmind Local</a> para uso ilimitado.
+                                </p>
                             )}
                         </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-thin">
+                    <div className="flex-1 overflow-y-auto p-5 sm:p-7">
                         {children}
                     </div>
                 </section>
 
-                {/* Right Panel: Editable Output */}
+                {/* Panel derecho: resultado editable */}
                 <section
-                    className={`relative flex-1 bg-[#1a1f2e] flex-col ${
+                    className={`relative flex-1 bg-card flex-col ${
                         mobileView === "output" ? "flex" : "hidden lg:flex"
                     }`}
                 >
-                    <div className="h-1 w-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-20" />
-
-                    <div className="border-b border-white/10 px-3 py-3 sm:px-4 flex flex-wrap gap-2">
-                        <button
-                            onClick={handleCopy}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-blue-300 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                            disabled={!effectiveOutput}
-                        >
-                            <Copy className="w-3 h-3" />
-                            {copied ? "¡Copiado!" : "Copiar"}
+                    <div className="border-b-2 border-rule px-4 py-3 sm:px-6 flex flex-wrap items-center gap-2">
+                        <span className="lam-mono mr-2">Resultado</span>
+                        <button onClick={handleCopy} className="lam-btn lam-btn-sm lam-btn-ghost" disabled={!effectiveOutput}>
+                            {copied ? "Copiado" : "Copiar"}
                         </button>
-                        <button
-                            onClick={() => handleExport("pdf")}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 text-purple-300 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                            disabled={!effectiveOutput}
-                        >
-                            <Download className="w-3 h-3" />
-                            PDF
-                        </button>
-                        <button
-                            onClick={() => handleExport("html")}
-                            className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 text-purple-300 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                            disabled={!effectiveOutput}
-                        >
-                            HTML
-                        </button>
-                        <button
-                            onClick={() => handleExport("txt")}
-                            className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 text-purple-300 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                            disabled={!effectiveOutput}
-                        >
-                            TXT
-                        </button>
+                        {exportButtons.map((item) => (
+                            <button
+                                key={item.format}
+                                onClick={() => handleExport(item.format)}
+                                className="lam-btn lam-btn-sm lam-btn-ghost"
+                                disabled={!effectiveOutput}
+                            >
+                                {item.label}
+                            </button>
+                        ))}
                         <button
                             onClick={handleContribute}
                             disabled={!effectiveOutput || isContributing}
-                            className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/30 text-emerald-300 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="lam-btn lam-btn-sm lam-btn-ghost"
                         >
-                            {isContributing ? "Enviando..." : "👍 Contribuir"}
+                            {isContributing ? "Enviando..." : "Contribuir"}
                         </button>
                         {isLoading && onCancel && (
-                            <button
-                                onClick={onCancel}
-                                className="px-3 py-1.5 bg-rose-600/20 hover:bg-rose-600/40 border border-rose-500/30 text-rose-300 rounded-lg text-xs font-medium transition-colors"
-                            >
+                            <button onClick={onCancel} className="lam-btn lam-btn-sm !border-alert !text-alert hover:!bg-alert hover:!text-paper ml-auto">
                                 Cancelar
                             </button>
                         )}
                     </div>
 
-                    <div className="flex-1 overflow-hidden p-4 sm:p-6 lg:p-8 xl:p-12 flex flex-col">
+                    <div className="flex-1 overflow-hidden p-5 sm:p-7 lg:p-9 xl:p-12 flex flex-col">
                         {notice ? (
                             <NoticeBanner
                                 variant={notice.variant}
                                 message={notice.message}
-                                className="mb-4"
+                                className="mb-5"
                                 onClose={() => setNotice(null)}
                             />
                         ) : null}
 
                         {errorMessage && (
-                            <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-950/30 px-3 py-2 text-sm text-rose-200 flex items-center justify-between gap-3">
-                                <span>{errorMessage}</span>
+                            <div className="lam-note alert mb-5 flex items-start justify-between gap-4">
+                                <div>
+                                    <span className="tag">Error</span>
+                                    <p className="m-0 text-[15px] leading-6">{errorMessage}</p>
+                                </div>
                                 {onRetry && (
-                                    <button
-                                        type="button"
-                                        onClick={onRetry}
-                                        className="shrink-0 rounded-md border border-rose-400/40 px-2 py-1 text-xs text-rose-100 hover:bg-rose-800/40"
-                                    >
+                                    <button type="button" onClick={onRetry} className="lam-btn lam-btn-sm lam-btn-ghost shrink-0">
                                         Reintentar
                                     </button>
                                 )}
                             </div>
                         )}
 
-                        {/* Server loading indicator (EDUmind v2) */}
                         {effectiveOutput ? (
                             <>
-                                <div className="mb-4 flex items-center gap-2 text-xs">
-                                    <button
-                                        type="button"
-                                        onClick={() => setOutputMode("preview")}
-                                        className={`rounded-full px-3 py-1 transition-colors ${
-                                            outputMode === "preview"
-                                                ? "bg-blue-600 text-white"
-                                                : "bg-white/5 text-slate-300 hover:bg-white/10"
-                                        }`}
-                                    >
-                                        Vista previa
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setOutputMode("edit")}
-                                        className={`rounded-full px-3 py-1 transition-colors ${
-                                            outputMode === "edit"
-                                                ? "bg-blue-600 text-white"
-                                                : "bg-white/5 text-slate-300 hover:bg-white/10"
-                                        }`}
-                                    >
-                                        Editar texto
-                                    </button>
+                                <div className="mb-5">
+                                    <div className="lam-seg">
+                                        <button type="button" onClick={() => setOutputMode("preview")} aria-pressed={outputMode === "preview"}>
+                                            Vista previa
+                                        </button>
+                                        <button type="button" onClick={() => setOutputMode("edit")} aria-pressed={outputMode === "edit"}>
+                                            Editar texto
+                                        </button>
+                                    </div>
                                 </div>
                                 {outputMode === "edit" ? (
                                     <EditableOutputArea
                                         key={`${editorKey}-edit`}
                                         initialValue={effectiveOutput}
                                         onValueChange={setEditableOutput}
-                                        className="flex-1 w-full rounded-2xl border border-white/10 bg-black/10 p-5 text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/40 whitespace-pre-wrap font-mono text-sm leading-relaxed scrollbar-thin"
-                                        placeholder="El resultado aparecerá aquí..."
+                                        className="lam-textarea flex-1 w-full !resize-none font-mono text-[13.5px] leading-relaxed whitespace-pre-wrap"
+                                        placeholder="El resultado aparecerá aquí."
                                     />
                                 ) : (
-                                    <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin">
+                                    <div className="flex-1 overflow-y-auto pr-1 lam-prose">
                                         <FormattedContent content={effectiveOutput} />
                                     </div>
                                 )}
@@ -413,7 +365,7 @@ export function GeneratorLayout({
                                     isComplete={false}
                                 />
                             ) : (
-                                <div className="flex-1 prose prose-invert max-w-none">
+                                <div className="flex-1 lam-prose text-ink-2">
                                     {preview}
                                 </div>
                             )}
