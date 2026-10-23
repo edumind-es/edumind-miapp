@@ -1,0 +1,18 @@
+[Unit]
+Description=EDUMind MiApp Background Worker (User Service)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/edumind_miapp/backend
+EnvironmentFile=/var/www/edumind_miapp/backend/.env
+ExecStart=/var/www/edumind_miapp/backend/.venv/bin/python /var/www/edumind_miapp/backend/scripts/background_task_worker.py --worker-id background-user-1 --poll-interval 2
+Restart=always
+RestartSec=2
+TimeoutStopSec=30
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

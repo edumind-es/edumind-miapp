@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+backend/.venv/
+
+# Frontend / Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Runtime / local state
+*.pid
+*.tmp
+/edumind.db
+/backend/edumind.db
+backend/backups/*.db
+backend/backups/*.db.gz
+backend/.pytest_cache/
+docs/remediacion/baselines/generated/
+
+# Secretos y configuración local
+.env
+.env.local
+backend/.env
+backend/.env.local
+backend/backups/*.sql.gz
+backend/test_*.db*
+
+# Datos de entrenamiento, subidas de usuarios y artefactos locales (no se publican)
+backend/dataset/
+backend/uploads/
+backend/*.db-wal
+backend/*.db-shm
+.claude/
