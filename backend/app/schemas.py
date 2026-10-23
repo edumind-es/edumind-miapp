@@ -19,8 +19,18 @@
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 
+class MatrizCurricularRef(BaseModel):
+    """Referencia a una matriz curricular oficial y a los elementos seleccionados en ella."""
+    id: str
+    competencias: List[str] = []
+    criterios: List[str] = []
+    saberes: List[str] = []
+
+
 # Base schema with optional contextual fields
 class ContextualFieldsMixin(BaseModel):
+    # Matriz curricular oficial (comunidad/etapa/área/nivel) y códigos seleccionados
+    matriz_curricular: Optional[MatrizCurricularRef] = None
     # Optional enrichment fields
     num_alumnos: Optional[int] = None
     tipo_agrupamiento: Optional[str] = None
@@ -187,6 +197,7 @@ class ReinforcementPlanRequest(BaseModel):
     recursos_empleados: str
     desarrollo_aplicado: str
     normativa_aplicable: Optional[str] = None
+    matriz_curricular: Optional[MatrizCurricularRef] = None
     response_format: str = "json"  # text | json
     provider: str = "edumind"
     api_key: Optional[str] = None

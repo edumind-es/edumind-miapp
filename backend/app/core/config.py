@@ -132,6 +132,8 @@ class Settings(BaseSettings):
     DATASET_DIR: Path = BASE_DIR / "dataset"
     UPLOADS_DIR: Path = BASE_DIR / "uploads"
     TRAINING_DIR: Path = BASE_DIR / "training"
+    # Índice de matrices curriculares (generado por scripts/importar_matrices_idoceo.py)
+    CURRICULUM_INDEX_PATH: Path = BASE_DIR / "curriculo" / "matrices_idoceo.json.gz"
     
     # CORS
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []

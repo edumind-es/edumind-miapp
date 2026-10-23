@@ -73,9 +73,18 @@ def build_enriched_context(data: Dict[str, Any]) -> str:
     if data.get("contexto_adicional"):
         context_parts.append(f"Contexto adicional del aula/centro: {data['contexto_adicional']}")
     
+    result = ""
     if context_parts:
-        return "\n\nCONTEXTO ESPECÍFICO DEL AULA:\n" + "\n".join(f"- {part}" for part in context_parts)
-    return ""
+        result = "\n\nCONTEXTO ESPECÍFICO DEL AULA:\n" + "\n".join(f"- {part}" for part in context_parts)
+    return result + build_marco_curricular_block(data)
+
+
+def build_marco_curricular_block(data: Dict[str, Any]) -> str:
+    """Bloque con los elementos oficiales de la matriz curricular seleccionada (si la hay)."""
+    marco = data.get("marco_curricular")
+    if not marco:
+        return ""
+    return f"\n\n{marco}\n"
 
 def build_planning_prompt(data: Dict[str, Any]) -> str:
     """
@@ -428,6 +437,7 @@ def build_reinforcement_plan_prompt(data: Dict[str, Any]) -> str:
     - Recursos empleados: {data.get('recursos_empleados') or 'No especificados'}
     - Desarrollo aplicado hasta ahora: {data.get('desarrollo_aplicado') or 'No especificado'}
     - Normativa de referencia: {normativa_aplicable}
+    {build_marco_curricular_block(data)}
 
     REGLA DE PROTECCION DE DATOS (OBLIGATORIA):
     - No incluyas nombre, apellidos, DNI ni ningun identificador personal del alumno/a.
