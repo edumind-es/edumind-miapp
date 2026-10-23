@@ -40,9 +40,9 @@ export function PedagogicalModelSelector({ value, customValue, onChange }: Pedag
 
     return (
         <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">Modelo Pedagógico</label>
+            <label className="lam-label">Modelo Pedagógico</label>
             <select
-                className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                className="lam-input"
                 value={value}
                 onChange={handleChange}
             >
@@ -57,7 +57,7 @@ export function PedagogicalModelSelector({ value, customValue, onChange }: Pedag
 
             {/* Description of selected model */}
             {value && value !== "otro" && (
-                <p className="text-xs text-slate-400 italic">
+                <p className="text-xs text-ink-2 border-l-2 border-hair pl-2">
                     {PEDAGOGICAL_MODELS.find(m => m.id === value)?.desc}
                 </p>
             )}
@@ -66,7 +66,7 @@ export function PedagogicalModelSelector({ value, customValue, onChange }: Pedag
             {showCustom && (
                 <input
                     type="text"
-                    className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white mt-2"
+                    className="lam-input mt-2"
                     placeholder="Describe el modelo pedagógico..."
                     value={customValue || ""}
                     onChange={handleCustomChange}

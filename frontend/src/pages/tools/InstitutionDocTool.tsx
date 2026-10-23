@@ -19,7 +19,6 @@
 import { useState, useMemo } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2 } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 
@@ -92,8 +91,8 @@ export default function InstitutionDocTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
-                    {!output && !loading && <span className="text-slate-500">El documento generado aparecerá aquí...</span>}
+                <div className="lam-prose">
+                    {!output && !loading && <span className="text-ink-3">El documento generado aparecerá aquí...</span>}
                     {output && <div className="whitespace-pre-wrap">{output}</div>}
                 </div>
             }
@@ -103,8 +102,8 @@ export default function InstitutionDocTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Documento</label>
-                        <select className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Documento</label>
+                        <select className="lam-input"
                             value={formData.tipo} onChange={e => setFormData({ ...formData, tipo: e.target.value, seccion: "" })}>
                             {Object.entries(DOCUMENT_TYPES).map(([key, label]) => (
                                 <option key={key} value={key}>{label}</option>
@@ -112,8 +111,8 @@ export default function InstitutionDocTool() {
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Sección a Generar</label>
-                        <select className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Sección a Generar</label>
+                        <select className="lam-input"
                             value={formData.seccion || availableSections[0]} onChange={e => setFormData({ ...formData, seccion: e.target.value })}>
                             {availableSections.map(sec => (
                                 <option key={sec} value={sec}>{sec}</option>
@@ -123,28 +122,28 @@ export default function InstitutionDocTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Contexto del Centro</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                    <label className="lam-label">Contexto del Centro</label>
+                    <textarea className="lam-input h-24 resize-none"
                         placeholder="Características, entorno, tipología de alumnado..."
                         value={formData.contexto} onChange={e => setFormData({ ...formData, contexto: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Análisis DAFO (Resumen)</label>
+                    <label className="lam-label">Análisis DAFO (Resumen)</label>
                     <div className="grid grid-cols-2 gap-2">
-                        <input type="text" className="bg-[#1a1f2e] border border-white/10 rounded px-2 py-1 text-sm text-white"
+                        <input type="text" className="lam-input !px-2 !py-1 text-sm"
                             placeholder="Fortalezas" value={formData.fortalezas} onChange={e => setFormData({ ...formData, fortalezas: e.target.value })} />
-                        <input type="text" className="bg-[#1a1f2e] border border-white/10 rounded px-2 py-1 text-sm text-white"
+                        <input type="text" className="lam-input !px-2 !py-1 text-sm"
                             placeholder="Debilidades" value={formData.debilidades} onChange={e => setFormData({ ...formData, debilidades: e.target.value })} />
-                        <input type="text" className="bg-[#1a1f2e] border border-white/10 rounded px-2 py-1 text-sm text-white"
+                        <input type="text" className="lam-input !px-2 !py-1 text-sm"
                             placeholder="Oportunidades" value={formData.oportunidades} onChange={e => setFormData({ ...formData, oportunidades: e.target.value })} />
-                        <input type="text" className="bg-[#1a1f2e] border border-white/10 rounded px-2 py-1 text-sm text-white"
+                        <input type="text" className="lam-input !px-2 !py-1 text-sm"
                             placeholder="Amenazas" value={formData.amenazas} onChange={e => setFormData({ ...formData, amenazas: e.target.value })} />
                     </div>
                 </div>
 
-                <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2">
-                    {loading && <Loader2 className="animate-spin" />} Generar Sección
+                <button type="submit" disabled={loading} className="lam-btn lam-btn-block">
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>} Generar Sección
                 </button>
             </form>
         </GeneratorLayout>

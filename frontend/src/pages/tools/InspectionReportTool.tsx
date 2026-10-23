@@ -17,7 +17,6 @@
  */
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
 
 import { EngineSelector } from "@/components/EngineSelector";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
@@ -90,9 +89,9 @@ export default function InspectionReportTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
+                <div className="lam-prose">
                     {!output && !loading ? (
-                        <span className="text-slate-500">
+                        <span className="text-ink-3">
                             El documento técnico para inspección aparecerá aquí...
                         </span>
                     ) : null}
@@ -105,7 +104,7 @@ export default function InspectionReportTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Tipo de Documento</label>
+                        <label className="lam-label">Tipo de Documento</label>
                         <select
                             value={formData.tipo_documento}
                             onChange={(e) =>
@@ -118,7 +117,7 @@ export default function InspectionReportTool() {
                                             : prev.subplantilla,
                                 }))
                             }
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                         >
                             {DOCUMENT_TYPES.map((item) => (
                                 <option key={item.value} value={item.value}>
@@ -129,11 +128,11 @@ export default function InspectionReportTool() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Subplantilla Operativa</label>
+                        <label className="lam-label">Subplantilla Operativa</label>
                         <select
                             value={formData.subplantilla}
                             onChange={(e) => setFormData((prev) => ({ ...prev, subplantilla: e.target.value }))}
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                         >
                             {SUBTEMPLATES.map((item) => (
                                 <option key={item.value} value={item.value}>
@@ -144,11 +143,11 @@ export default function InspectionReportTool() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Ámbito de la Demanda</label>
+                        <label className="lam-label">Ámbito de la Demanda</label>
                         <select
                             value={formData.ambito}
                             onChange={(e) => setFormData((prev) => ({ ...prev, ambito: e.target.value }))}
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                         >
                             {AMBITOS.map((ambito) => (
                                 <option key={ambito} value={ambito}>
@@ -160,64 +159,64 @@ export default function InspectionReportTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Demanda de Inspección</label>
+                    <label className="lam-label">Demanda de Inspección</label>
                     <textarea
                         required
                         value={formData.demanda_inspeccion}
                         onChange={(e) => setFormData((prev) => ({ ...prev, demanda_inspeccion: e.target.value }))}
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                        className="lam-input h-24 resize-none"
                         placeholder="Describe qué solicita inspección, alcance y criterios esperados."
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Hallazgos / Situación Actual del Centro</label>
+                    <label className="lam-label">Hallazgos / Situación Actual del Centro</label>
                     <textarea
                         required
                         value={formData.hallazgos}
                         onChange={(e) => setFormData((prev) => ({ ...prev, hallazgos: e.target.value }))}
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                        className="lam-input h-24 resize-none"
                         placeholder="Describe hechos, incidencias, puntos fuertes y brechas detectadas."
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Actuaciones Previas</label>
+                    <label className="lam-label">Actuaciones Previas</label>
                     <textarea
                         value={formData.actuaciones_previas}
                         onChange={(e) => setFormData((prev) => ({ ...prev, actuaciones_previas: e.target.value }))}
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-20 resize-none"
+                        className="lam-input h-20 resize-none"
                         placeholder="Medidas ya aplicadas, comisiones convocadas, reuniones, protocolos activados..."
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Evidencias Disponibles</label>
+                    <label className="lam-label">Evidencias Disponibles</label>
                     <textarea
                         required
                         value={formData.evidencias}
                         onChange={(e) => setFormData((prev) => ({ ...prev, evidencias: e.target.value }))}
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-20 resize-none"
+                        className="lam-input h-20 resize-none"
                         placeholder="Actas, registros, anexos, indicadores, comunicaciones con familias..."
                     />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Plazo de Respuesta</label>
+                        <label className="lam-label">Plazo de Respuesta</label>
                         <input
                             value={formData.plazo_respuesta}
                             onChange={(e) => setFormData((prev) => ({ ...prev, plazo_respuesta: e.target.value }))}
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                             placeholder="Ej: 10 días hábiles"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Normativa Aplicable</label>
+                        <label className="lam-label">Normativa Aplicable</label>
                         <input
                             value={formData.normativa_aplicable}
                             onChange={(e) => setFormData((prev) => ({ ...prev, normativa_aplicable: e.target.value }))}
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                             placeholder="Ej: Ley 4/2011, Decreto 8/2015, instrucciones autonómicas..."
                         />
                     </div>
@@ -226,9 +225,9 @@ export default function InspectionReportTool() {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2"
+                    className="lam-btn lam-btn-block"
                 >
-                    {loading ? <Loader2 className="animate-spin" /> : null}
+                    {loading ? <span className="font-mono" aria-hidden="true">···</span> : null}
                     Generar Documento para Inspección
                 </button>
             </form>

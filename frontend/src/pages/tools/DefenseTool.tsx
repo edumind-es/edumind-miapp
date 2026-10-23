@@ -19,7 +19,6 @@
 import { useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2 } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 
@@ -56,8 +55,8 @@ export default function DefenseTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
-                    {!output && !loading && <span className="text-slate-500">El resultado del análisis aparecerá aquí...</span>}
+                <div className="lam-prose">
+                    {!output && !loading && <span className="text-ink-3">El resultado del análisis aparecerá aquí...</span>}
                     {output && <div className="whitespace-pre-wrap">{output}</div>}
                 </div>
             }
@@ -66,8 +65,8 @@ export default function DefenseTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Modo</label>
-                    <select className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                    <label className="lam-label">Modo</label>
+                    <select className="lam-input"
                         value={formData.modo} onChange={e => setFormData({ ...formData, modo: e.target.value })}>
                         <option value="modelo">Generar Respuesta Modelo</option>
                         <option value="evaluar">Evaluar mi Respuesta</option>
@@ -75,30 +74,30 @@ export default function DefenseTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Especialidad</label>
-                    <input type="text" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                    <label className="lam-label">Especialidad</label>
+                    <input type="text" className="lam-input"
                         placeholder="Ej. Primaria Inglés"
                         value={formData.especialidad} onChange={e => setFormData({ ...formData, especialidad: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Enunciado del Supuesto / Pregunta</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-32 resize-none"
+                    <label className="lam-label">Enunciado del Supuesto / Pregunta</label>
+                    <textarea className="lam-input h-32 resize-none"
                         placeholder="Pega aquí el enunciado..."
                         value={formData.enunciado} onChange={e => setFormData({ ...formData, enunciado: e.target.value })} required />
                 </div>
 
                 {formData.modo === "evaluar" && (
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Tu Respuesta</label>
-                        <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-48 resize-none"
+                        <label className="lam-label">Tu Respuesta</label>
+                        <textarea className="lam-input h-48 resize-none"
                             placeholder="Escribe aquí tu defensa o respuesta..."
                             value={formData.respuesta_usuario} onChange={e => setFormData({ ...formData, respuesta_usuario: e.target.value })} required />
                     </div>
                 )}
 
-                <button type="submit" disabled={loading} className="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2">
-                    {loading && <Loader2 className="animate-spin" />} {formData.modo === 'evaluar' ? 'Evaluar Respuesta' : 'Generar Modelo'}
+                <button type="submit" disabled={loading} className="lam-btn lam-btn-block">
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>} {formData.modo === 'evaluar' ? 'Evaluar Respuesta' : 'Generar Modelo'}
                 </button>
             </form>
         </GeneratorLayout>

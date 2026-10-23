@@ -4,7 +4,6 @@
  */
 
 import { useState } from "react";
-import { BookOpen, ChevronLeft, ChevronRight, Loader2, Search } from "lucide-react";
 
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
@@ -135,40 +134,38 @@ export default function NormativaTool() {
             preview={
                 <div className="flex flex-col h-full">
                     {!output && !busy && (
-                        <div className="flex-1 flex items-center justify-center text-slate-500 text-sm italic">
+                        <div className="flex-1 flex items-center justify-center text-ink-3 text-sm">
                             Haz una consulta para recuperar normativa y generar una respuesta guiada.
                         </div>
                     )}
 
                     {searchLoading && (
-                        <div className="mb-4 rounded border border-blue-500/30 bg-blue-950/20 p-3 text-xs text-blue-200 flex items-center gap-2">
-                            <Loader2 size={14} className="animate-spin" />
-                            Recuperando normativa indexada...
+                        <div className="lam-note mental mb-4">
+                            <span className="tag">Búsqueda</span>
+                            <p className="m-0 text-sm">Recuperando normativa indexada...</p>
                         </div>
                     )}
 
                     {searchError && (
-                        <div className="mb-4 rounded border border-red-500/40 bg-red-950/20 p-3 text-xs text-red-200">
-                            {searchError}
+                        <div className="lam-note alert mb-4">
+                            <span className="tag">Error</span>
+                            <p className="m-0 text-sm">{searchError}</p>
                         </div>
                     )}
 
                     {sources.length > 0 && !searchLoading && (
-                        <div className="mb-4 rounded border border-blue-500/20 bg-blue-950/20 p-3">
-                            <div className="mb-2 flex items-center justify-between gap-3 text-xs text-blue-100">
-                                <strong className="inline-flex items-center gap-2">
-                                    <BookOpen size={12} />
-                                    Fuentes detectadas ({totalResults} resultados)
-                                </strong>
-                                <span className="text-[11px] opacity-80">{cacheHit ? "cache: hit" : "cache: miss"}</span>
+                        <div className="lam-panel mb-4">
+                            <div className="lam-panel-head">
+                                <span className="lam-mono lam-mono-ink">Fuentes detectadas · {totalResults} resultados</span>
+                                <span className="lam-mono">{cacheHit ? "caché: hit" : "caché: miss"}</span>
                             </div>
 
                             <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
                                 {sources.map((item) => (
-                                    <div key={`${item.document_id}-${item.section_label}-${item.score}`} className="rounded border border-white/10 bg-slate-900/40 p-2 text-xs text-slate-200">
-                                        <div className="font-semibold text-blue-200">{item.title}</div>
+                                    <div key={`${item.document_id}-${item.section_label}-${item.score}`} className="border border-hair bg-paper/40 p-2 text-xs text-ink">
+                                        <div className="font-semibold">{item.title}</div>
                                         <div className="opacity-80 mt-1 line-clamp-3">{item.content}</div>
-                                        <div className="mt-1 text-[11px] text-slate-400">Score: {item.score.toFixed(1)}</div>
+                                        <div className="mt-1 lam-mono">Score {item.score.toFixed(1)}</div>
                                     </div>
                                 ))}
                             </div>
@@ -179,29 +176,25 @@ export default function NormativaTool() {
                                         type="button"
                                         onClick={() => handlePageChange(page - 1)}
                                         disabled={busy || page <= 1}
-                                        className="inline-flex items-center gap-1 rounded border border-white/15 px-2 py-1 text-xs text-slate-200 hover:bg-white/10 disabled:opacity-40"
+                                        className="lam-btn lam-btn-sm lam-btn-ghost"
                                     >
-                                        <ChevronLeft size={14} />
-                                        Anterior
+                                        ← Anterior
                                     </button>
-                                    <span className="text-[11px] text-slate-300">
-                                        Página {page} de {totalPages}
-                                    </span>
+                                    <span className="lam-mono">Página {page} de {totalPages}</span>
                                     <button
                                         type="button"
                                         onClick={() => handlePageChange(page + 1)}
                                         disabled={busy || page >= totalPages}
-                                        className="inline-flex items-center gap-1 rounded border border-white/15 px-2 py-1 text-xs text-slate-200 hover:bg-white/10 disabled:opacity-40"
+                                        className="lam-btn lam-btn-sm lam-btn-ghost"
                                     >
-                                        Siguiente
-                                        <ChevronRight size={14} />
-                                    </button>
+                                        Siguiente →
+                                                                            </button>
                                 </div>
                             )}
                         </div>
                     )}
 
-                    <div className="prose prose-invert max-w-none flex-1">
+                    <div className="lam-prose flex-1">
                         {output && <div className="whitespace-pre-wrap">{output}</div>}
                     </div>
                 </div>
@@ -216,9 +209,9 @@ export default function NormativaTool() {
                 />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Consulta sobre Convivencia</label>
+                    <label className="lam-label">Consulta sobre Convivencia</label>
                     <textarea
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-32 resize-none focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        className="lam-input h-32 resize-none"
                         placeholder="Ej: ¿Cuáles son los pasos ante un caso de acoso escolar? ¿Qué medidas correctivas se aplican a faltas graves?"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
@@ -226,13 +219,13 @@ export default function NormativaTool() {
                     />
                 </div>
 
-                <div className="bg-slate-800/50 p-3 rounded text-xs text-slate-400">
-                    <p className="font-bold mb-1">Base indexada en backend:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                        <li>Ley 4/2011 de Convivencia</li>
-                        <li>Decreto 8/2015</li>
-                        <li>Protocolos de Acoso, Maltrato, Absentismo, Identidad de Género...</li>
-                        <li>Ley Orgánica 8/2021 (Rhodes)</li>
+                <div>
+                    <p className="lam-mono mb-1">Base indexada en backend</p>
+                    <ul className="lam-rules text-sm">
+                        <li><span className="dash">—</span>Ley 4/2011 de Convivencia</li>
+                        <li><span className="dash">—</span>Decreto 8/2015</li>
+                        <li><span className="dash">—</span>Protocolos de Acoso, Maltrato, Absentismo, Identidad de Género...</li>
+                        <li><span className="dash">—</span>Ley Orgánica 8/2021 (Rhodes)</li>
                     </ul>
                 </div>
 
@@ -240,9 +233,9 @@ export default function NormativaTool() {
                     <button
                         type="submit"
                         disabled={busy}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="lam-btn lam-btn-block"
                     >
-                        {busy ? <Loader2 className="animate-spin" /> : <Search size={20} />}
+                        {busy ? <span className="font-mono" aria-hidden="true">···</span> : null}
                         Buscar y responder
                     </button>
 
@@ -250,7 +243,7 @@ export default function NormativaTool() {
                         type="button"
                         onClick={handleRegenerateWithCurrentPage}
                         disabled={busy || !retrievedContext.trim()}
-                        className="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="lam-btn lam-btn-block lam-btn-ghost"
                     >
                         Regenerar con página actual
                     </button>

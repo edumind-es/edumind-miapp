@@ -16,21 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Panel de administración en modo EDUmind-Lámina: métricas como cifras grandes
+// separadas por filetes, sin tarjetas ni iconos.
+
 import { useState, useEffect } from "react";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { authFetch } from "@/lib/auth-client";
 import { buildAdminPortalPath } from "@/lib/admin-portal";
-import {
-    Users,
-    Database,
-    FileText,
-    Cpu,
-    TrendingUp,
-    Clock,
-    CheckCircle,
-    AlertCircle
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 interface DashboardStats {
     total_users: number;
@@ -44,33 +36,12 @@ interface DashboardStats {
     generations_today: number;
 }
 
-function StatCard({
-    icon: Icon,
-    label,
-    value,
-    color,
-    subtext
-}: {
-    icon: LucideIcon;
-    label: string;
-    value: string | number;
-    color: string;
-    subtext?: string;
-}) {
+function Stat({ label, value, subtext }: { label: string; value: string | number; subtext?: string }) {
     return (
-        <div className="bg-[#1a1f2e] border border-white/10 rounded-xl p-6">
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-sm text-slate-400 mb-1">{label}</p>
-                    <p className="text-3xl font-bold text-white">{value}</p>
-                    {subtext && (
-                        <p className="text-xs text-slate-500 mt-1">{subtext}</p>
-                    )}
-                </div>
-                <div className={`p-3 rounded-lg ${color}`}>
-                    <Icon className="w-6 h-6 text-white" />
-                </div>
-            </div>
+        <div className="border-t border-hair pt-3">
+            <p className="lam-mono mb-2">{label}</p>
+            <p className="m-0 font-extrabold text-[32px] leading-none tracking-[-0.03em]">{value}</p>
+            {subtext ? <p className="m-0 mt-2 text-sm text-ink-2">{subtext}</p> : null}
         </div>
     );
 }
@@ -105,7 +76,7 @@ export default function AdminDashboard() {
         return (
             <AdminLayout>
                 <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+                    <span className="lam-mono">Cargando</span>
                 </div>
             </AdminLayout>
         );
@@ -114,9 +85,9 @@ export default function AdminDashboard() {
     if (error) {
         return (
             <AdminLayout>
-                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-400" />
-                    <span className="text-red-400">{error}</span>
+                <div className="lam-note alert">
+                    <span className="tag">Error</span>
+                    <p className="m-0">{error}</p>
                 </div>
             </AdminLayout>
         );
@@ -124,94 +95,51 @@ export default function AdminDashboard() {
 
     return (
         <AdminLayout>
-            <div className="space-y-8">
-                {/* Header */}
+            <div className="space-y-12">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-                    <p className="text-slate-400">
-                        Panel de control de EDUmind MiApp
-                    </p>
+                    <p className="lam-eyebrow mb-3">EDUmind · Administración</p>
+                    <h1 className="lam-h1 mb-4">
+                        Panel <span className="light">de control</span>
+                    </h1>
+                    <p className="lam-lede">Estado de MiApp: usuarios, dataset y entrenamiento.</p>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard
-                        icon={Users}
-                        label="Usuarios"
-                        value={stats?.total_users || 0}
-                        color="bg-blue-600"
-                        subtext={`${stats?.active_users_today || 0} activos hoy`}
-                    />
-                    <StatCard
-                        icon={Database}
-                        label="Items de Dataset"
-                        value={stats?.total_training_items || 0}
-                        color="bg-green-600"
-                        subtext={`${stats?.verified_items || 0} verificados`}
-                    />
-                    <StatCard
-                        icon={FileText}
-                        label="Documentos"
-                        value={stats?.total_documents || 0}
-                        color="bg-purple-600"
-                    />
-                    <StatCard
-                        icon={TrendingUp}
-                        label="Generaciones Hoy"
-                        value={stats?.generations_today || 0}
-                        color="bg-orange-600"
-                    />
-                </div>
-
-                {/* Second Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <StatCard
-                        icon={Cpu}
-                        label="Jobs de Entrenamiento"
-                        value={stats?.total_training_jobs || 0}
-                        color="bg-pink-600"
-                    />
-                    <StatCard
-                        icon={CheckCircle}
-                        label="Último Modelo"
-                        value={stats?.latest_model_version || "Sin entrenar"}
-                        color="bg-teal-600"
-                    />
-                    <StatCard
-                        icon={Clock}
-                        label="Items Pendientes"
-                        value={stats?.pending_items || 0}
-                        color="bg-yellow-600"
-                        subtext="Por verificar"
-                    />
-                </div>
-
-                {/* Quick Actions */}
-                <div className="bg-[#1a1f2e] border border-white/10 rounded-xl p-6">
-                    <h2 className="text-lg font-semibold text-white mb-4">
-                        Acciones Rápidas
-                    </h2>
-                    <div className="flex flex-wrap gap-4">
-                        <a
-                            href={buildAdminPortalPath("/dataset")}
-                            className="px-4 py-2 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-lg hover:bg-blue-600/30 transition-colors"
-                        >
-                            📁 Subir Archivos
-                        </a>
-                        <a
-                            href={buildAdminPortalPath("/dataset")}
-                            className="px-4 py-2 bg-green-600/20 text-green-400 border border-green-500/30 rounded-lg hover:bg-green-600/30 transition-colors"
-                        >
-                            ✅ Verificar Items
-                        </a>
-                        <a
-                            href={buildAdminPortalPath("/training")}
-                            className="px-4 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/30 rounded-lg hover:bg-purple-600/30 transition-colors"
-                        >
-                            🚀 Preparar Entrenamiento
-                        </a>
+                <section>
+                    <div className="lam-sec-head">
+                        <span className="lam-sec-num">01</span>
+                        <h2>Cifras</h2>
                     </div>
-                </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-8">
+                        <Stat label="Usuarios" value={stats?.total_users || 0} subtext={`${stats?.active_users_today || 0} activos hoy`} />
+                        <Stat label="Items de dataset" value={stats?.total_training_items || 0} subtext={`${stats?.verified_items || 0} verificados`} />
+                        <Stat label="Documentos" value={stats?.total_documents || 0} />
+                        <Stat label="Generaciones hoy" value={stats?.generations_today || 0} />
+                        <Stat label="Jobs de entrenamiento" value={stats?.total_training_jobs || 0} />
+                        <Stat label="Último modelo" value={stats?.latest_model_version || "Sin entrenar"} />
+                        <Stat label="Items pendientes" value={stats?.pending_items || 0} subtext="Por verificar" />
+                    </div>
+                </section>
+
+                <section>
+                    <div className="lam-sec-head">
+                        <span className="lam-sec-num">02</span>
+                        <h2>Acciones</h2>
+                    </div>
+                    <ul className="lam-rules">
+                        <li>
+                            <span className="dash">—</span>
+                            <a href={buildAdminPortalPath("/dataset")} className="flex-1 hover:underline underline-offset-4">Subir archivos al dataset</a>
+                        </li>
+                        <li>
+                            <span className="dash">—</span>
+                            <a href={buildAdminPortalPath("/dataset")} className="flex-1 hover:underline underline-offset-4">Verificar items pendientes</a>
+                        </li>
+                        <li>
+                            <span className="dash">—</span>
+                            <a href={buildAdminPortalPath("/training")} className="flex-1 hover:underline underline-offset-4">Preparar un entrenamiento</a>
+                        </li>
+                    </ul>
+                </section>
             </div>
         </AdminLayout>
     );

@@ -19,7 +19,6 @@
 import { useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2 } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 
@@ -54,8 +53,8 @@ export default function DiversityTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
-                    {!output && !loading && <span className="text-slate-500">La propuesta de intervención aparecerá aquí...</span>}
+                <div className="lam-prose">
+                    {!output && !loading && <span className="text-ink-3">La propuesta de intervención aparecerá aquí...</span>}
                     {output && <div className="whitespace-pre-wrap">{output}</div>}
                 </div>
             }
@@ -64,28 +63,28 @@ export default function DiversityTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Descripción del Caso</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-32 resize-none"
+                    <label className="lam-label">Descripción del Caso</label>
+                    <textarea className="lam-input h-32 resize-none"
                         placeholder="Describe la situación del alumno o grupo, NEAE, dificultades..."
                         value={formData.caso} onChange={e => setFormData({ ...formData, caso: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Intervención Realizada (Opcional)</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                    <label className="lam-label">Intervención Realizada (Opcional)</label>
+                    <textarea className="lam-input h-24 resize-none"
                         placeholder="¿Qué se ha hecho hasta ahora?"
                         value={formData.intervencion_actual} onChange={e => setFormData({ ...formData, intervencion_actual: e.target.value })} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Resultados Obtenidos (Opcional)</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                    <label className="lam-label">Resultados Obtenidos (Opcional)</label>
+                    <textarea className="lam-input h-24 resize-none"
                         placeholder="¿Qué ha funcionado y qué no?"
                         value={formData.resultados} onChange={e => setFormData({ ...formData, resultados: e.target.value })} />
                 </div>
 
-                <button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2">
-                    {loading && <Loader2 className="animate-spin" />} Generar Intervención
+                <button type="submit" disabled={loading} className="lam-btn lam-btn-block">
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>} Generar Intervención
                 </button>
             </form>
         </GeneratorLayout>

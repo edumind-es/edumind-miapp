@@ -17,7 +17,6 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { AlertCircle, Download, Gauge, Plus, RefreshCw, Save, ServerCog, ShieldCheck } from "lucide-react";
 
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { authFetch } from "@/lib/auth-client";
@@ -147,10 +146,10 @@ function StatCard({
     helper?: string;
 }) {
     return (
-        <div className="bg-[#1a1f2e] border border-white/10 rounded-xl p-4">
-            <p className="text-xs text-slate-400">{title}</p>
-            <p className="text-xl font-semibold text-white mt-1">{value}</p>
-            {helper ? <p className="text-xs text-slate-500 mt-1">{helper}</p> : null}
+        <div className="border-t border-hair pt-3">
+            <p className="lam-mono">{title}</p>
+            <p className="font-extrabold text-[32px] tracking-[-0.03em] mt-1">{value}</p>
+            {helper ? <p className="text-xs text-ink-3 mt-1">{helper}</p> : null}
         </div>
     );
 }
@@ -339,8 +338,8 @@ export default function AdminConfig() {
             <div className="space-y-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-white">Configuración y Observabilidad</h1>
-                        <p className="text-slate-400">
+                        <h1 className="text-[26px] font-bold tracking-[-0.02em]">Configuración y Observabilidad</h1>
+                        <p className="text-ink-2">
                             Operación enterprise: configuración dinámica, SLO y estado runtime.
                         </p>
                     </div>
@@ -348,38 +347,34 @@ export default function AdminConfig() {
                     <button
                         onClick={() => void loadData(true)}
                         disabled={loading || refreshing}
-                        className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-3 py-1.5 rounded disabled:opacity-50"
+                        className="lam-btn lam-btn-sm"
                     >
-                        <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
                         Actualizar
                     </button>
                 </div>
 
                 {loading ? (
                     <div className="h-48 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+                        <span className="lam-mono">Cargando</span>
                     </div>
                 ) : null}
 
                 {error ? (
-                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-center gap-3">
-                        <AlertCircle className="w-5 h-5 text-red-400" />
-                        <span className="text-red-300 text-sm">{error}</span>
+                    <div className="lam-note alert flex items-center gap-3">
+                        <span className="text-alert text-sm">{error}</span>
                     </div>
                 ) : null}
 
                 {notice ? (
-                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 flex items-center gap-3">
-                        <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                        <span className="text-emerald-300 text-sm">{notice}</span>
+                    <div className="lam-note ok flex items-center gap-3">
+                        <span className="text-ok text-sm">{notice}</span>
                     </div>
                 ) : null}
 
                 {!loading ? (
                     <>
-                        <section className="bg-[#1a1f2e] border border-white/10 rounded-xl p-4 space-y-3">
-                            <h2 className="text-white font-semibold flex items-center gap-2">
-                                <ServerCog className="w-4 h-4 text-blue-300" />
+                        <section className="lam-panel space-y-3">
+                            <h2 className="text-[17px] font-bold">
                                 Claves de configuración
                             </h2>
 
@@ -388,44 +383,43 @@ export default function AdminConfig() {
                                     value={newKey}
                                     onChange={(e) => setNewKey(e.target.value)}
                                     placeholder="nueva_clave"
-                                    className="md:col-span-4 bg-black/20 border border-white/10 rounded px-3 py-2 text-sm text-white"
+                                    className="md:col-span-4 lam-input text-sm"
                                 />
                                 <input
                                     value={newValue}
                                     onChange={(e) => setNewValue(e.target.value)}
                                     placeholder="valor"
-                                    className="md:col-span-6 bg-black/20 border border-white/10 rounded px-3 py-2 text-sm text-white"
+                                    className="md:col-span-6 lam-input text-sm"
                                 />
                                 <button
                                     type="submit"
-                                    className="md:col-span-2 inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded px-3 py-2 text-sm font-medium"
+                                    className="md:col-span-2 lam-btn lam-btn-sm"
                                 >
-                                    <Plus className="w-4 h-4" />
                                     Añadir
                                 </button>
                             </form>
 
                             <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
+                                <table className="lam-table">
                                     <thead>
-                                        <tr className="text-slate-400 border-b border-white/10">
-                                            <th className="text-left py-2 pr-3">Clave</th>
-                                            <th className="text-left py-2 pr-3">Valor</th>
-                                            <th className="text-right py-2">Acción</th>
+                                        <tr>
+                                            <th className="pr-3">Clave</th>
+                                            <th className="pr-3">Valor</th>
+                                            <th className="text-right">Acción</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {configs.length === 0 ? (
                                             <tr>
-                                                <td className="py-3 text-slate-500" colSpan={3}>
+                                                <td className="py-3 text-ink-3" colSpan={3}>
                                                     No hay claves configuradas.
                                                 </td>
                                             </tr>
                                         ) : (
                                             configs.map((item) => (
-                                                <tr key={item.key} className="border-b border-white/5">
+                                                <tr key={item.key} className="border-b border-hair">
                                                     <td className="py-2 pr-3">
-                                                        <code className="text-blue-300">{item.key}</code>
+                                                        <code className="text-ink">{item.key}</code>
                                                     </td>
                                                     <td className="py-2 pr-3">
                                                         <input
@@ -436,7 +430,7 @@ export default function AdminConfig() {
                                                                     [item.key]: e.target.value,
                                                                 }))
                                                             }
-                                                            className="w-full bg-black/20 border border-white/10 rounded px-2 py-1.5 text-xs text-white"
+                                                            className="lam-input !py-1 text-xs"
                                                         />
                                                     </td>
                                                     <td className="py-2 text-right">
@@ -445,9 +439,8 @@ export default function AdminConfig() {
                                                                 void saveConfig(item.key, draftValues[item.key] ?? "")
                                                             }
                                                             disabled={savingKey === item.key}
-                                                            className="inline-flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded px-2.5 py-1.5 disabled:opacity-60"
+                                                            className="lam-btn lam-btn-sm"
                                                         >
-                                                            <Save className="w-3.5 h-3.5" />
                                                             {savingKey === item.key ? "Guardando..." : "Guardar"}
                                                         </button>
                                                     </td>
@@ -460,8 +453,7 @@ export default function AdminConfig() {
                         </section>
 
                         <section className="space-y-4">
-                            <h2 className="text-white font-semibold flex items-center gap-2">
-                                <Gauge className="w-4 h-4 text-amber-300" />
+                            <h2 className="text-[17px] font-bold">
                                 Runtime y SLO
                             </h2>
 
@@ -511,32 +503,20 @@ export default function AdminConfig() {
                                 />
                             </div>
 
-                            <div className="bg-[#1a1f2e] border border-white/10 rounded-xl p-4 flex flex-wrap items-center gap-2 text-sm">
-                                <span className="text-slate-400">Cumplimiento SLO:</span>
+                            <div className="flex flex-wrap items-center gap-2 text-sm border-t border-hair pt-4">
+                                <span className="lam-mono">Cumplimiento SLO</span>
                                 <span
-                                    className={`px-2 py-1 rounded ${
-                                        slo?.meets_slo.availability
-                                            ? "bg-emerald-500/20 text-emerald-300"
-                                            : "bg-red-500/20 text-red-300"
-                                    }`}
+                                    className={slo?.meets_slo.availability ? "lam-stamp" : "lam-stamp !border-alert !text-alert"}
                                 >
                                     Disponibilidad
                                 </span>
                                 <span
-                                    className={`px-2 py-1 rounded ${
-                                        slo?.meets_slo.latency
-                                            ? "bg-emerald-500/20 text-emerald-300"
-                                            : "bg-red-500/20 text-red-300"
-                                    }`}
+                                    className={slo?.meets_slo.latency ? "lam-stamp" : "lam-stamp !border-alert !text-alert"}
                                 >
                                     Latencia
                                 </span>
                                 <span
-                                    className={`px-2 py-1 rounded font-medium ${
-                                        slo?.meets_slo.overall
-                                            ? "bg-emerald-500/20 text-emerald-200"
-                                            : "bg-red-500/20 text-red-200"
-                                    }`}
+                                    className={slo?.meets_slo.overall ? "lam-stamp" : "lam-stamp !border-alert !text-alert"}
                                 >
                                     {slo?.meets_slo.overall ? "Objetivo global OK" : "Objetivo global NO OK"}
                                 </span>
@@ -545,11 +525,10 @@ export default function AdminConfig() {
 
                         <section className="space-y-4">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <h2 className="text-white font-semibold flex items-center gap-2">
-                                    <ServerCog className="w-4 h-4 text-cyan-300" />
+                                <h2 className="text-[17px] font-bold">
                                     Diagnóstico Conectividad IA
                                 </h2>
-                                <div className="text-xs text-slate-400">
+                                <div className="text-xs text-ink-2">
                                     {providersHealth ? (
                                         <>
                                             {providersHealth.cached ? "cache" : "live"} • {providersHealth.timestamp}
@@ -560,65 +539,61 @@ export default function AdminConfig() {
                                 </div>
                             </div>
 
-                            <div className="bg-[#1a1f2e] border border-white/10 rounded-xl p-3 text-xs text-slate-300">
+                            <div className="bg-card border border-hair p-3 text-xs text-ink-2">
                                 Test de red sin API key: valida DNS/TLS/HTTP y NO valida credenciales BYOK.
                             </div>
 
-                            <div className="bg-[#1a1f2e] border border-white/10 rounded-xl p-4 overflow-x-auto">
-                                <table className="w-full text-sm">
+                            <div className="lam-panel overflow-x-auto">
+                                <table className="lam-table">
                                     <thead>
-                                        <tr className="text-slate-400 border-b border-white/10">
-                                            <th className="text-left py-2 pr-3">Proveedor</th>
-                                            <th className="text-left py-2 pr-3">Estado</th>
+                                        <tr>
+                                            <th className="pr-3">Proveedor</th>
+                                            <th className="pr-3">Estado</th>
                                             <th className="text-center py-2 pr-3">DNS</th>
                                             <th className="text-center py-2 pr-3">TLS</th>
                                             <th className="text-center py-2 pr-3">HTTP</th>
                                             <th className="text-center py-2 pr-3">Auth</th>
-                                            <th className="text-left py-2 pr-3">Scope</th>
-                                            <th className="text-left py-2">Detalle</th>
+                                            <th className="pr-3">Scope</th>
+                                            <th className="">Detalle</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {providerConnectivityRows.length === 0 ? (
                                             <tr>
-                                                <td className="py-3 text-slate-500" colSpan={8}>
+                                                <td className="py-3 text-ink-3" colSpan={8}>
                                                     Sin diagnostico disponible.
                                                 </td>
                                             </tr>
                                         ) : (
                                             providerConnectivityRows.map(([provider, item]) => (
-                                                <tr key={provider} className="border-b border-white/5">
-                                                    <td className="py-2 pr-3 text-slate-200">{provider}</td>
+                                                <tr key={provider} className="border-b border-hair">
+                                                    <td className="py-2 pr-3 text-ink">{provider}</td>
                                                     <td className="py-2 pr-3">
                                                         <span
-                                                            className={`px-2 py-1 rounded text-xs ${
-                                                                item.available
-                                                                    ? "bg-emerald-500/20 text-emerald-300"
-                                                                    : "bg-rose-500/20 text-rose-300"
-                                                            }`}
+                                                            className={item.available ? "lam-stamp" : "lam-stamp !border-alert !text-alert"}
                                                         >
                                                             {item.status}
                                                         </span>
                                                     </td>
-                                                    <td className="py-2 pr-3 text-center text-slate-200">
+                                                    <td className="py-2 pr-3 text-center text-ink">
                                                         {item.dns_ok ? "OK" : "KO"}
                                                     </td>
-                                                    <td className="py-2 pr-3 text-center text-slate-200">
+                                                    <td className="py-2 pr-3 text-center text-ink">
                                                         {item.tls_ok ? "OK" : "KO"}
                                                     </td>
-                                                    <td className="py-2 pr-3 text-center text-slate-200">
+                                                    <td className="py-2 pr-3 text-center text-ink">
                                                         {item.http_ok ? "OK" : "KO"}
                                                         {typeof item.http_status === "number"
                                                             ? ` (${item.http_status})`
                                                             : ""}
                                                     </td>
-                                                    <td className="py-2 pr-3 text-center text-slate-200">
+                                                    <td className="py-2 pr-3 text-center text-ink">
                                                         {item.auth_required ? "BYOK" : "N/A"}
                                                     </td>
-                                                    <td className="py-2 pr-3 text-slate-300">
+                                                    <td className="py-2 pr-3 text-ink-2">
                                                         {item.connection_scope || "network-only"}
                                                     </td>
-                                                    <td className="py-2 text-[12px] text-slate-400">
+                                                    <td className="py-2 text-[12px] text-ink-2">
                                                         {item.reason || "Sin detalle"}
                                                     </td>
                                                 </tr>
@@ -631,42 +606,39 @@ export default function AdminConfig() {
 
                         <section className="space-y-4">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <h2 className="text-white font-semibold flex items-center gap-2">
-                                    <Gauge className="w-4 h-4 text-sky-300" />
+                                <h2 className="text-[17px] font-bold">
                                     Observabilidad por proveedor
                                 </h2>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => void exportObservability("json")}
                                         disabled={exporting !== null}
-                                        className="inline-flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs px-2.5 py-1.5 rounded disabled:opacity-60"
+                                        className="lam-btn lam-btn-sm lam-btn-ghost"
                                     >
-                                        <Download className="w-3.5 h-3.5" />
                                         {exporting === "json" ? "Exportando..." : "Exportar JSON"}
                                     </button>
                                     <button
                                         onClick={() => void exportObservability("csv")}
                                         disabled={exporting !== null}
-                                        className="inline-flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs px-2.5 py-1.5 rounded disabled:opacity-60"
+                                        className="lam-btn lam-btn-sm lam-btn-ghost"
                                     >
-                                        <Download className="w-3.5 h-3.5" />
                                         {exporting === "csv" ? "Exportando..." : "Exportar CSV"}
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="bg-[#1a1f2e] border border-white/10 rounded-xl p-3 text-xs text-slate-300 flex flex-wrap gap-3">
+                            <div className="bg-card border border-hair p-3 text-xs text-ink-2 flex flex-wrap gap-3">
                                 <span>DNS umbral: {alertPolicy.dns_error_count ?? 1}</span>
                                 <span>Timeout umbral: {alertPolicy.timeout_count ?? 2}</span>
                                 <span>Fallo umbral: {(alertPolicy.failure_rate_percent ?? 20).toFixed(1)}%</span>
                                 <span>Muestra mínima: {alertPolicy.min_sample_size ?? 10}</span>
                             </div>
 
-                            <div className="bg-[#1a1f2e] border border-white/10 rounded-xl p-3 text-xs text-slate-200 space-y-2">
+                            <div className="bg-card border border-hair p-3 text-xs text-ink space-y-2">
                                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                     <span>
                                         Guard operativo EDUmind:{" "}
-                                        <strong className={edumindGuard?.force_disabled ? "text-rose-300" : "text-emerald-300"}>
+                                        <strong className={edumindGuard?.force_disabled ? "text-alert" : "text-ok"}>
                                             {edumindGuard?.force_disabled ? "FORZADO OFF" : "ACTIVO"}
                                         </strong>
                                     </span>
@@ -674,21 +646,21 @@ export default function AdminConfig() {
                                         <button
                                             onClick={() => void setProviderGuardState("edumind", true)}
                                             disabled={savingKey === "observability.guard.provider.edumind.force_disabled"}
-                                            className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs px-2.5 py-1.5 rounded disabled:opacity-60"
+                                            className="inline-flex items-center gap-1.5 bg-alert hover:bg-alert text-paper text-xs px-2.5 py-1.5 disabled:opacity-60"
                                         >
                                             Forzar OFF
                                         </button>
                                         <button
                                             onClick={() => void setProviderGuardState("edumind", false)}
                                             disabled={savingKey === "observability.guard.provider.edumind.force_disabled"}
-                                            className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 py-1.5 rounded disabled:opacity-60"
+                                            className="inline-flex items-center gap-1.5 bg-ink hover:bg-ink text-paper text-xs px-2.5 py-1.5 disabled:opacity-60"
                                         >
                                             Reactivar
                                         </button>
                                     </div>
                                 </div>
                                 {edumindGuard?.reason ? (
-                                    <div className="text-[11px] text-amber-200">
+                                    <div className="text-[11px] text-vigencia">
                                         Motivo configurado: {edumindGuard.reason}
                                     </div>
                                 ) : null}
@@ -699,21 +671,16 @@ export default function AdminConfig() {
                                     {providerAlerts.map((alert, index) => (
                                         <div
                                             key={`${alert.code || "alert"}-${alert.provider || "global"}-${index}`}
-                                            className={`rounded-lg p-3 flex items-center gap-2 ${
-                                                alert.level === "critical"
-                                                    ? "bg-red-500/10 border border-red-500/30"
-                                                    : "bg-amber-500/10 border border-amber-500/30"
-                                            }`}
+                                            className={` p-3 flex items-center gap-2 ${
+ alert.level === "critical"
+ ? "bg-paper-2 border border-alert"
+ : "bg-paper-2 border border-vigencia"
+ }`}
                                         >
-                                            <AlertCircle
-                                                className={`w-4 h-4 ${
-                                                    alert.level === "critical" ? "text-red-300" : "text-amber-300"
-                                                }`}
-                                            />
                                             <span
                                                 className={`text-sm ${
-                                                    alert.level === "critical" ? "text-red-200" : "text-amber-200"
-                                                }`}
+ alert.level === "critical" ? "text-alert" : "text-vigencia"
+ }`}
                                             >
                                                 {alert.message || "Alerta de proveedor"}
                                             </span>
@@ -721,7 +688,7 @@ export default function AdminConfig() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 text-sm text-emerald-200">
+                                <div className="lam-note ok text-sm">
                                     Sin alertas activas de conectividad/proveedor.
                                 </div>
                             )}
@@ -734,24 +701,24 @@ export default function AdminConfig() {
                                 <StatCard title="DNS error" value={String(dnsErrorCount)} helper="fallo resolución/red" />
                             </div>
 
-                            <div className="bg-[#1a1f2e] border border-white/10 rounded-xl p-4 overflow-x-auto">
-                                <table className="w-full text-sm">
+                            <div className="lam-panel overflow-x-auto">
+                                <table className="lam-table">
                                     <thead>
-                                        <tr className="text-slate-400 border-b border-white/10">
-                                            <th className="text-left py-2 pr-3">Proveedor</th>
-                                            <th className="text-right py-2 pr-3">Req</th>
-                                            <th className="text-right py-2 pr-3">Success</th>
-                                            <th className="text-right py-2 pr-3">Empty</th>
-                                            <th className="text-right py-2 pr-3">Timeout</th>
-                                            <th className="text-right py-2 pr-3">DNS</th>
-                                            <th className="text-right py-2 pr-3">Error</th>
-                                            <th className="text-right py-2">Lat. media</th>
+                                        <tr>
+                                            <th className="pr-3">Proveedor</th>
+                                            <th className="pr-3 text-right">Req</th>
+                                            <th className="pr-3 text-right">Success</th>
+                                            <th className="pr-3 text-right">Empty</th>
+                                            <th className="pr-3 text-right">Timeout</th>
+                                            <th className="pr-3 text-right">DNS</th>
+                                            <th className="pr-3 text-right">Error</th>
+                                            <th className="text-right">Lat. media</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {providerRows.length === 0 ? (
                                             <tr>
-                                                <td className="py-3 text-slate-500" colSpan={8}>
+                                                <td className="py-3 text-ink-3" colSpan={8}>
                                                     Sin tráfico de generación todavía.
                                                 </td>
                                             </tr>
@@ -760,27 +727,27 @@ export default function AdminConfig() {
                                                 const providerOutcomes = outcomesByProvider[provider] || {};
                                                 const avgLatency = avgLatencyByProvider[provider];
                                                 return (
-                                                    <tr key={provider} className="border-b border-white/5">
-                                                        <td className="py-2 pr-3 text-slate-200">{provider}</td>
-                                                        <td className="py-2 pr-3 text-right text-white">
+                                                    <tr key={provider} className="border-b border-hair">
+                                                        <td className="py-2 pr-3 text-ink">{provider}</td>
+                                                        <td className="py-2 pr-3 text-right text-ink">
                                                             {generationByProvider[provider] ?? 0}
                                                         </td>
-                                                        <td className="py-2 pr-3 text-right text-emerald-300">
+                                                        <td className="py-2 pr-3 text-right text-ok">
                                                             {providerOutcomes.success ?? 0}
                                                         </td>
-                                                        <td className="py-2 pr-3 text-right text-amber-300">
+                                                        <td className="py-2 pr-3 text-right text-vigencia">
                                                             {providerOutcomes.empty ?? 0}
                                                         </td>
-                                                        <td className="py-2 pr-3 text-right text-orange-300">
+                                                        <td className="py-2 pr-3 text-right text-vigencia">
                                                             {providerOutcomes.timeout ?? 0}
                                                         </td>
-                                                        <td className="py-2 pr-3 text-right text-red-300">
+                                                        <td className="py-2 pr-3 text-right text-alert">
                                                             {providerOutcomes.dns_error ?? 0}
                                                         </td>
-                                                        <td className="py-2 pr-3 text-right text-rose-300">
+                                                        <td className="py-2 pr-3 text-right text-alert">
                                                             {providerOutcomes.provider_error ?? 0}
                                                         </td>
-                                                        <td className="py-2 text-right text-slate-200">
+                                                        <td className="py-2 text-right text-ink">
                                                             {typeof avgLatency === "number"
                                                                 ? `${avgLatency.toFixed(1)} ms`
                                                                 : "n/d"}
