@@ -22,6 +22,7 @@ from app.api.v1 import (
     auth,
     chat,
     config,
+    curriculum,
     dataset,
     export,
     feedback,
@@ -53,6 +54,7 @@ api_router.include_router(feedback_app.router, prefix="/app-feedback", tags=["ap
 api_router.include_router(config.router, prefix="/config", tags=["config"])
 api_router.include_router(knowledge.router, prefix="/knowledge", tags=["knowledge"])
 api_router.include_router(normative.router, prefix="/normative", tags=["normative"])
+api_router.include_router(curriculum.router, prefix="/curriculum", tags=["curriculum"])
 api_router.include_router(telemetry.router, prefix="/telemetry", tags=["telemetry"])
 
 # Teacher Premium - Gestión de Clases
