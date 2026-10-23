@@ -1,0 +1,24 @@
+[Unit]
+Description=EDUMind MiApp Training Worker (%i)
+After=network.target edumind-miapp.service
+Requires=edumind-miapp.service
+
+[Service]
+Type=simple
+User=nuevoadmin
+Group=www-data
+WorkingDirectory=/var/www/edumind_miapp/backend
+EnvironmentFile=/var/www/edumind_miapp/backend/.env
+ExecStart=/var/www/edumind_miapp/backend/.venv/bin/python /var/www/edumind_miapp/backend/scripts/training_worker.py --worker-id %i --poll-interval 3
+Restart=always
+RestartSec=2
+TimeoutStopSec=30
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/www/edumind_miapp/backend
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,76 @@
+name: edumind-miapp-ci
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run backend tests
+        run: |
+          source .venv/bin/activate
+          env -u DEBUG \
+            PYTHONPATH=. \
+            SECRET_KEY=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+            RUNTIME_ENV=development \
+            DATABASE_URL=sqlite:///./test_ci.db \
+            DB_AUTO_CREATE=true \
+            DB_MANAGED_BY_ALEMBIC=false \
+            DB_ENABLE_SQLITE_WAL=false \
+            pytest -q
+
+      - name: Check migrations head
+        run: |
+          source .venv/bin/activate
+          env -u DEBUG \
+            PYTHONPATH=. \
+            SECRET_KEY=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+            RUNTIME_ENV=development \
+            DATABASE_URL=sqlite:///./test_ci_migrations.db \
+            DB_AUTO_CREATE=false \
+            DB_MANAGED_BY_ALEMBIC=true \
+            python scripts/run_migrations.py upgrade head
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Lint frontend
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
