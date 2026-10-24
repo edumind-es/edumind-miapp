@@ -40,22 +40,30 @@ restart_api_with_fallback() {
 
     kill -TERM "${current_pid}"
     echo "OK  enviado SIGTERM a uvicorn PID ${current_pid}; esperando autorestart"
+    return 0
+}
 
-    for _ in $(seq 1 30); do
-        sleep 1
-        if curl -fsS http://127.0.0.1:8100/api/v1/health/public >/dev/null 2>&1; then
-            echo "OK  api reiniciada via autorestart"
+# Espera a que la API vuelva a responder tras el reinicio. Sin esto, el smoke
+# puede lanzarse antes de que uvicorn escuche en el puerto y fallar con
+# "connection refused" aunque el despliegue sea correcto.
+wait_for_api() {
+    local url="http://127.0.0.1:8100/api/v1/health/public"
+    local max_wait="${API_WAIT_SECONDS:-60}"
+    for _ in $(seq 1 "${max_wait}"); do
+        if curl -fsS "${url}" >/dev/null 2>&1; then
+            echo "OK  api responde en ${url}"
             return 0
         fi
+        sleep 1
     done
-
-    echo "ERROR: la API no volvio tras el reinicio fallback" >&2
+    echo "ERROR: la API no respondio en ${url} tras ${max_wait}s" >&2
     return 1
 }
 
 echo "== Reload runtime services =="
 
 restart_api_with_fallback
+wait_for_api
 
 restart_system_service_if_present "edumind-miapp-training-worker@1.service" || \
 restart_user_service_if_present "edumind-miapp-training-worker.service" || \
