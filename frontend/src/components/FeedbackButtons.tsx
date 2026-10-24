@@ -16,10 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Valoración de una respuesta en modo EDUmind-Lámina: botones de texto mono,
+// estado seleccionado por inversión de tinta. Sin iconos ni animaciones.
+
 import { useState } from "react";
-import { ThumbsUp, ThumbsDown, Save, Check, AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { authFetch } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 interface FeedbackButtonsProps {
     instruction: string;
@@ -57,7 +59,7 @@ export function FeedbackButtons({ instruction, output, source, onFeedbackSubmitt
             setStatus("success");
             if (onFeedbackSubmitted) onFeedbackSubmitted();
 
-            // Reset after 3 seconds
+            // Vuelve al estado inicial a los 3 segundos
             setTimeout(() => setStatus("idle"), 3000);
 
         } catch (error) {
@@ -67,65 +69,48 @@ export function FeedbackButtons({ instruction, output, source, onFeedbackSubmitt
         }
     };
 
+    const chip = (active: boolean) =>
+        cn(
+            "lam-mono px-2 py-1.5 border transition-colors duration-150",
+            active ? "bg-ink !text-paper border-ink" : "border-hair !text-ink-2 hover:border-ink hover:!text-ink"
+        );
+
     return (
         <div className="flex items-center gap-2 mt-2">
-            <AnimatePresence mode="wait">
-                {status === "success" ? (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="flex items-center gap-1.5 text-green-400 text-xs font-medium px-2 py-1 bg-green-500/10 rounded-md"
+            {status === "success" ? (
+                <span className="lam-mono !text-ok border border-ok px-2 py-1.5">Guardado para entrenamiento</span>
+            ) : status === "error" ? (
+                <span className="lam-mono !text-alert border border-alert px-2 py-1.5">Error al guardar</span>
+            ) : (
+                <div className="lam-seg">
+                    <button
+                        type="button"
+                        onClick={() => handleFeedback(5, "positive")}
+                        aria-pressed={feedbackType === "positive"}
+                        title="Buena respuesta (guardar)"
+                        className={chip(feedbackType === "positive")}
                     >
-                        <Check className="w-3 h-3" />
-                        <span>¡Guardado para entrenamiento!</span>
-                    </motion.div>
-                ) : status === "error" ? (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="flex items-center gap-1.5 text-red-400 text-xs font-medium px-2 py-1 bg-red-500/10 rounded-md"
+                        Útil
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleFeedback(1, "negative")}
+                        aria-pressed={feedbackType === "negative"}
+                        title="Mala respuesta"
+                        className={chip(feedbackType === "negative")}
                     >
-                        <AlertCircle className="w-3 h-3" />
-                        <span>Error al guardar</span>
-                    </motion.div>
-                ) : (
-                    <div className="flex items-center gap-1">
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleFeedback(5, "positive")}
-                            className={`p-1.5 rounded-md transition-colors ${feedbackType === "positive" ? "text-green-400 bg-green-500/10" : "text-slate-500 hover:text-green-400 hover:bg-white/5"
-                                }`}
-                            title="Buena respuesta (Guardar)"
-                        >
-                            <ThumbsUp className="w-3.5 h-3.5" />
-                        </motion.button>
-
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleFeedback(1, "negative")}
-                            className={`p-1.5 rounded-md transition-colors ${feedbackType === "negative" ? "text-red-400 bg-red-500/10" : "text-slate-500 hover:text-red-400 hover:bg-white/5"
-                                }`}
-                            title="Mala respuesta"
-                        >
-                            <ThumbsDown className="w-3.5 h-3.5" />
-                        </motion.button>
-
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleFeedback(5, "positive")}
-                            className="p-1.5 rounded-md text-slate-500 hover:text-blue-400 hover:bg-white/5 transition-colors ml-1"
-                            title="Guardar explícitamente"
-                        >
-                            <Save className="w-3.5 h-3.5" />
-                        </motion.button>
-                    </div>
-                )}
-            </AnimatePresence>
+                        Mejorable
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleFeedback(5, "positive")}
+                        title="Guardar explícitamente"
+                        className={chip(false)}
+                    >
+                        Guardar
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

@@ -19,11 +19,9 @@
 import { useState, useRef, useEffect } from "react";
 import { EngineSelector } from "../components/EngineSelector";
 import { FormattedContent } from "@/components/FormattedContent";
-import { Send, Plus, Bot, User as UserIcon } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { FeedbackButtons } from "../components/FeedbackButtons";
 import { FeedbackModal } from "../components/FeedbackModal";
-import { Download, Activity } from "lucide-react";
 import { authFetch } from "@/lib/auth-client";
 import { detectDeviceCapability } from "@/lib/device-capability";
 
@@ -236,37 +234,42 @@ export default function Chat() {
     }
 
     return (
-        <div className="flex h-screen bg-[#0f1117] text-white font-sans">
-            {/* Sidebar */}
-            <aside className="w-64 border-r border-white/5 bg-[#0f1117] flex flex-col hidden md:flex">
-                <div className="p-4 border-b border-white/5">
-                    <h1 className="font-bold text-lg tracking-tight flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-blue-600"></div>
-                        EDUMind
-                    </h1>
+        <div className="flex h-screen bg-paper text-ink font-sans">
+            {/* Barra lateral: historial como lista de filete */}
+            <aside className="w-64 border-r border-hair bg-paper flex-col hidden md:flex">
+                <div className="p-4 border-b-2 border-rule">
+                    <h1 className="m-0 lam-mono lam-mono-ink">EDUmind · Chat IA</h1>
                 </div>
-                <div className="p-2 space-y-1 overflow-y-auto flex-1">
-                    {/* History List Mockup */}
-                    <div className="px-3 py-2 text-xs font-semibold text-slate-500">Hoy</div>
-                    <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-slate-300 truncate">
-                        Planificación de 3º ESO
-                    </button>
-                    <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-slate-300 truncate">
-                        Rúbrica de evaluación oral
-                    </button>
+                <div className="p-4 overflow-y-auto flex-1">
+                    {/* Historial de ejemplo (sin persistencia) */}
+                    <div className="lam-mono mb-2">Hoy</div>
+                    <ul className="lam-rules">
+                        <li>
+                            <span className="dash">—</span>
+                            <button type="button" className="flex-1 text-left text-sm text-ink-2 hover:text-ink truncate">
+                                Planificación de 3º ESO
+                            </button>
+                        </li>
+                        <li>
+                            <span className="dash">—</span>
+                            <button type="button" className="flex-1 text-left text-sm text-ink-2 hover:text-ink truncate">
+                                Rúbrica de evaluación oral
+                            </button>
+                        </li>
+                    </ul>
                 </div>
-                <div className="p-4 border-t border-white/5">
-                    <button className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
-                        <Plus className="w-4 h-4" /> Nuevo Chat
+                <div className="p-4 border-t border-hair">
+                    <button type="button" className="lam-btn lam-btn-sm lam-btn-ghost lam-btn-block">
+                        Nuevo chat
                     </button>
                 </div>
             </aside>
 
-            {/* Main Chat */}
+            {/* Conversación */}
             <main className="flex-1 flex flex-col relative">
-                {/* Header */}
-                <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-[#0f1117]/50 backdrop-blur-xl absolute top-0 w-full z-10">
-                    <div className="font-medium text-slate-200 capitalize">{role} Assistant</div>
+                {/* Cabecera */}
+                <header className="min-h-16 border-b-2 border-rule flex flex-wrap items-center justify-between gap-3 px-4 md:px-6 py-2 bg-paper absolute top-0 w-full z-10">
+                    <div className="lam-mono lam-mono-ink">Asistente · {role}</div>
                     <EngineSelector
                         currentEngine={engine}
                         onSelect={setEngine}
@@ -274,19 +277,19 @@ export default function Chat() {
                         onApiKeyChange={setKeyForEngine}
                     />
 
-                    <div className="flex items-center gap-4 ml-4">
+                    <div className="flex items-center gap-3">
                         {queueStatus && (
-                            <div className="flex items-center gap-2 text-xs bg-white/10 px-3 py-1 rounded-full">
-                                <Activity size={14} className={queueStatus.is_active ? "text-green-400" : "text-yellow-400"} />
-                                <span className="text-slate-300">{queueStatus.message}</span>
-                            </div>
+                            <span className={`lam-mono border px-2.5 py-1.5 ${queueStatus.is_active ? "border-ok text-ok" : "border-vigencia text-vigencia"}`}>
+                                {queueStatus.message}
+                            </span>
                         )}
                         <button
+                            type="button"
                             onClick={handleExportClick}
-                            className="p-2 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white transition-colors"
-                            title="Exportar Chat"
+                            className="lam-btn lam-btn-sm lam-btn-ghost"
+                            title="Exportar chat"
                         >
-                            <Download size={20} />
+                            Exportar
                         </button>
                     </div>
                 </header>
@@ -298,19 +301,14 @@ export default function Chat() {
                     onSkip={() => { setShowFeedbackModal(false); downloadChat(); }}
                 />
 
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto pt-20 pb-32 px-4 md:px-20 lg:px-40 scrollbar-hide">
+                {/* Mensajes */}
+                <div className="flex-1 overflow-y-auto pt-24 pb-36 px-4 md:px-16 lg:px-32">
                     {messages.map((msg, i) => (
-                        <div key={i} className={`flex gap-4 mb-8 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            {msg.role === 'assistant' && (
-                                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
-                                    <Bot className="w-5 h-5 text-white" />
-                                </div>
-                            )}
-
-                            <div className={`max-w-[80%] rounded-2xl px-6 py-4 shadow-sm ${msg.role === 'user'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white/5 text-slate-200 border border-white/5'
+                        <div key={i} className={`flex flex-col mb-7 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                            <span className="lam-mono mb-1.5">{msg.role === 'user' ? 'Tú' : 'EDUmind'}</span>
+                            <div className={`max-w-[80%] px-5 py-4 ${msg.role === 'user'
+                                ? 'bg-ink text-paper'
+                                : 'bg-card text-ink border-l-[3px] border-mental'
                                 }`}>
                                 {msg.role === "assistant" ? (
                                     msg.content.trim() ? (
@@ -320,7 +318,7 @@ export default function Chat() {
                                         emptyState="Pensando..."
                                     />
                                     ) : (
-                                        <div className="text-sm text-slate-400">Pensando...</div>
+                                        <div className="text-sm text-ink-2">Pensando...</div>
                                     )
                                 ) : (
                                     <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
@@ -333,31 +331,20 @@ export default function Chat() {
                                     />
                                 )}
                             </div>
-
-                            {msg.role === 'user' && (
-                                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center shrink-0">
-                                    <UserIcon className="w-5 h-5 text-slate-300" />
-                                </div>
-                            )}
                         </div>
                     ))}
                     {isLoading && !messages[messages.length - 1].content && (
-                        <div className="flex gap-4 mb-8">
-                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 animate-pulse" />
-                            <div className="h-10 w-24 bg-white/5 rounded-2xl animate-pulse" />
+                        <div className="flex flex-col items-start mb-7">
+                            <span className="lam-mono mb-1.5">EDUmind</span>
+                            <div className="h-10 w-24 bg-card border-l-[3px] border-mental animate-pulse" />
                         </div>
                     )}
                     <div ref={bottomRef} />
                 </div>
 
-                {/* Input Area */}
-                <div className="absolute bottom-0 w-full p-4 md:p-6 bg-gradient-to-t from-[#0f1117] via-[#0f1117] to-transparent">
-                    <div className="max-w-4xl mx-auto bg-[#1a1f2e] border border-white/10 rounded-2xl p-2 flex items-end gap-2 shadow-2xl relative z-20">
-                        {/* Upload hidden for security/sustainability 
-                        <button className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors" title="Subir PDF/Recurso">
-                            <Upload className="w-5 h-5" />
-                        </button>
-                        */}
+                {/* Entrada */}
+                <div className="absolute bottom-0 w-full p-4 md:p-6 bg-paper border-t border-hair">
+                    <div className="max-w-4xl mx-auto bg-card border border-hair border-b-2 border-b-ink p-2 flex items-end gap-2 relative z-20">
                         <textarea
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
@@ -368,19 +355,20 @@ export default function Chat() {
                                 }
                             }}
                             placeholder={`Escribe un mensaje para ${engine}...`}
-                            className="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder:text-slate-500 resize-none max-h-32 py-2"
+                            className="flex-1 bg-transparent border-none focus:outline-none text-ink placeholder:text-ink-3 resize-none max-h-32 py-2 px-2"
                             rows={1}
                         />
                         <button
+                            type="button"
                             onClick={handleSend}
                             disabled={isLoading || !input.trim()}
-                            className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors disabled:opacity-50 disabled:hover:bg-blue-600"
+                            className="lam-btn lam-btn-sm"
                         >
-                            <Send className="w-5 h-5" />
+                            Enviar
                         </button>
                     </div>
-                    <div className="text-center text-xs text-slate-600 mt-2">
-                        EDUMind AI puede cometer errores. Verifica la información importante.
+                    <div className="lam-mono mt-3 text-center">
+                        EDUmind puede cometer errores. Verifica la información importante.
                     </div>
                 </div>
             </main>

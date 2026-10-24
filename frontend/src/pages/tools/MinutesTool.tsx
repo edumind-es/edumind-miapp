@@ -19,7 +19,6 @@
 import { useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2 } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 
@@ -56,8 +55,8 @@ export default function MinutesTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
-                    {!output && !loading && <span className="text-slate-500">El acta generada aparecerá aquí...</span>}
+                <div className="lam-prose">
+                    {!output && !loading && <span className="text-ink-3">El acta generada aparecerá aquí...</span>}
                     {output && <div className="whitespace-pre-wrap">{output}</div>}
                 </div>
             }
@@ -67,8 +66,8 @@ export default function MinutesTool() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Tipo de Reunión</label>
-                        <select className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Tipo de Reunión</label>
+                        <select className="lam-input"
                             value={formData.tipo} onChange={e => setFormData({ ...formData, tipo: e.target.value })}>
                             <option>Claustro Ordinario</option>
                             <option>Claustro Extraordinario</option>
@@ -78,35 +77,35 @@ export default function MinutesTool() {
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Fecha</label>
-                        <input type="date" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Fecha</label>
+                        <input type="date" className="lam-input"
                             value={formData.fecha} onChange={e => setFormData({ ...formData, fecha: e.target.value })} />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Asistentes / Ausentes</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-20 resize-none"
+                    <label className="lam-label">Asistentes / Ausentes</label>
+                    <textarea className="lam-input h-20 resize-none"
                         placeholder="Lista de asistentes..."
                         value={formData.presentes} onChange={e => setFormData({ ...formData, presentes: e.target.value })} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Temas Tratados</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                    <label className="lam-label">Temas Tratados</label>
+                    <textarea className="lam-input h-24 resize-none"
                         placeholder="Puntos del orden del día..."
                         value={formData.temas} onChange={e => setFormData({ ...formData, temas: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Acuerdos Adoptados</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                    <label className="lam-label">Acuerdos Adoptados</label>
+                    <textarea className="lam-input h-24 resize-none"
                         placeholder="Decisiones finales..."
                         value={formData.acuerdos} onChange={e => setFormData({ ...formData, acuerdos: e.target.value })} />
                 </div>
 
-                <button type="submit" disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2">
-                    {loading && <Loader2 className="animate-spin" />} Generar Acta
+                <button type="submit" disabled={loading} className="lam-btn lam-btn-block">
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>} Generar Acta
                 </button>
             </form>
         </GeneratorLayout>

@@ -18,7 +18,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { AlertCircle, ArrowRight, Lock, Shield, User } from "lucide-react";
 
 import {
     authFetch,
@@ -169,53 +168,45 @@ export default function AdminLogin() {
     const ssoEnabled = config?.sso_enabled ?? false;
 
     return (
-        <div className="min-h-screen bg-[#0f1117] flex items-center justify-center p-4">
+        <div className="min-h-screen bg-paper flex items-center justify-center p-4">
             <div className="w-full max-w-xl">
-                <div className="mb-8 text-center">
-                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-600 shadow-lg shadow-cyan-900/30">
-                        <Shield className="h-7 w-7 text-white" />
-                    </div>
-                    <h1 className="text-3xl font-bold text-white">Accede a EDUmind</h1>
-                    <p className="mt-2 text-slate-400">
+                <div className="mb-8">
+                    <p className="lam-eyebrow mb-3">EDUmind · Acceso</p>
+                    <h1 className="lam-h1 mb-4">Accede a <span className="light">EDUmind</span></h1>
+                    <p className="lam-lede">
                         Identifícate para continuar en tu espacio de trabajo.
                     </p>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-[#151a26] p-8 shadow-2xl shadow-black/20">
+                <div className="border-2 border-ink bg-card p-8">
                     {error ? (
-                        <div className="mb-6 flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
-                            <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                            <span className="text-sm">{error}</span>
+                        <div className="lam-note alert mb-6">
+                            <span className="tag">Error</span>
+                            <p className="m-0 text-sm">{error}</p>
                         </div>
                     ) : null}
 
                     {configLoading ? (
-                        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-300">
+                        <div className="lam-mono py-5">
                             Preparando acceso seguro...
                         </div>
                     ) : null}
 
                     {!configLoading && ssoEnabled ? (
-                        <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-5">
+                        <div className="lam-note mental">
                             <div className="flex items-start gap-3">
-                                <div className="mt-0.5 rounded-full bg-cyan-400/15 p-2">
-                                    <Shield className="h-4 w-4 text-cyan-200" />
-                                </div>
                                 <div className="flex-1">
-                                    <p className="text-sm font-semibold text-white">
-                                        Acceso seguro
-                                    </p>
-                                    <p className="mt-1 text-sm leading-6 text-cyan-100/85">
+                                    <span className="tag">Acceso seguro</span>
+                                    <p className="mt-1 text-sm leading-6 text-ink-2">
                                         Usa tu cuenta EDUmind para continuar. Cuando la sesión quede validada,
                                         volverás automáticamente a la aplicación.
                                     </p>
                                     <button
                                         type="button"
                                         onClick={handleSsoLogin}
-                                        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
+                                        className="mt-4 lam-btn lam-btn-sm"
                                     >
                                         Continuar
-                                        <ArrowRight className="h-4 w-4" />
                                     </button>
                                 </div>
                             </div>
@@ -225,16 +216,15 @@ export default function AdminLogin() {
                     {!configLoading && localLoginEnabled ? (
                         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
                             <div>
-                                <label className="mb-2 block text-sm text-slate-400">
+                                <label className="lam-label">
                                     Usuario
                                 </label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
                                     <input
                                         type="text"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-10 pr-4 text-white placeholder-slate-500 outline-none transition focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-500/30"
+                                        className="lam-input"
                                         placeholder="admin"
                                         autoComplete="username"
                                         required
@@ -243,16 +233,15 @@ export default function AdminLogin() {
                             </div>
 
                             <div>
-                                <label className="mb-2 block text-sm text-slate-400">
+                                <label className="lam-label">
                                     Contraseña
                                 </label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
                                     <input
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-10 pr-4 text-white placeholder-slate-500 outline-none transition focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-500/30"
+                                        className="lam-input"
                                         placeholder="••••••••"
                                         autoComplete="current-password"
                                         required
@@ -263,7 +252,7 @@ export default function AdminLogin() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full rounded-xl bg-gradient-to-r from-sky-600 to-cyan-600 py-3 text-sm font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="lam-btn lam-btn-block"
                             >
                                 {loading ? "Iniciando sesión..." : "Acceder con credenciales locales"}
                             </button>
@@ -271,16 +260,16 @@ export default function AdminLogin() {
                     ) : null}
 
                     {!configLoading && !ssoEnabled && !localLoginEnabled ? (
-                        <div className="mt-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-100">
+                        <div className="mt-6 border lam-note vigencia text-sm">
                             No hay un método de acceso habilitado en esta instancia. Revisa la configuración de autenticación.
                         </div>
                     ) : null}
 
-                    <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-5 text-sm">
-                        <Link to="/" className="text-slate-400 transition hover:text-white">
+                    <div className="mt-6 flex items-center justify-between border-t border-hair pt-5 text-sm">
+                        <Link to="/" className="text-ink-2 transition hover:text-ink">
                             Volver al inicio
                         </Link>
-                        <span className="text-slate-500">
+                        <span className="text-ink-3">
                             {postLoginHint}
                         </span>
                     </div>

@@ -16,124 +16,166 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { motion } from "framer-motion";
-import { BookOpen, GraduationCap, School, ArrowRight } from "lucide-react";
+// Inicio en modo EDUmind-Lámina: titular a la izquierda, lista de filete con los
+// perfiles, ficha técnica en columna derecha y panel pentagonal de los cinco mundos.
+
 import { Link } from "react-router-dom";
-import type { ReactNode } from "react";
 
-const container = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1
-        }
-    }
-};
+const PROFILES = [
+    {
+        num: "01",
+        to: "/dashboard?role=docente",
+        title: "Docentes",
+        description: "Situaciones de aprendizaje, planes de refuerzo, sesiones y materiales alineados con el currículo oficial.",
+    },
+    {
+        num: "02",
+        to: "/dashboard?role=opositor",
+        title: "Opositores",
+        description: "Supuestos prácticos, desarrollo de temas y entrenamiento de la defensa con retroalimentación experta.",
+    },
+    {
+        num: "03",
+        to: "/dashboard?role=centro",
+        title: "Centros",
+        description: "Actas, documentación institucional, respuestas a inspección y aplicación normativa.",
+    },
+];
 
-const item = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1 }
-};
+const WORLDS = [
+    { key: "emocional", label: "Emocional", color: "var(--m-emocional)" },
+    { key: "social", label: "Social", color: "var(--m-social)" },
+    { key: "fisico", label: "Físico", color: "var(--m-fisico)" },
+    { key: "mental", label: "Mental", color: "var(--m-mental)" },
+    { key: "interior", label: "Interior", color: "var(--m-interior)" },
+];
 
-export default function Home() {
+// Vértices de un pentágono regular (centro 60,60 · radio 44), empezando arriba
+const PENTAGON = [
+    [60, 16],
+    [101.8, 46.4],
+    [85.9, 95.6],
+    [34.1, 95.6],
+    [18.2, 46.4],
+] as const;
+
+function WorldsPanel() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
-            {/* Background Orbs */}
-            <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
-
-            <main className="relative container mx-auto px-4 py-20 flex flex-col items-center justify-center min-h-screen z-10">
-
-                <motion.div
-                    className="text-center mb-16 space-y-4"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                >
-                    <div className="inline-block px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md mb-4">
-                        <span className="text-sm font-medium text-blue-300">Inteligencia Artificial Educativa</span>
-                    </div>
-                    <h1 className="text-6xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white/50 pb-2">
-                        EDUMind MiApp
-                    </h1>
-                    <p className="text-xl text-slate-400 max-w-2xl mx-auto font-light">
-                        Plataforma profesional para generar recursos, preparar oposiciones y gestionar centros con la potencia de múltiples IAs.
-                    </p>
-                </motion.div>
-
-                <motion.div
-                    variants={container}
-                    initial="hidden"
-                    animate="show"
-                    className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl"
-                >
-                    <RoleCard
-                        to="/dashboard?role=docente"
-                        icon={<BookOpen className="w-8 h-8 text-emerald-400" />}
-                        title="Docentes"
-                        description="Genera situaciones de aprendizaje, rúbricas y materiales didácticos adaptados."
-                        color="hover:border-emerald-500/50 hover:shadow-emerald-500/20"
+        <div className="lam-panel">
+            <div className="lam-panel-head">
+                <span className="lam-mono lam-mono-ink">Los cinco mundos</span>
+                <span className="lam-mono">5 / 5</span>
+            </div>
+            <div className="flex items-center gap-5">
+                <svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true" className="shrink-0">
+                    <polygon
+                        points={PENTAGON.map((p) => p.join(",")).join(" ")}
+                        fill="none"
+                        stroke="var(--ink)"
+                        strokeWidth="1"
                     />
-                    <RoleCard
-                        to="/dashboard?role=opositor"
-                        icon={<GraduationCap className="w-8 h-8 text-blue-400" />}
-                        title="Opositores"
-                        description="Entrena supuestos prácticos, programación y defensa con feedback experto."
-                        color="hover:border-blue-500/50 hover:shadow-blue-500/20"
-                    />
-                    <RoleCard
-                        to="/dashboard?role=centro"
-                        icon={<School className="w-8 h-8 text-purple-400" />}
-                        title="Centros"
-                        description="Gestión directiva, proyectos de centro y documentación administrativa."
-                        color="hover:border-purple-500/50 hover:shadow-purple-500/20"
-                    />
-                </motion.div>
-
-                {/* Chat Button CTA */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8 }}
-                    className="mt-12"
-                >
-                    <Link
-                        to="/chat"
-                        className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-2xl text-white font-semibold text-lg shadow-2xl shadow-blue-500/25 transition-all duration-300 hover:scale-105"
-                    >
-                        💬 Iniciar Chat con IA
-                        <ArrowRight className="w-5 h-5" />
-                    </Link>
-                </motion.div>
-            </main>
+                    {PENTAGON.map(([x, y], i) => (
+                        <line key={`r${i}`} x1="60" y1="60" x2={x} y2={y} stroke="var(--hair)" strokeWidth="1" />
+                    ))}
+                    {PENTAGON.map(([x, y], i) => (
+                        <circle key={`p${i}`} cx={x} cy={y} r="5" fill={WORLDS[i].color} />
+                    ))}
+                </svg>
+                <ul className="m-0 p-0 list-none">
+                    {WORLDS.map((world) => (
+                        <li key={world.key} className="flex items-center gap-3 py-1 text-[13px]">
+                            <i className="inline-block w-2.5 h-2.5" style={{ background: world.color }} />
+                            {world.label}
+                        </li>
+                    ))}
+                </ul>
+            </div>
         </div>
     );
 }
 
-interface RoleCardProps {
-    to: string;
-    icon: ReactNode;
-    title: string;
-    description: string;
-    color: string;
-}
-
-function RoleCard({ to, icon, title, description, color }: RoleCardProps) {
+export default function Home() {
     return (
-        <motion.div variants={item}>
-            <Link to={to} className={`group block relative h-full p-8 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm transition-all duration-300 ${color} hover:-translate-y-1`}>
-                <div className="mb-4 bg-white/5 p-3 rounded-xl inline-block w-fit group-hover:bg-white/10 transition-colors">
-                    {icon}
+        <main className="lam-wrap pb-16">
+            <section className="lam-cols pt-12">
+                <div>
+                    <p className="lam-eyebrow mb-4">EDUmind · Plataforma docente · IA local y en la nube</p>
+                    <h1 className="lam-h1 max-w-[12ch] mb-6">
+                        MiApp <span className="light">EDUmind</span>
+                    </h1>
+                    <p className="lam-lede mb-8">
+                        Genera recursos didácticos, prepara oposiciones y gestiona la documentación de centro
+                        sobre el currículo oficial de todas las comunidades.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Link to="/chat" className="lam-btn">Abrir el chat IA</Link>
+                        <span className="lam-stamp">Beta · Marca registrada OEPM</span>
+                    </div>
+
+                    <div className="flex flex-wrap border-t border-hair mt-9">
+                        {["Sin rastreadores", "Modelos propios o BYOK", "Currículo LOMLOE de 17 territorios"].map((item) => (
+                            <span
+                                key={item}
+                                className="font-mono text-[13px] text-ink-2 py-3.5 pr-5 mr-5 border-r border-hair last:border-r-0"
+                            >
+                                {item}
+                            </span>
+                        ))}
+                    </div>
+
+                    <section className="mt-16">
+                        <div className="lam-sec-head">
+                            <span className="lam-sec-num">01</span>
+                            <h2>Elige tu perfil</h2>
+                        </div>
+                        <ul className="lam-rules">
+                            {PROFILES.map((profile) => (
+                                <li key={profile.to} className="!py-5">
+                                    <span className="font-sans font-extrabold text-[28px] leading-none text-mental w-12 shrink-0 pt-1">
+                                        {profile.num}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="m-0 text-[20px] font-bold">{profile.title}</h3>
+                                        <p className="m-0 mt-1 text-ink-2 max-w-[60ch]">{profile.description}</p>
+                                    </div>
+                                    <Link to={profile.to} className="lam-btn lam-btn-sm lam-btn-ghost self-center shrink-0">
+                                        Entrar
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
                 </div>
-                <h3 className="text-2xl font-semibold mb-3 text-white group-hover:text-blue-200 transition-colors">{title}</h3>
-                <p className="text-slate-400 leading-relaxed mb-6">
-                    {description}
-                </p>
-                <div className="flex items-center text-sm font-medium text-white/50 group-hover:text-white transition-colors">
-                    Comenzar <ArrowRight className="ml-2 w-4 h-4" />
-                </div>
-            </Link>
-        </motion.div>
+
+                <aside className="lam-aside">
+                    <Link to="/dashboard" className="lam-btn lam-btn-block">Ir al panel</Link>
+                    <dl className="lam-spec mt-6">
+                        <div>
+                            <dt>Público</dt>
+                            <dd>Docentes, opositores y equipos directivos</dd>
+                        </div>
+                        <div>
+                            <dt>Marco</dt>
+                            <dd>LOMLOE · currículos autonómicos</dd>
+                        </div>
+                        <div>
+                            <dt>Modelos</dt>
+                            <dd>EDUmind en la nube, local (WebGPU) o clave propia</dd>
+                        </div>
+                        <div>
+                            <dt>Privacidad</dt>
+                            <dd>Sin rastreadores ni datos personales del alumnado</dd>
+                        </div>
+                        <div>
+                            <dt>Autoría</dt>
+                            <dd>EDUmind® · Luis Vilela Acuña</dd>
+                        </div>
+                    </dl>
+                    <div className="mt-6">
+                        <WorldsPanel />
+                    </div>
+                </aside>
+            </section>
+        </main>
     );
 }

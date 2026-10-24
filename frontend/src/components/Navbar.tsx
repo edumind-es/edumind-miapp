@@ -16,11 +16,67 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Barra superior EDUmind-Lámina: franja de mundos, rótulo mono y filete de 2px.
+// Estado activo = inversión de tinta. Sin iconos, sin radios, sin sombras.
+
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X, Home, Wrench, MessageSquare, LogIn, LogOut, User } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { authFetch } from "@/lib/auth-client";
+
+interface NavItem {
+    path: string;
+    label: string;
+}
+
+interface NavSection {
+    section: string;
+    items: NavItem[];
+}
+
+const PRIMARY_LINKS: NavItem[] = [
+    { path: "/", label: "Inicio" },
+    { path: "/chat", label: "Chat IA" },
+    { path: "/dashboard", label: "Panel" },
+];
+
+// La navegación interna de administración queda fuera del menú público a propósito.
+const TOOL_SECTIONS: NavSection[] = [
+    {
+        section: "Docentes",
+        items: [
+            { path: "/tools/planning", label: "Planificación semanal" },
+            { path: "/tools/situation", label: "Situación de aprendizaje" },
+            { path: "/tools/stem", label: "Proyecto STEM" },
+            { path: "/tools/diversity", label: "Atención a la diversidad" },
+            { path: "/tools/reinforcement_plan", label: "Plan de refuerzo" },
+            { path: "/tools/session", label: "Sesión" },
+        ],
+    },
+    {
+        section: "Opositores",
+        items: [
+            { path: "/tools/topic", label: "Tema" },
+            { path: "/tools/case", label: "Supuesto práctico" },
+            { path: "/tools/defense", label: "Defensa" },
+            { path: "/tools/idea", label: "Consulta rápida" },
+        ],
+    },
+    {
+        section: "Centros",
+        items: [
+            { path: "/tools/minutes", label: "Actas" },
+            { path: "/tools/institution_doc", label: "Documento institucional" },
+            { path: "/tools/inspection_report", label: "Inspección educativa" },
+            { path: "/tools/normativa", label: "Aplicación normativa" },
+        ],
+    },
+];
+
+const linkBase =
+    "font-mono text-[11px] uppercase tracking-[0.14em] px-3 py-2 border border-transparent transition-colors duration-150";
+const linkIdle = `${linkBase} text-ink-2 hover:text-ink hover:border-ink`;
+const linkActive = `${linkBase} bg-ink text-paper border-ink`;
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -37,222 +93,135 @@ export default function Navbar() {
         }
     };
 
-    // Public navigation links only
-    const navLinks = [
-        { path: "/", label: "Inicio", icon: Home },
-        { path: "/chat", label: "Chat IA", icon: MessageSquare },
-        { path: "/dashboard", label: "Dashboard", icon: Wrench },
-        {
-            label: "Herramientas",
-            icon: Wrench,
-            submenu: [
-                {
-                    section: "Docentes", items: [
-                        { path: "/tools/planning", label: "Planificación semanal" },
-                        { path: "/tools/situation", label: "Situación de Aprendizaje" },
-                        { path: "/tools/stem", label: "Proyecto STEM" },
-                        { path: "/tools/diversity", label: "Atención Diversidad" },
-                        { path: "/tools/reinforcement_plan", label: "Plan de Refuerzo" },
-                        { path: "/tools/session", label: "Sesión" },
-                    ]
-                },
-                {
-                    section: "Opositores", items: [
-                        { path: "/tools/topic", label: "Tema" },
-                        { path: "/tools/case", label: "Supuesto Práctico" },
-                        { path: "/tools/defense", label: "Defensa" },
-                        { path: "/tools/idea", label: "Consulta Rápida" },
-                    ]
-                },
-                {
-                    section: "Centros", items: [
-                        { path: "/tools/minutes", label: "Actas" },
-                        { path: "/tools/institution_doc", label: "Doc. Institucional" },
-                        { path: "/tools/inspection_report", label: "Inspección Educativa" },
-                        { path: "/tools/reinforcement_plan", label: "Plan de Refuerzo" },
-                    ]
-                }
-            ]
-        },
-        // Internal administration remains intentionally absent from public navigation.
-    ];
-
     const isActive = (path: string) => location.pathname === path;
+    const toolsActive = location.pathname.startsWith("/tools/");
 
     return (
-        <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0e1a]/80 backdrop-blur-xl">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                    {/* Logo */}
-                    <div className="flex items-center">
-                        <Link to="/" className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">E</span>
-                            </div>
-                            <span className="text-white font-bold text-lg hidden sm:block">EDUmind® AI</span>
-                        </Link>
-                    </div>
+        <header className="sticky top-0 z-50 bg-paper">
+            <div className="worlds-bar" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+            <nav className="border-b-2 border-rule" aria-label="Principal">
+                <div className="lam-wrap flex items-center justify-between gap-4 h-14">
+                    <Link to="/" className="lam-mono lam-mono-ink">
+                        EDUmind <span className="text-ink-3">·</span> MiApp
+                    </Link>
 
-                    {/* Desktop Navigation */}
+                    {/* Navegación de escritorio */}
                     <div className="hidden md:flex items-center gap-1">
-                        {navLinks.map((link, idx) => {
-                            if (link.submenu) {
-                                return (
-                                    <div key={idx} className="relative group">
-                                        <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
-                                            {link.icon && <link.icon className="w-4 h-4" />}
-                                            {link.label}
-                                        </button>
+                        {PRIMARY_LINKS.map((link) => (
+                            <Link key={link.path} to={link.path} className={isActive(link.path) ? linkActive : linkIdle}>
+                                {link.label}
+                            </Link>
+                        ))}
 
-                                        {/* Dropdown */}
-                                        <div className="absolute left-0 mt-2 w-80 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                                            <div className="bg-[#1a1f2e] border border-white/10 rounded-xl shadow-2xl p-4 grid grid-cols-3 gap-4">
-                                                {link.submenu.map((section, sIdx) => (
-                                                    <div key={sIdx}>
-                                                        <h3 className="text-xs font-semibold text-slate-400 mb-2">{section.section}</h3>
-                                                        <div className="space-y-1">
-                                                            {section.items.map((item, iIdx) => (
-                                                                <Link
-                                                                    key={iIdx}
-                                                                    to={item.path}
-                                                                    className="block px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded transition-colors"
-                                                                >
-                                                                    {item.label}
-                                                                </Link>
-                                                            ))}
-                                                        </div>
-                                                    </div>
+                        <div className="relative group">
+                            <button type="button" className={toolsActive ? linkActive : linkIdle} aria-haspopup="true">
+                                Herramientas
+                            </button>
+                            <div className="absolute right-0 pt-2 w-[640px] max-w-[90vw] invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-opacity duration-150">
+                                <div className="bg-card border-2 border-ink p-5 grid grid-cols-3 gap-6">
+                                    {TOOL_SECTIONS.map((section) => (
+                                        <div key={section.section}>
+                                            <div className="lam-mono mb-3 pb-2 border-b border-hair">{section.section}</div>
+                                            <ul className="m-0 p-0 list-none">
+                                                {section.items.map((item) => (
+                                                    <li key={item.path}>
+                                                        <Link
+                                                            to={item.path}
+                                                            className={`block py-1.5 text-[14px] leading-snug ${
+                                                                isActive(item.path) ? "font-semibold" : "text-ink-2 hover:text-ink"
+                                                            }`}
+                                                        >
+                                                            <span className="text-ink-3 mr-2">—</span>
+                                                            {item.label}
+                                                        </Link>
+                                                    </li>
                                                 ))}
-                                            </div>
+                                            </ul>
                                         </div>
-                                    </div>
-                                );
-                            }
-
-                            const Icon = link.icon;
-                            return (
-                                <Link
-                                    key={idx}
-                                    to={link.path!}
-                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${isActive(link.path!)
-                                        ? "bg-white/10 text-white"
-                                        : "text-slate-300 hover:text-white hover:bg-white/5"
-                                        }`}
-                                >
-                                    {Icon && <Icon className="w-4 h-4" />}
-                                    {link.label}
-                                </Link>
-                            );
-                        })}
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Session controls (desktop) */}
-                    <div className="hidden md:flex items-center gap-2 ml-4 pl-4 border-l border-white/10">
+                    {/* Sesión (escritorio) */}
+                    <div className="hidden md:flex items-center gap-3 pl-4 border-l border-hair">
                         {user ? (
                             <>
-                                <span className="flex items-center gap-1.5 text-sm text-slate-300 px-2">
-                                    <User className="w-4 h-4 text-slate-500" />
-                                    {user.username}
-                                </span>
-                                <button
-                                    onClick={handleLogout}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-                                >
-                                    <LogOut className="w-4 h-4" />
+                                <span className="lam-mono lam-mono-ink">{user.username}</span>
+                                <button type="button" onClick={handleLogout} className={linkIdle}>
                                     Salir
                                 </button>
                             </>
                         ) : (
-                            <Link
-                                to="/login"
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                            >
-                                <LogIn className="w-4 h-4" />
+                            <Link to="/login" className={isActive("/login") ? linkActive : linkIdle}>
                                 Acceder
                             </Link>
                         )}
                     </div>
 
-                    {/* Mobile menu button */}
-                    <div className="md:hidden flex items-center">
-                        <button
-                            onClick={() => setIsOpen(!isOpen)}
-                            className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                        >
-                            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                        </button>
-                    </div>
+                    {/* Conmutador móvil */}
+                    <button
+                        type="button"
+                        onClick={() => setIsOpen(!isOpen)}
+                        className={`md:hidden ${isOpen ? linkActive : linkIdle}`}
+                        aria-expanded={isOpen}
+                    >
+                        {isOpen ? "Cerrar" : "Menú"}
+                    </button>
                 </div>
-            </div>
+            </nav>
 
-            {/* Mobile menu */}
+            {/* Menú móvil */}
             {isOpen && (
-                <div className="md:hidden border-t border-white/10 bg-[#0a0e1a] relative z-[100]">
-                    <div className="px-4 py-4 space-y-2">
-                        {navLinks.map((link, idx) => {
-                            if (link.submenu) {
-                                return (
-                                    <div key={idx} className="space-y-2">
-                                        <div className="px-3 py-2 text-slate-400 text-sm font-medium">{link.label}</div>
-                                        {link.submenu.map((section, sIdx) => (
-                                            <div key={sIdx} className="ml-4 space-y-1">
-                                                <div className="text-xs text-slate-500 font-semibold">{section.section}</div>
-                                                {section.items.map((item, iIdx) => (
-                                                    <Link
-                                                        key={iIdx}
-                                                        to={item.path}
-                                                        onClick={() => setIsOpen(false)}
-                                                        className="block px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 rounded transition-colors"
-                                                    >
-                                                        {item.label}
-                                                    </Link>
-                                                ))}
-                                            </div>
-                                        ))}
-                                    </div>
-                                );
-                            }
-
-                            const Icon = link.icon;
-                            return (
-                                <Link
-                                    key={idx}
-                                    to={link.path!}
-                                    onClick={() => setIsOpen(false)}
-                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${isActive(link.path!)
-                                        ? "bg-white/10 text-white"
-                                        : "text-slate-300 hover:text-white hover:bg-white/5"
-                                        }`}
-                                >
-                                    {Icon && <Icon className="w-5 h-5" />}
-                                    {link.label}
-                                </Link>
-                            );
-                        })}
-
-                        {/* Session controls (mobile) */}
-                        <div className="pt-3 mt-1 border-t border-white/10">
-                            {user ? (
-                                <div className="flex items-center justify-between px-3 py-2">
-                                    <span className="flex items-center gap-1.5 text-sm text-slate-300">
-                                        <User className="w-4 h-4 text-slate-500" />
-                                        {user.username}
-                                    </span>
-                                    <button
-                                        onClick={() => { setIsOpen(false); void handleLogout(); }}
-                                        className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors"
+                <div className="md:hidden bg-paper border-b-2 border-rule">
+                    <div className="lam-wrap py-4">
+                        <ul className="lam-rules">
+                            {PRIMARY_LINKS.map((link) => (
+                                <li key={link.path}>
+                                    <Link
+                                        to={link.path}
+                                        onClick={() => setIsOpen(false)}
+                                        className={`flex-1 ${isActive(link.path) ? "font-semibold" : "text-ink-2"}`}
                                     >
-                                        <LogOut className="w-4 h-4" />
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                        {TOOL_SECTIONS.map((section) => (
+                            <div key={section.section} className="mt-5">
+                                <div className="lam-mono mb-1">{section.section}</div>
+                                <ul className="lam-rules">
+                                    {section.items.map((item) => (
+                                        <li key={item.path}>
+                                            <span className="dash">—</span>
+                                            <Link
+                                                to={item.path}
+                                                onClick={() => setIsOpen(false)}
+                                                className={`flex-1 ${isActive(item.path) ? "font-semibold" : "text-ink-2"}`}
+                                            >
+                                                {item.label}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                        <div className="mt-5 pt-4 border-t-2 border-rule flex items-center justify-between gap-3">
+                            {user ? (
+                                <>
+                                    <span className="lam-mono lam-mono-ink">{user.username}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsOpen(false); void handleLogout(); }}
+                                        className="lam-btn lam-btn-sm lam-btn-ghost"
+                                    >
                                         Salir
                                     </button>
-                                </div>
+                                </>
                             ) : (
-                                <Link
-                                    to="/login"
-                                    onClick={() => setIsOpen(false)}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
-                                >
-                                    <LogIn className="w-4 h-4" />
+                                <Link to="/login" onClick={() => setIsOpen(false)} className="lam-btn lam-btn-sm">
                                     Acceder
                                 </Link>
                             )}
@@ -260,6 +229,6 @@ export default function Navbar() {
                     </div>
                 </div>
             )}
-        </nav>
+        </header>
     );
 }

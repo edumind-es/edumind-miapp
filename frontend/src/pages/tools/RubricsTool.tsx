@@ -6,7 +6,6 @@
 import { useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2, Download } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 
@@ -57,16 +56,16 @@ export default function RubricsTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
-                    {!output && !loading && <span className="text-slate-500">Esperando generación...</span>}
+                <div className="lam-prose">
+                    {!output && !loading && <span className="text-ink-3">Esperando generación...</span>}
                     {output && (
                         <div className="space-y-4">
                             <div className="flex justify-end">
-                                <button onClick={handleDownload} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                                    <Download size={16} /> Descargar CSV
+                                <button onClick={handleDownload} className="flex items-center gap-2 lam-btn lam-btn-sm">
+                                    Descargar CSV
                                 </button>
                             </div>
-                            <pre className="whitespace-pre-wrap bg-black/30 p-4 rounded text-xs font-mono">{output}</pre>
+                            <pre className="whitespace-pre-wrap bg-paper-2 p-4 text-xs font-mono">{output}</pre>
                         </div>
                     )}
                 </div>
@@ -76,36 +75,36 @@ export default function RubricsTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Título de la Rúbrica</label>
-                    <input type="text" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                    <label className="lam-label">Título de la Rúbrica</label>
+                    <input type="text" className="lam-input"
                         placeholder="Ej: Debate sobre Cambio Climático"
                         value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} required />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Área / Materia</label>
-                        <input type="text" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Área / Materia</label>
+                        <input type="text" className="lam-input"
                             placeholder="Ej: Biología"
                             value={formData.area} onChange={e => setFormData({ ...formData, area: e.target.value })} required />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Nº Criterios</label>
-                        <input type="number" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Nº Criterios</label>
+                        <input type="number" className="lam-input"
                             min="1" max="15"
                             value={formData.criterios} onChange={e => setFormData({ ...formData, criterios: parseInt(e.target.value) })} required />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Descripción del Proyecto/Tarea</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                    <label className="lam-label">Descripción del Proyecto/Tarea</label>
+                    <textarea className="lam-input h-24 resize-none"
                         placeholder="Describe brevemente qué se evalúa..."
                         value={formData.descripcion} onChange={e => setFormData({ ...formData, descripcion: e.target.value })} required />
                 </div>
 
-                <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2">
-                    {loading && <Loader2 className="animate-spin" />} Generar Rúbrica
+                <button type="submit" disabled={loading} className="lam-btn lam-btn-block">
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>} Generar Rúbrica
                 </button>
             </form>
         </GeneratorLayout>

@@ -20,17 +20,6 @@ import { useState, useEffect } from "react";
 import { AdminLayout } from "../../layouts/AdminLayout";
 import { authFetch } from "@/lib/auth-client";
 import { NoticeBanner } from "@/components/NoticeBanner";
-import {
-    Cpu,
-    Play,
-    CheckCircle,
-    Clock,
-    AlertCircle,
-    RefreshCw,
-    FileText,
-    Zap
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 interface TrainingJob {
     id: number;
@@ -155,24 +144,17 @@ export default function TrainingPipeline() {
         }
     };
 
+    // Estado del job como sello mono: ok (completado), alerta (fallido), vigencia (en espera) o tinta
     const getStatusBadge = (status: string) => {
-        const styles: Record<string, { bg: string; text: string; icon: LucideIcon }> = {
-            preparing: { bg: "bg-yellow-600/20", text: "text-yellow-400", icon: Clock },
-            ready: { bg: "bg-blue-600/20", text: "text-blue-400", icon: Zap },
-            queued: { bg: "bg-indigo-600/20", text: "text-indigo-300", icon: Clock },
-            training: { bg: "bg-purple-600/20", text: "text-purple-400", icon: Cpu },
-            completed: { bg: "bg-green-600/20", text: "text-green-400", icon: CheckCircle },
-            failed: { bg: "bg-red-600/20", text: "text-red-400", icon: AlertCircle },
+        const tone: Record<string, string> = {
+            completed: "lam-stamp",
+            failed: "lam-stamp !border-alert !text-alert",
+            training: "lam-stamp !border-ink !text-ink",
+            ready: "lam-stamp !border-ink !text-ink",
+            queued: "lam-stamp !border-vigencia !text-vigencia",
+            preparing: "lam-stamp !border-vigencia !text-vigencia",
         };
-        const style = styles[status] || styles.preparing;
-        const Icon = style.icon;
-
-        return (
-            <span className={`flex items-center gap-1 px-2 py-1 rounded text-sm ${style.bg} ${style.text}`}>
-                <Icon className="w-4 h-4" />
-                {status}
-            </span>
-        );
+        return <span className={tone[status] || tone.preparing}>{status}</span>;
     };
 
     return (
@@ -189,130 +171,128 @@ export default function TrainingPipeline() {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-white">
+                        <h1 className="text-[26px] font-bold tracking-[-0.02em]">
                             Training Pipeline
                         </h1>
-                        <p className="text-slate-400">
+                        <p className="text-ink-2">
                             Entrenar y versionar modelos EDUmind
                         </p>
                     </div>
                     <button
                         onClick={fetchData}
-                        className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                        className="lam-btn lam-btn-sm lam-btn-ghost"
                     >
-                        <RefreshCw className="w-5 h-5 text-slate-400" />
+                        Actualizar
                     </button>
                 </div>
 
                 {/* Prepare Section */}
-                <div className="bg-[#1a1f2e] border border-white/10 rounded-xl p-6">
-                    <h2 className="text-lg font-semibold text-white mb-4">
+                <div className="lam-panel !p-6">
+                    <h2 className="text-[17px] font-bold mb-4">
                         Preparar Nuevo Entrenamiento
                     </h2>
                     <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-2 text-slate-400">
+                        <label className="flex items-center gap-2 text-ink-2 text-sm">
                             <input
                                 type="checkbox"
                                 checked={majorVersion}
                                 onChange={(e) => setMajorVersion(e.target.checked)}
-                                className="rounded"
+                                className=""
                             />
                             Versión Mayor (1.x → 2.0)
                         </label>
                         <button
                             onClick={handlePrepare}
                             disabled={preparing}
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                            className="lam-btn"
                         >
-                            <FileText className="w-5 h-5" />
                             {preparing ? "Preparando..." : "Preparar Dataset"}
                         </button>
                     </div>
-                    <p className="text-sm text-slate-500 mt-3">
+                    <p className="text-sm text-ink-3 mt-3">
                         Exporta items verificados a JSONL y crea un job listo para entrenar.
                     </p>
                 </div>
 
                 {/* Jobs Table */}
-                <div className="bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden">
-                    <div className="p-4 border-b border-white/10">
+                <div className="lam-panel !p-0 overflow-hidden">
+                    <div className="p-4 border-b border-hair">
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <h2 className="text-lg font-semibold text-white">
+                            <h2 className="text-[17px] font-bold">
                                 Jobs de Entrenamiento
                             </h2>
-                            <div className="flex items-center gap-3 text-xs text-slate-400">
+                            <div className="flex items-center gap-3 lam-mono">
                                 <span>Cola: {queueStats?.queued ?? 0}</span>
                                 <span>Running: {queueStats?.running ?? 0}</span>
                                 <span>Failed: {queueStats?.failed ?? 0}</span>
                             </div>
                         </div>
                     </div>
-                    <table className="w-full">
-                        <thead className="bg-white/5">
+                    <table className="lam-table">
+                        <thead>
                             <tr>
-                                <th className="p-4 text-left text-sm text-slate-400">Versión</th>
-                                <th className="p-4 text-left text-sm text-slate-400">Estado</th>
-                                <th className="p-4 text-left text-sm text-slate-400">Items</th>
-                                <th className="p-4 text-left text-sm text-slate-400">Epochs</th>
-                                <th className="p-4 text-left text-sm text-slate-400">Creado</th>
-                                <th className="p-4 text-left text-sm text-slate-400">Acciones</th>
+                                <th className="p-4">Versión</th>
+                                <th className="p-4">Estado</th>
+                                <th className="p-4">Items</th>
+                                <th className="p-4">Epochs</th>
+                                <th className="p-4">Creado</th>
+                                <th className="p-4">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="p-8 text-center text-slate-400">
+                                    <td colSpan={6} className="p-8 text-center text-ink-2">
                                         Cargando...
                                     </td>
                                 </tr>
                             ) : jobs.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="p-8 text-center text-slate-400">
+                                    <td colSpan={6} className="p-8 text-center text-ink-2">
                                         No hay jobs. Prepara un dataset primero.
                                     </td>
                                 </tr>
                             ) : (
                                 jobs.map((job) => (
-                                    <tr key={job.id} className="border-t border-white/5 hover:bg-white/5">
+                                    <tr key={job.id} className="border-t border-hair hover:bg-card">
                                         <td className="p-4">
-                                            <span className="text-white font-mono">
+                                            <span className="text-ink font-mono">
                                                 {job.version}
                                             </span>
                                         </td>
                                         <td className="p-4">{getStatusBadge(job.status)}</td>
-                                        <td className="p-4 text-slate-300">{job.example_count}</td>
-                                        <td className="p-4 text-slate-300">{job.epochs}</td>
-                                        <td className="p-4 text-slate-500 text-sm">
+                                        <td className="p-4 text-ink-2">{job.example_count}</td>
+                                        <td className="p-4 text-ink-2">{job.epochs}</td>
+                                        <td className="p-4 text-ink-3 text-sm">
                                             {new Date(job.created_at).toLocaleString()}
                                         </td>
                                         <td className="p-4">
                                             {job.status === "ready" && (
                                                 <button
                                                     onClick={() => handleStartTraining(job.id)}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm"
+                                                    className="lam-btn lam-btn-sm"
                                                 >
-                                                    <Play className="w-4 h-4" />
                                                     Entrenar
                                                 </button>
                                             )}
                                             {job.status === "training" && (
-                                                <span className="text-purple-400 text-sm animate-pulse">
+                                                <span className="lam-mono lam-mono-ink">
                                                     Entrenando...
                                                 </span>
                                             )}
                                             {job.status === "queued" && (
-                                                <span className="text-indigo-300 text-sm">
+                                                <span className="lam-mono">
                                                     En cola (worker pendiente)
                                                 </span>
                                             )}
                                             {job.status === "completed" && (
-                                                <span className="text-green-400 text-sm">
-                                                    ✅ Completado
+                                                <span className="lam-mono text-ok">
+                                                    Completado
                                                 </span>
                                             )}
                                             {job.status === "failed" && (
-                                                <span className="text-red-400 text-sm truncate max-w-[200px]" title={job.error_message || ""}>
-                                                    ❌ {job.error_message?.substring(0, 30)}...
+                                                <span className="text-alert text-sm truncate max-w-[200px]" title={job.error_message || ""}>
+                                                    {job.error_message?.substring(0, 30)}...
                                                 </span>
                                             )}
                                         </td>
@@ -324,50 +304,31 @@ export default function TrainingPipeline() {
                 </div>
 
                 {/* Trained Models */}
-                <div className="bg-[#1a1f2e] border border-white/10 rounded-xl overflow-hidden">
-                    <div className="p-4 border-b border-white/10">
-                        <h2 className="text-lg font-semibold text-white">
+                <div className="lam-panel !p-0 overflow-hidden">
+                    <div className="p-4 border-b border-hair">
+                        <h2 className="text-[17px] font-bold">
                             Modelos Entrenados
                         </h2>
                     </div>
                     {models.length === 0 ? (
-                        <div className="p-8 text-center text-slate-400">
+                        <div className="p-8 text-center text-ink-2">
                             No hay modelos entrenados aún.
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                        <ul className="lam-rules mx-4 mb-2">
                             {models.map((model) => (
-                                <div
-                                    key={model.version}
-                                    className="bg-white/5 border border-white/10 rounded-lg p-4"
-                                >
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="p-2 bg-green-600/20 rounded-lg">
-                                            <CheckCircle className="w-5 h-5 text-green-400" />
-                                        </div>
-                                        <div>
-                                            <p className="text-white font-mono font-bold">
-                                                {model.version_name}
-                                            </p>
-                                            <p className="text-xs text-slate-500">
-                                                {new Date(model.created_at).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1 text-sm">
-                                        <p className="text-slate-400">
-                                            <span className="text-slate-500">Items:</span> {model.example_count}
-                                        </p>
-                                        <p className="text-slate-400">
-                                            <span className="text-slate-500">Epochs:</span> {model.epochs}
-                                        </p>
-                                        <p className="text-slate-400 truncate">
-                                            <span className="text-slate-500">Base:</span> {model.base_model}
+                                <li key={model.version} className="flex-wrap">
+                                    <span className="dash">—</span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="m-0 font-mono font-medium">{model.version_name}</p>
+                                        <p className="m-0 mt-1 text-sm text-ink-2 truncate">
+                                            {model.example_count} items · {model.epochs} epochs · {model.base_model}
                                         </p>
                                     </div>
-                                </div>
+                                    <span className="lam-mono self-center">{new Date(model.created_at).toLocaleDateString()}</span>
+                                </li>
                             ))}
-                        </div>
+                        </ul>
                     )}
                 </div>
             </div>

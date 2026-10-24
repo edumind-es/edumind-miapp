@@ -19,7 +19,6 @@
 import { useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2 } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { EDUCATION_LEVELS } from "@/lib/education-levels";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
@@ -57,9 +56,9 @@ export default function PlanningTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
+                <div className="lam-prose">
                     {!output && !loading && (
-                        <div className="flex flex-col items-center justify-center h-full text-slate-500 min-h-[400px]">
+                        <div className="flex flex-col items-center justify-center h-full text-ink-3 min-h-[400px]">
                             <p>El contenido generado aparecerá aquí.</p>
                         </div>
                     )}
@@ -71,9 +70,9 @@ export default function PlanningTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Curso</label>
+                    <label className="lam-label">Curso</label>
                     <select
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        className="lam-input"
                         value={formData.curso}
                         onChange={e => setFormData({ ...formData, curso: e.target.value })}
                     >
@@ -88,20 +87,20 @@ export default function PlanningTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Horas Semanales ({formData.horas})</label>
+                    <label className="lam-label">Horas Semanales ({formData.horas})</label>
                     <input
                         type="range"
                         min="1" max="10"
                         value={formData.horas}
                         onChange={e => setFormData({ ...formData, horas: parseInt(e.target.value) })}
-                        className="w-full accent-blue-500"
+                        className="w-full accent-ink"
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Objetivo Principal</label>
+                    <label className="lam-label">Objetivo Principal</label>
                     <textarea
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-32 resize-none focus:ring-1 focus:ring-blue-500 outline-none"
+                        className="lam-input h-32 resize-none"
                         placeholder="Ej: Conocer los fundamentos del voleibol..."
                         value={formData.objetivo}
                         onChange={e => setFormData({ ...formData, objetivo: e.target.value })}
@@ -112,9 +111,9 @@ export default function PlanningTool() {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-ink hover:bg-ink text-paper font-bold py-3 transition-colors flex items-center justify-center gap-2"
                 >
-                    {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>}
                     {loading ? "Generando..." : "Generar Planificación"}
                 </button>
             </form>

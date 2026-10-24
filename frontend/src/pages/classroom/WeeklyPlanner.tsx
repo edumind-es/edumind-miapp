@@ -7,22 +7,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import {
-    BookOpen,
-    Calendar,
-    Check,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    Home,
-    Layers3,
-    Link2,
-    Loader2,
-    Sparkles,
-    X,
-} from "lucide-react";
-
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { NoticeBanner } from "@/components/NoticeBanner";
 import {
@@ -425,8 +409,8 @@ export default function WeeklyPlanner() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-            <div className="container mx-auto px-4 py-6">
+        <div className="min-h-screen bg-paper text-ink">
+            <div className="lam-wrap py-10">
                 {notice ? (
                     <NoticeBanner
                         variant={notice.variant}
@@ -447,26 +431,20 @@ export default function WeeklyPlanner() {
                 <div className="flex flex-col gap-4 mb-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <div className="flex items-center gap-3 text-slate-400 text-sm mb-2">
-                                <Link to="/classroom" className="hover:text-white flex items-center gap-1">
-                                    <Home size={14} /> Mis Clases
-                                </Link>
-                                <span>/</span>
-                                <span className="text-white">Planificación semanal</span>
+                            <div className="lam-mono mb-4">
+                                <Link to="/classroom" className="lam-mono-ink hover:underline underline-offset-4">Mis clases</Link>
+                                <span className="mx-2">/</span>
+                                <span>Planificación semanal</span>
                             </div>
-                            <h1 className="text-3xl font-bold">Planificación semanal</h1>
-                            <p className="text-slate-400 mt-2 max-w-3xl">
+                            <h1 className="lam-h1">Planificación <span className="light">semanal</span></h1>
+                            <p className="lam-lede mt-5 !max-w-[60ch]">
                                 Diseña una secuencia didáctica guiada, distribuye contenidos y criterios por sesiones
                                 reales del horario y guarda el resultado directamente en el planner docente.
                             </p>
                         </div>
 
                         <div className="flex w-full md:w-auto gap-2">
-                            <button
-                                onClick={() => setConfirmGenerate(true)}
-                                className="w-full md:w-auto px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg text-sm flex items-center justify-center gap-2"
-                            >
-                                <Calendar size={16} />
+                            <button type="button" onClick={() => setConfirmGenerate(true)} className="lam-btn w-full md:w-auto">
                                 Generar desde horario
                             </button>
                         </div>
@@ -474,12 +452,12 @@ export default function WeeklyPlanner() {
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-[1.15fr,0.85fr] gap-6 mb-8">
-                    <section className="rounded-2xl border border-white/10 bg-slate-900/50 p-5">
-                        <div className="flex items-center gap-3 mb-4">
-                            <Sparkles className="text-cyan-300" size={20} />
-                            <div>
-                                <h2 className="text-xl font-semibold">Constructor de secuencia</h2>
-                                <p className="text-sm text-slate-400">
+                    <section className="border-t-2 border-rule pt-5">
+                        <div className="lam-sec-head">
+                            <span className="lam-sec-num">01</span>
+                            <div className="flex-1">
+                                <h2>Constructor de secuencia</h2>
+                                <p className="text-sm text-ink-2 mt-2 mb-0">
                                     Recoge criterios, contenidos, recursos y DUA para convertirlos en sesiones
                                     calendarizadas.
                                 </p>
@@ -489,13 +467,13 @@ export default function WeeklyPlanner() {
                         <form onSubmit={handlePreviewGeneration} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-300">Clase</label>
+                                    <label className="lam-label">Clase</label>
                                     <select
                                         value={selectedClassId ?? ""}
                                         onChange={(event) =>
                                             setSelectedClassId(event.target.value ? Number(event.target.value) : null)
                                         }
-                                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                        className="lam-input"
                                     >
                                         {classes.length === 0 ? <option value="">Sin clases</option> : null}
                                         {classes.map((teacherClass) => (
@@ -507,11 +485,11 @@ export default function WeeklyPlanner() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-300">Título o foco de la secuencia</label>
+                                    <label className="lam-label">Título o foco de la secuencia</label>
                                     <input
                                         value={sequenceTitle}
                                         onChange={(event) => setSequenceTitle(event.target.value)}
-                                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                        className="lam-input"
                                         placeholder="Ej. Condición física saludable y autorregulación"
                                         required
                                     />
@@ -529,11 +507,11 @@ export default function WeeklyPlanner() {
 
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div className="md:col-span-2 space-y-2">
-                                    <label className="text-sm font-medium text-slate-300">Área o materia</label>
+                                    <label className="lam-label">Área o materia</label>
                                     <select
                                         value={area}
                                         onChange={(event) => setArea(event.target.value)}
-                                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                        className="lam-input"
                                     >
                                         {availableAreaOptions.map((option) => (
                                             <option key={option} value={option}>
@@ -543,49 +521,47 @@ export default function WeeklyPlanner() {
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-300">Fecha de inicio</label>
+                                    <label className="lam-label">Fecha de inicio</label>
                                     <input
                                         type="date"
                                         value={startDate}
                                         onChange={(event) => setStartDate(event.target.value)}
-                                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                        className="lam-input"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-300">Nº de sesiones</label>
+                                    <label className="lam-label">Nº de sesiones</label>
                                     <input
                                         type="number"
                                         min={1}
                                         max={30}
                                         value={sessionCount}
                                         onChange={(event) => setSessionCount(Number(event.target.value))}
-                                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                        className="lam-input"
                                     />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-300">Etapa</label>
+                                    <label className="lam-label">Etapa</label>
                                     <input
                                         value={stage}
                                         onChange={(event) => setStage(event.target.value)}
-                                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                        className="lam-input"
                                         placeholder="Educación Primaria / ESO / Bachillerato..."
                                     />
                                 </div>
-                                <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+                                <div className="lam-note mental text-sm">
                                     {classContextLoading ? (
-                                        <span className="inline-flex items-center gap-2">
-                                            <Loader2 className="animate-spin" size={14} /> Cargando horario y recursos...
-                                        </span>
+                                        <span className="lam-mono animate-pulse">Cargando horario y recursos</span>
                                     ) : classSchedule.length > 0 ? (
                                         <div className="space-y-2">
-                                            <span className="font-medium text-white">Horario detectado</span>
+                                            <span className="tag">Horario detectado</span>
                                             <div className="flex flex-wrap gap-2">
                                                 {classSchedule.map((slot) => (
-                                                    <span key={slot.id} className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-200">
-                                                        {DAYS[slot.day_of_week]} · {slot.start_time}-{slot.end_time}
+                                                    <span key={slot.id} className="font-mono text-[12px] border border-hair px-2.5 py-1 text-ink-2">
+                                                        {DAYS[slot.day_of_week]} · {slot.start_time}–{slot.end_time}
                                                     </span>
                                                 ))}
                                             </div>
@@ -600,15 +576,10 @@ export default function WeeklyPlanner() {
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <BookOpen size={16} className="text-cyan-300" />
-                                        <h3 className="font-semibold">Criterios de evaluación</h3>
-                                    </div>
+                                <div className="lam-panel">
+                                    <h3 className="lam-mono mb-3">Criterios de evaluación</h3>
                                     {curriculumLoading ? (
-                                        <div className="text-sm text-slate-400 flex items-center gap-2">
-                                            <Loader2 size={14} className="animate-spin" /> Cargando criterios sugeridos...
-                                        </div>
+                                        <div className="lam-mono animate-pulse mb-3">Cargando criterios sugeridos</div>
                                     ) : curriculumArea?.evaluation_criteria?.length ? (
                                         <div className="flex flex-wrap gap-2 mb-3">
                                             {curriculumArea.evaluation_criteria.map((criterion) => (
@@ -621,7 +592,7 @@ export default function WeeklyPlanner() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="text-sm text-slate-400 mb-3">
+                                        <div className="text-sm text-ink-2 mb-3">
                                             No hay criterios sugeridos para esta materia; puedes introducirlos manualmente.
                                         </div>
                                     )}
@@ -629,20 +600,15 @@ export default function WeeklyPlanner() {
                                         value={manualCriteria}
                                         onChange={(event) => setManualCriteria(event.target.value)}
                                         rows={4}
-                                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                        className="lam-input"
                                         placeholder="Añade criterios propios, uno por línea o separados por punto y coma."
                                     />
                                 </div>
 
-                                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <Layers3 size={16} className="text-cyan-300" />
-                                        <h3 className="font-semibold">Contenidos asociados</h3>
-                                    </div>
+                                <div className="lam-panel">
+                                    <h3 className="lam-mono mb-3">Contenidos asociados</h3>
                                     {curriculumLoading ? (
-                                        <div className="text-sm text-slate-400 flex items-center gap-2">
-                                            <Loader2 size={14} className="animate-spin" /> Cargando contenidos sugeridos...
-                                        </div>
+                                        <div className="lam-mono animate-pulse mb-3">Cargando contenidos sugeridos</div>
                                     ) : curriculumArea?.contents?.length ? (
                                         <div className="flex flex-wrap gap-2 mb-3">
                                             {curriculumArea.contents.map((content) => (
@@ -655,7 +621,7 @@ export default function WeeklyPlanner() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="text-sm text-slate-400 mb-3">
+                                        <div className="text-sm text-ink-2 mb-3">
                                             No hay contenidos sugeridos para esta materia; puedes introducirlos manualmente.
                                         </div>
                                     )}
@@ -663,26 +629,24 @@ export default function WeeklyPlanner() {
                                         value={manualContents}
                                         onChange={(event) => setManualContents(event.target.value)}
                                         rows={4}
-                                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                        className="lam-input"
                                         placeholder="Añade contenidos propios, uno por línea o separados por punto y coma."
                                     />
                                 </div>
                             </div>
 
                             {curriculumError ? (
-                                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-                                    {curriculumError}
+                                <div className="lam-note vigencia text-sm">
+                                    <span className="tag">Atención</span>
+                                    <p className="m-0">{curriculumError}</p>
                                 </div>
                             ) : null}
 
-                            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <SlidersHorizontalIcon />
-                                    <h3 className="font-semibold">Metodología, DUA y propuestas</h3>
-                                </div>
+                            <div className="lam-panel">
+                                <h3 className="lam-mono mb-3">Metodología, DUA y propuestas</h3>
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                     <div className="space-y-3">
-                                        <label className="text-sm font-medium text-slate-300">
+                                        <label className="lam-label">
                                             Slider innovación-tradición
                                         </label>
                                         <input
@@ -691,14 +655,14 @@ export default function WeeklyPlanner() {
                                             max={100}
                                             value={methodologySlider}
                                             onChange={(event) => setMethodologySlider(Number(event.target.value))}
-                                            className="w-full accent-cyan-400"
+                                            className="w-full accent-ink"
                                         />
-                                        <div className="text-sm text-cyan-200">{methodologyLabel(methodologySlider)}</div>
+                                        <div className="lam-mono lam-mono-ink">{methodologyLabel(methodologySlider)}</div>
                                         <textarea
                                             value={methodologyNotes}
                                             onChange={(event) => setMethodologyNotes(event.target.value)}
                                             rows={4}
-                                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                            className="lam-input"
                                             placeholder="Agrupamientos, dinámica, evaluación formativa, rutinas, estaciones, ABP..."
                                         />
                                     </div>
@@ -707,14 +671,14 @@ export default function WeeklyPlanner() {
                                             value={duaDiversity}
                                             onChange={(event) => setDuaDiversity(event.target.value)}
                                             rows={4}
-                                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                            className="lam-input"
                                             placeholder="DUA y atención a la diversidad: apoyos, andamiajes, accesibilidad, agrupamientos flexibles..."
                                         />
                                         <textarea
                                             value={additionalProposals}
                                             onChange={(event) => setAdditionalProposals(event.target.value)}
                                             rows={4}
-                                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                            className="lam-input"
                                             placeholder="Propuestas adicionales: producto final, proyecto, evaluación, transversalidad, coordinación..."
                                         />
                                     </div>
@@ -722,41 +686,35 @@ export default function WeeklyPlanner() {
                             </div>
 
                             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <Link2 size={16} className="text-cyan-300" />
-                                        <h3 className="font-semibold">Recursos y apps</h3>
-                                    </div>
+                                <div className="lam-panel">
+                                    <h3 className="lam-mono mb-3">Recursos y apps</h3>
                                     <div className="space-y-3">
                                         <textarea
                                             value={webResources}
                                             onChange={(event) => setWebResources(event.target.value)}
                                             rows={3}
-                                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                            className="lam-input"
                                             placeholder="Recursos web, uno por línea: REA, webs, museos, simuladores, artículos..."
                                         />
                                         <textarea
                                             value={edumindSiteResources}
                                             onChange={(event) => setEdumindSiteResources(event.target.value)}
                                             rows={3}
-                                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                            className="lam-input"
                                             placeholder="Referencias a edumind.es/recursos, una por línea."
                                         />
                                         <textarea
                                             value={externalResources}
                                             onChange={(event) => setExternalResources(event.target.value)}
                                             rows={3}
-                                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                                            className="lam-input"
                                             placeholder="Audiovisuales, PDF, imágenes, proyectos o materiales físicos/digitales."
                                         />
                                     </div>
                                 </div>
 
-                                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <Sparkles size={16} className="text-cyan-300" />
-                                        <h3 className="font-semibold">Ecosistema EDUmind</h3>
-                                    </div>
+                                <div className="lam-panel">
+                                    <h3 className="lam-mono mb-3">Ecosistema EDUmind</h3>
                                     <div className="flex flex-wrap gap-2 mb-4">
                                         {EDUMIND_APP_OPTIONS.map((app) => (
                                             <SelectablePill
@@ -768,11 +726,11 @@ export default function WeeklyPlanner() {
                                         ))}
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-300">
+                                        <label className="lam-label">
                                             Recursos vinculados a la clase
                                         </label>
                                         {classResources.length === 0 ? (
-                                            <div className="text-sm text-slate-400">
+                                            <div className="text-sm text-ink-2">
                                                 No hay recursos guardados y vinculados a esta clase todavía.
                                             </div>
                                         ) : (
@@ -780,7 +738,7 @@ export default function WeeklyPlanner() {
                                                 {classResources.map((resource) => (
                                                     <label
                                                         key={resource.id}
-                                                        className="flex items-start gap-3 rounded-lg border border-white/10 bg-slate-900/50 px-3 py-2 text-sm"
+                                                        className="flex items-start gap-3 border-b border-hair px-1 py-2 text-sm"
                                                     >
                                                         <input
                                                             type="checkbox"
@@ -789,8 +747,8 @@ export default function WeeklyPlanner() {
                                                             className="mt-1"
                                                         />
                                                         <div>
-                                                            <div className="font-medium text-white">{resource.title}</div>
-                                                            <div className="text-xs text-slate-400">
+                                                            <div className="font-medium text-ink">{resource.title}</div>
+                                                            <div className="text-xs text-ink-2">
                                                                 Tipo: {resource.resource_type}
                                                             </div>
                                                         </div>
@@ -803,33 +761,27 @@ export default function WeeklyPlanner() {
                             </div>
 
                             <div className="flex flex-col md:flex-row gap-3">
-                                <button
-                                    type="submit"
-                                    disabled={plannerBusy}
-                                    className="px-4 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-60 flex items-center justify-center gap-2"
-                                >
-                                    {plannerBusy ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
-                                    Previsualizar tabla de sesiones
+                                <button type="submit" disabled={plannerBusy} className="lam-btn">
+                                    {plannerBusy ? "Generando..." : "Previsualizar tabla de sesiones"}
                                 </button>
                                 <button
                                     type="button"
                                     disabled={plannerBusy || !generatedPlan}
                                     onClick={() => void handlePersistGeneration()}
-                                    className="px-4 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 flex items-center justify-center gap-2"
+                                    className="lam-btn lam-btn-ghost"
                                 >
-                                    <Check size={16} />
-                                    Guardar en el planner
+                                    Guardar en el planificador
                                 </button>
                             </div>
                         </form>
                     </section>
 
-                    <section className="rounded-2xl border border-white/10 bg-slate-900/50 p-5">
-                        <div className="flex items-center gap-3 mb-4">
-                            <Calendar className="text-blue-300" size={20} />
-                            <div>
-                                <h2 className="text-xl font-semibold">Previsualización de la secuencia</h2>
-                                <p className="text-sm text-slate-400">
+                    <section className="border-t-2 border-rule pt-5">
+                        <div className="lam-sec-head">
+                            <span className="lam-sec-num">02</span>
+                            <div className="flex-1">
+                                <h2>Previsualización de la secuencia</h2>
+                                <p className="text-sm text-ink-2 mt-2 mb-0">
                                     Tabla de sesiones con fechas reales antes de insertar las entradas en la semana.
                                 </p>
                             </div>
@@ -851,7 +803,7 @@ export default function WeeklyPlanner() {
                                 <GeneratedPlanPreview plan={generatedPlan} />
                             </div>
                         ) : (
-                            <div className="min-h-[320px] rounded-xl border border-dashed border-white/10 bg-white/5 p-6 text-sm text-slate-400">
+                            <div className="min-h-[320px] border border-hair bg-card p-6 text-sm text-ink-2">
                                 La tabla aparecerá aquí cuando generes una secuencia. Verás las sesiones con fecha,
                                 horario, criterios, contenidos, metodología y recursos previstos.
                             </div>
@@ -859,37 +811,26 @@ export default function WeeklyPlanner() {
                     </section>
                 </div>
 
-                <div className="bg-slate-800/50 rounded-xl p-3 sm:p-4 mb-6 border border-white/10">
-                    <div className="flex items-center justify-between gap-2">
-                        <button onClick={goToPreviousWeek} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                            <ChevronLeft size={22} />
-                        </button>
-
-                        <h2 className="text-base sm:text-xl font-semibold text-center">
-                            Semana del{" "}
-                            {currentMonday.toLocaleDateString("es-ES", {
-                                day: "numeric",
-                                month: "long",
-                            })}
-                        </h2>
-
-                        <button onClick={goToNextWeek} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                            <ChevronRight size={22} />
-                        </button>
-                    </div>
-                    <div className="mt-3 flex justify-center">
-                        <button
-                            onClick={goToToday}
-                            className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-500 rounded-lg"
-                        >
-                            Hoy
-                        </button>
+                {/* Navegación semanal */}
+                <div className="border-t-2 border-rule border-b border-b-hair py-3 mb-6 flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="m-0 text-[22px] font-bold tracking-[-0.02em]">
+                        <span className="lam-mono block mb-1">03 · Semana</span>
+                        Semana del{" "}
+                        {currentMonday.toLocaleDateString("es-ES", {
+                            day: "numeric",
+                            month: "long",
+                        })}
+                    </h2>
+                    <div className="lam-seg">
+                        <button type="button" onClick={goToPreviousWeek}>← Anterior</button>
+                        <button type="button" onClick={goToToday}>Hoy</button>
+                        <button type="button" onClick={goToNextWeek}>Siguiente →</button>
                     </div>
                 </div>
 
                 {loading ? (
                     <div className="flex items-center justify-center py-20">
-                        <Loader2 className="animate-spin text-blue-400" size={48} />
+                        <span className="lam-mono animate-pulse">Cargando planificador</span>
                     </div>
                 ) : (
                     <>
@@ -902,10 +843,8 @@ export default function WeeklyPlanner() {
                                             key={`tab-${dayIndex}`}
                                             type="button"
                                             onClick={() => setActiveDayIndex(dayIndex)}
-                                            className={`rounded-lg px-3 py-2 text-sm transition-colors ${
-                                                isActive
-                                                    ? "bg-blue-600 text-white"
-                                                    : "bg-white/5 text-slate-300 hover:bg-white/10"
+                                            className={`font-mono text-[11px] uppercase tracking-[0.12em] px-3 py-2 border border-ink transition-colors ${
+                                                isActive ? "bg-ink text-paper" : "text-ink hover:bg-paper-2"
                                             }`}
                                         >
                                             {DAYS[dayIndex]} {date.toLocaleDateString("es-ES", { day: "numeric" })}
@@ -925,7 +864,7 @@ export default function WeeklyPlanner() {
                             />
                         </div>
 
-                        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-0 border-t-2 border-rule border-l border-hair">
                             {weekDates.map((date, dayIndex) => (
                                 <DayColumn
                                     key={dayIndex}
@@ -955,9 +894,9 @@ export default function WeeklyPlanner() {
 
 function PlannerContextBadge({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-            <div className="text-xs uppercase tracking-wide text-slate-400">{label}</div>
-            <div className="text-sm font-medium text-white mt-1">{value}</div>
+        <div className="border-b border-hair py-2">
+            <div className="lam-mono">{label}</div>
+            <div className="text-[15px] font-semibold text-ink mt-1">{value}</div>
         </div>
     );
 }
@@ -975,10 +914,11 @@ function SelectablePill({
         <button
             type="button"
             onClick={onClick}
-            className={`rounded-full border px-3 py-1.5 text-xs text-left transition-colors ${
+            aria-pressed={selected}
+            className={`border px-3 py-1.5 text-xs text-left transition-colors ${
                 selected
-                    ? "border-cyan-400 bg-cyan-400/15 text-cyan-100"
-                    : "border-white/10 bg-slate-900/50 text-slate-300 hover:bg-white/10"
+                    ? "border-ink bg-ink text-paper"
+                    : "border-hair bg-paper text-ink-2 hover:border-ink hover:text-ink"
             }`}
         >
             {label}
@@ -989,85 +929,81 @@ function SelectablePill({
 function GeneratedPlanPreview({ plan }: { plan: PlannerSequenceResponse }) {
     return (
         <div className="space-y-4">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm">
+            <div className="lam-panel text-sm">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="rounded-full bg-cyan-500/10 px-3 py-1 text-cyan-100">
-                        {plan.class_name}
-                    </span>
-                    <span className="rounded-full bg-white/10 px-3 py-1 text-slate-200">
+                    <span className="lam-badge b-mental">{plan.class_name}</span>
+                    <span className="lam-mono lam-mono-ink border border-ink px-2.5 py-2">
                         {plan.schedule_based ? "Con horario real" : "Sin horario configurado"}
                     </span>
                     {plan.persisted && plan.planning_resource_title ? (
-                        <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-emerald-100">
-                            {plan.planning_resource_title}
-                        </span>
+                        <span className="lam-stamp">{plan.planning_resource_title}</span>
                     ) : null}
                 </div>
-                <div className="text-slate-400">
+                <div className="text-ink-2">
                     {plan.occupied_slots.length > 0
                         ? `Huecos ya ocupados detectados: ${plan.occupied_slots.join(", ")}`
                         : "No se detectaron huecos ocupados para esta secuencia."}
                 </div>
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-white/10">
-                <table className="min-w-full text-sm">
-                    <thead className="bg-slate-800/80 text-slate-200">
+            <div className="overflow-x-auto border border-hair">
+                <table className="lam-table min-w-full text-sm !m-0">
+                    <thead>
                         <tr>
-                            <th className="px-3 py-3 text-left">Sesión</th>
-                            <th className="px-3 py-3 text-left">Fecha</th>
-                            <th className="px-3 py-3 text-left">Horario</th>
-                            <th className="px-3 py-3 text-left">Título</th>
-                            <th className="px-3 py-3 text-left">Criterios</th>
-                            <th className="px-3 py-3 text-left">Contenidos</th>
-                            <th className="px-3 py-3 text-left">Recursos</th>
+                            <th>Sesión</th>
+                            <th>Fecha</th>
+                            <th>Horario</th>
+                            <th>Título</th>
+                            <th>Criterios</th>
+                            <th>Contenidos</th>
+                            <th>Recursos</th>
                         </tr>
                     </thead>
                     <tbody>
                         {plan.sessions.map((session, index) => (
                             <tr
                                 key={`${session.entry_date}-${session.start_time}-${index}`}
-                                className="border-t border-white/10 bg-slate-900/30 align-top"
+                                className="align-top"
                             >
                                 <td className="px-3 py-3 whitespace-nowrap">
-                                    <div className="font-medium text-white">{session.session_number}</div>
-                                    <div className="text-xs text-slate-400">{session.phase_label}</div>
+                                    <div className="font-medium text-ink">{session.session_number}</div>
+                                    <div className="text-xs text-ink-2">{session.phase_label}</div>
                                 </td>
                                 <td className="px-3 py-3 whitespace-nowrap">
-                                    <div className="text-white">{session.day_label}</div>
-                                    <div className="text-xs text-slate-400">{session.entry_date}</div>
+                                    <div className="text-ink">{session.day_label}</div>
+                                    <div className="text-xs text-ink-2">{session.entry_date}</div>
                                 </td>
-                                <td className="px-3 py-3 whitespace-nowrap text-slate-200">
+                                <td className="px-3 py-3 whitespace-nowrap text-ink">
                                     {session.start_time} - {session.end_time}
                                 </td>
                                 <td className="px-3 py-3 min-w-[220px]">
-                                    <div className="font-medium text-white">{session.title}</div>
-                                    <div className="text-xs text-slate-400 mt-1">{session.focus}</div>
-                                    <div className="text-xs text-cyan-100 mt-2">{session.methodology}</div>
+                                    <div className="font-medium text-ink">{session.title}</div>
+                                    <div className="text-xs text-ink-2 mt-1">{session.focus}</div>
+                                    <div className="lam-mono mt-2 normal-case tracking-normal">{session.methodology}</div>
                                 </td>
                                 <td className="px-3 py-3 min-w-[220px]">
-                                    <ul className="space-y-1 text-slate-200">
+                                    <ul className="space-y-1 text-ink">
                                         {session.criteria.map((criterion) => (
-                                            <li key={criterion}>• {criterion}</li>
+                                            <li key={criterion}>— {criterion}</li>
                                         ))}
                                     </ul>
                                 </td>
                                 <td className="px-3 py-3 min-w-[220px]">
-                                    <ul className="space-y-1 text-slate-200">
+                                    <ul className="space-y-1 text-ink">
                                         {session.contents.map((content) => (
-                                            <li key={content}>• {content}</li>
+                                            <li key={content}>— {content}</li>
                                         ))}
                                     </ul>
                                 </td>
                                 <td className="px-3 py-3 min-w-[220px]">
                                     {session.resources.length > 0 ? (
-                                        <ul className="space-y-1 text-slate-200">
+                                        <ul className="space-y-1 text-ink">
                                             {session.resources.map((resource) => (
-                                                <li key={resource}>• {resource}</li>
+                                                <li key={resource}>— {resource}</li>
                                             ))}
                                         </ul>
                                     ) : (
-                                        <span className="text-slate-500">Sin recursos específicos</span>
+                                        <span className="text-ink-3">Sin recursos específicos</span>
                                     )}
                                 </td>
                             </tr>
@@ -1076,9 +1012,9 @@ function GeneratedPlanPreview({ plan }: { plan: PlannerSequenceResponse }) {
                 </table>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-slate-950/70 p-4">
-                <div className="text-sm font-medium text-white mb-2">Resumen operativo generado</div>
-                <pre className="whitespace-pre-wrap text-xs text-slate-300 overflow-x-auto">
+            <div className="lam-note">
+                <span className="tag">Resumen operativo generado</span>
+                <pre className="m-0 whitespace-pre-wrap font-mono text-xs text-ink-2 overflow-x-auto">
                     {plan.planning_summary}
                 </pre>
             </div>
@@ -1098,61 +1034,50 @@ function DayColumn({ date, dayName, entries, getClassById, onStatusChange }: Day
     const isToday = formatDate(date) === formatDate(new Date());
 
     return (
-        <div
-            className={`rounded-xl ${
-                isToday ? "bg-blue-600/10 border-blue-500/30" : "bg-slate-800/30 border-white/5"
-            } border p-4 min-h-[320px] md:min-h-[420px]`}
-        >
-            <div className="text-center mb-4">
-                <div className={`text-lg font-semibold ${isToday ? "text-blue-400" : "text-white"}`}>{dayName}</div>
-                <div className="text-sm text-slate-400">
+        <div className={`border-r border-b border-hair p-4 min-h-[320px] md:min-h-[420px] ${isToday ? "bg-card" : "bg-paper"}`}>
+            {/* Cabecera del día en mono; el día actual invierte la tinta */}
+            <div className={`mb-4 pb-2 border-b flex items-baseline justify-between gap-2 ${isToday ? "border-ink" : "border-hair"}`}>
+                <span className={`lam-mono ${isToday ? "bg-ink text-paper px-2 py-1" : "lam-mono-ink"}`}>{dayName}</span>
+                <span className="lam-mono">
                     {date.toLocaleDateString("es-ES", { day: "numeric", month: "short" })}
-                </div>
+                </span>
             </div>
 
             <div className="space-y-2">
                 {entries.map((entry) => {
                     const teacherClass = getClassById(entry.class_id);
                     return (
-                        <motion.div
+                        <div
                             key={entry.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="p-3 rounded-lg border transition-all hover:scale-[1.02]"
-                            style={{
-                                backgroundColor: `${entry.color || teacherClass?.color || "#3B82F6"}20`,
-                                borderColor: `${entry.color || teacherClass?.color || "#3B82F6"}50`,
-                            }}
+                            className="p-3 bg-paper border border-hair border-l-[3px] transition-colors"
+                            style={{ borderLeftColor: entry.color || teacherClass?.color || "var(--m-mental)" }}
                         >
                             <div className="flex items-start justify-between gap-2 mb-1">
-                                <div className="text-xs text-slate-400 flex items-center gap-1">
-                                    <Clock size={12} />
-                                    {entry.start_time} - {entry.end_time}
+                                <div className="font-mono text-[12px] text-ink-2">
+                                    {entry.start_time}–{entry.end_time}
                                 </div>
                                 <StatusBadge status={entry.status} onStatusChange={(status) => onStatusChange(entry.id, status)} />
                             </div>
                             <div className="font-medium text-sm">{entry.title}</div>
                             {teacherClass ? (
-                                <div className="text-[11px] text-cyan-100 mt-1">
+                                <div className="lam-mono mt-1">
                                     {teacherClass.course} · {teacherClass.group} · {teacherClass.subject}
                                 </div>
                             ) : null}
                             {entry.description ? (
-                                <div className="text-xs text-slate-400 mt-2 line-clamp-4 whitespace-pre-wrap">
+                                <div className="text-xs text-ink-2 mt-2 line-clamp-4 whitespace-pre-wrap">
                                     {entry.description}
                                 </div>
                             ) : null}
                             {entry.resource_id ? (
-                                <div className="mt-2 text-xs text-purple-300 flex items-center gap-1">
-                                    <Link2 size={12} /> Recurso vinculado
-                                </div>
+                                <div className="lam-mono lam-mono-ink mt-2">Recurso vinculado</div>
                             ) : null}
-                        </motion.div>
+                        </div>
                     );
                 })}
 
                 {entries.length === 0 ? (
-                    <div className="text-center py-8 text-slate-500 text-sm">Sin actividades</div>
+                    <div className="text-center py-8 text-ink-3 text-sm">Sin actividades</div>
                 ) : null}
             </div>
         </div>
@@ -1166,15 +1091,15 @@ function StatusBadge({
     status: PlannerEntry["status"];
     onStatusChange: (status: PlannerEntry["status"]) => void;
 }) {
-    const statusConfig = {
-        planned: { icon: Clock, color: "text-slate-400", bg: "bg-slate-600/30" },
-        in_progress: { icon: Clock, color: "text-yellow-400", bg: "bg-yellow-600/30" },
-        completed: { icon: Check, color: "text-green-400", bg: "bg-green-600/30" },
-        cancelled: { icon: X, color: "text-red-400", bg: "bg-red-600/30" },
+    // Estado como etiqueta mono: planificada (hair), en curso (vigencia), hecha (ok), cancelada (alert)
+    const statusConfig: Record<PlannerEntry["status"], { label: string; className: string }> = {
+        planned: { label: "Plan.", className: "border-hair text-ink-2" },
+        in_progress: { label: "En curso", className: "border-vigencia text-vigencia" },
+        completed: { label: "Hecha", className: "border-ok text-ok" },
+        cancelled: { label: "Cancel.", className: "border-alert text-alert" },
     };
 
     const config = statusConfig[status];
-    const Icon = config.icon;
 
     const cycleStatus = () => {
         const order: PlannerEntry["status"][] = ["planned", "in_progress", "completed"];
@@ -1185,15 +1110,13 @@ function StatusBadge({
 
     return (
         <button
+            type="button"
             onClick={cycleStatus}
-            className={`p-1 rounded ${config.bg} ${config.color} hover:opacity-80 transition-opacity`}
+            className={`font-mono text-[10px] uppercase tracking-[0.1em] border px-1.5 py-0.5 hover:bg-paper-2 transition-colors ${config.className}`}
             title={`Estado: ${status}`}
         >
-            <Icon size={12} />
+            {config.label}
         </button>
     );
 }
 
-function SlidersHorizontalIcon() {
-    return <span className="text-cyan-300"><Sparkles size={16} /></span>;
-}

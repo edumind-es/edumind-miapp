@@ -16,48 +16,698 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/* =====================================================================
+   EDUmind-Lámina · hoja global de MiApp
+   Papel, tinta, filete y retícula. Cero radios, cero sombras, cero
+   degradados, cero emoji. Referencia: skill edumind-lamina, spec v1.0.
+   ===================================================================== */
+
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0f1117;
-  --color-foreground: #ffffff;
+  /* Papel y tinta */
+  --color-paper: #ece9e1;
+  --color-paper-2: #e4e0d6;
+  --color-card: #f4f2ec;
+  --color-ink: #17181a;
+  --color-ink-2: #3d3f42;
+  --color-ink-3: #5c5a55; /* ajustado a AA (el #7c7a74 original no cumple) */
+  --color-rule: #17181a;
+  --color-hair: #c9c4b8;
 
-  --color-card: #1a1f2e;
-  --color-card-foreground: #ffffff;
+  /* Los Cinco Mundos, paleta canónica desaturada */
+  --color-emocional: #c05f3c;
+  --color-social: #c19a2e;
+  --color-fisico: #7ba24f;
+  --color-mental: #6c8fb3;
+  --color-interior: #4a5f68;
 
-  --color-popover: #1a1f2e;
-  --color-popover-foreground: #ffffff;
+  /* Señales */
+  --color-ok: #4f7a3f;
+  --color-alert: #b03a2e;
+  --color-vigencia: #6a5015;
 
-  --color-primary: #2563eb;
-  --color-primary-foreground: #ffffff;
+  /* Alias semánticos usados por el código existente */
+  --color-background: #ece9e1;
+  --color-foreground: #17181a;
+  --color-card-foreground: #17181a;
+  --color-popover: #f4f2ec;
+  --color-popover-foreground: #17181a;
+  --color-primary: #17181a;
+  --color-primary-foreground: #ece9e1;
+  --color-secondary: #e4e0d6;
+  --color-secondary-foreground: #17181a;
+  --color-muted: #e4e0d6;
+  --color-muted-foreground: #5c5a55;
+  --color-accent: #e4e0d6;
+  --color-accent-foreground: #17181a;
+  --color-destructive: #b03a2e;
+  --color-destructive-foreground: #ece9e1;
+  --color-border: #c9c4b8;
+  --color-input: #f4f2ec;
+  --color-ring: #17181a;
 
-  --color-secondary: #1e293b;
-  --color-secondary-foreground: #ffffff;
+  /* Tipografía */
+  --font-sans: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
-  --color-muted: #1e293b;
-  --color-muted-foreground: #94a3b8;
-
-  --color-accent: #1e293b;
-  --color-accent-foreground: #ffffff;
-
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #ffffff;
-
-  --color-border: #1e293b;
-  --color-input: #1e293b;
-  --color-ring: #2563eb;
-
-  --radius-lg: 0.5rem;
-  --radius-md: calc(0.5rem - 2px);
-  --radius-sm: calc(0.5rem - 4px);
+  /* Sin radios en todo el sistema */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
 }
 
-/* Global Reset */
-body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
+/* ---------------------------------------------------------------------
+   Variables accesibles desde CSS plano (mismos valores que el @theme)
+   --------------------------------------------------------------------- */
+:root {
+  --paper: #ece9e1;
+  --paper-2: #e4e0d6;
+  --card: #f4f2ec;
+  --ink: #17181a;
+  --ink-2: #3d3f42;
+  --ink-3: #5c5a55;
+  --rule: #17181a;
+  --hair: #c9c4b8;
+  --m-emocional: #c05f3c;
+  --m-social: #c19a2e;
+  --m-fisico: #7ba24f;
+  --m-mental: #6c8fb3;
+  --m-interior: #4a5f68;
+  --ok: #4f7a3f;
+  --alert: #b03a2e;
+  --vigencia: #6a5015;
+  --font-display: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-body: "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  color-scheme: light;
 }
 
-* {
-  border-color: var(--color-border);
+/* ---------------------------------------------------------------------
+   Reglas duras de Lámina
+   --------------------------------------------------------------------- */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 16px/1.55 var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  ::placeholder {
+    color: var(--ink-3);
+    opacity: 1;
+  }
+
+  ::selection {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Componentes Lámina reutilizables (prefijo lam-)
+   --------------------------------------------------------------------- */
+@layer components {
+  .lam-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(20px, 4vw, 56px);
+  }
+
+  .lam-cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 288px;
+    gap: 52px;
+    align-items: start;
+  }
+
+  .lam-aside {
+    position: sticky;
+    top: 32px;
+  }
+
+  /* Franja de los cinco mundos, siempre en este orden */
+  .worlds-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: 6px;
+  }
+  .worlds-bar i:nth-child(1) { background: var(--m-emocional); }
+  .worlds-bar i:nth-child(2) { background: var(--m-social); }
+  .worlds-bar i:nth-child(3) { background: var(--m-fisico); }
+  .worlds-bar i:nth-child(4) { background: var(--m-mental); }
+  .worlds-bar i:nth-child(5) { background: var(--m-interior); }
+
+  .lam-mono {
+    font: 400 11px/1.4 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+  }
+  .lam-mono-ink {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .lam-eyebrow {
+    font: 500 13px/1 var(--font-mono);
+    letter-spacing: 0.06em;
+    color: var(--m-emocional);
+  }
+
+  .lam-h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+    font-size: clamp(2.6rem, 6vw, 4.6rem);
+    margin: 0;
+  }
+  .lam-h1 .light {
+    font-weight: 400;
+  }
+
+  .lam-lede {
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--ink-2);
+    max-width: 40ch;
+  }
+
+  .lam-sec-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 22px;
+    margin-bottom: 22px;
+  }
+  .lam-sec-num {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 40px;
+    line-height: 0.9;
+    color: var(--m-mental);
+    letter-spacing: -0.03em;
+  }
+  .lam-sec-head h2,
+  .lam-sec-head h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    padding-top: 12px;
+    border-top: 2px solid var(--rule);
+    flex: 1;
+  }
+
+  /* Lista de filete: nada de bolitas */
+  .lam-rules {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--hair);
+  }
+  .lam-rules > li {
+    display: flex;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--hair);
+    line-height: 1.5;
+  }
+  .lam-rules .dash {
+    color: var(--ink-3);
+    flex: none;
+  }
+
+  /* Botones: rectángulo de tinta; hover invierte */
+  .lam-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--ink);
+    color: var(--paper);
+    text-decoration: none;
+    font: 500 12px/1 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 15px 20px;
+    border: 2px solid var(--ink);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .lam-btn:hover:not(:disabled) {
+    background: transparent;
+    color: var(--ink);
+  }
+  .lam-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .lam-btn-ghost {
+    background: transparent;
+    color: var(--ink);
+  }
+  .lam-btn-ghost:hover:not(:disabled) {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .lam-btn-sm {
+    padding: 10px 14px;
+    font-size: 11px;
+    border-width: 1px;
+  }
+  .lam-btn-block {
+    display: flex;
+    width: 100%;
+  }
+
+  /* Pestañas / segmentos: estado activo = inversión de tinta */
+  .lam-seg {
+    display: inline-flex;
+    border: 1px solid var(--ink);
+  }
+  .lam-seg > button {
+    font: 500 11px/1 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 11px 16px;
+    background: transparent;
+    color: var(--ink);
+    border: 0;
+    border-right: 1px solid var(--ink);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .lam-seg > button:last-child {
+    border-right: 0;
+  }
+  .lam-seg > button[aria-pressed="true"],
+  .lam-seg > button.is-active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* Formularios */
+  .lam-label {
+    display: block;
+    font: 400 11px/1.3 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .lam-input,
+  .lam-select,
+  .lam-textarea {
+    width: 100%;
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid var(--hair);
+    border-bottom: 2px solid var(--ink);
+    padding: 11px 12px;
+    font: 400 15px/1.45 var(--font-body);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .lam-input:focus,
+  .lam-select:focus,
+  .lam-textarea:focus {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+  .lam-textarea {
+    resize: vertical;
+    min-height: 96px;
+  }
+
+  /* Sello / estado */
+  .lam-stamp {
+    display: inline-block;
+    border: 1px solid var(--ok);
+    color: var(--ok);
+    font: 400 11px/1 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
+    padding: 10px 14px;
+  }
+
+  /* Badge de mundo: rectángulo plano, texto blanco */
+  .lam-badge {
+    display: inline-block;
+    font: 500 12px/1 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 10px 14px;
+    color: #fff;
+    background: var(--c, var(--ink));
+  }
+  .lam-badge::before {
+    content: "●";
+    margin-right: 8px;
+    font-size: 9px;
+    vertical-align: 1px;
+  }
+  .b-emocional { --c: var(--m-emocional); }
+  .b-social { --c: var(--m-social); }
+  .b-fisico { --c: var(--m-fisico); }
+  .b-mental { --c: var(--m-mental); }
+  .b-interior { --c: var(--m-interior); }
+
+  /* Nota con filete izquierdo */
+  .lam-note {
+    background: var(--card);
+    border-left: 3px solid var(--c, var(--ink));
+    padding: 16px 18px;
+    color: var(--ink-2);
+  }
+  .lam-note .tag {
+    display: inline-block;
+    border: 1px solid var(--c, var(--ink));
+    color: var(--c, var(--ink));
+    font: 400 10px/1 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 5px 8px;
+    margin-bottom: 10px;
+  }
+  .lam-note.ok { --c: var(--ok); }
+  .lam-note.alert { --c: var(--alert); }
+  .lam-note.vigencia { --c: var(--vigencia); }
+  .lam-note.mental { --c: var(--m-mental); }
+
+  /* Ficha técnica */
+  .lam-spec {
+    border-top: 2px solid var(--rule);
+    margin: 0;
+  }
+  .lam-spec > div {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .lam-spec dt {
+    font: 400 11px/1.3 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    margin-bottom: 4px;
+  }
+  .lam-spec dd {
+    margin: 0;
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  /* Panel con filete fino */
+  .lam-panel {
+    border: 1px solid var(--hair);
+    background: var(--card);
+    padding: 18px;
+  }
+  .lam-panel-head {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--hair);
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+
+  /* Barra de progreso: rectángulo de 4px */
+  .lam-progress {
+    height: 4px;
+    background: var(--hair);
+  }
+  .lam-progress > i {
+    display: block;
+    height: 100%;
+    background: var(--ink);
+    transition: width 0.18s ease;
+  }
+
+  /* Tablas */
+  .lam-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  .lam-table th {
+    background: var(--ink);
+    color: var(--paper);
+    font: 500 11px/1.3 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: left;
+    padding: 12px 14px;
+  }
+  .lam-table td {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--hair);
+    vertical-align: top;
+  }
+
+  /* Texto generado */
+  .lam-prose {
+    max-width: 72ch;
+    color: var(--ink);
+  }
+  .lam-prose h1,
+  .lam-prose h2,
+  .lam-prose h3,
+  .lam-prose h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 1.6em 0 0.5em;
+    padding-top: 0.5em;
+    border-top: 2px solid var(--rule);
+  }
+  .lam-prose h1 { font-size: 24px; }
+  .lam-prose h2 { font-size: 20px; }
+  .lam-prose h3 { font-size: 17px; }
+  .lam-prose h4 { font-size: 15px; border-top-width: 1px; border-top-color: var(--hair); }
+  .lam-prose p { margin: 0 0 1em; }
+  .lam-prose ul,
+  .lam-prose ol {
+    margin: 0 0 1.2em;
+    padding: 0;
+    list-style: none;
+  }
+  .lam-prose li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .lam-prose ol { counter-reset: lam; }
+  .lam-prose ol li::before {
+    counter-increment: lam;
+    content: counter(lam, decimal-leading-zero);
+    font: 500 11px/1 var(--font-mono);
+    color: var(--m-mental);
+    margin-right: 12px;
+  }
+  .lam-prose ul li::before {
+    content: "—";
+    color: var(--ink-3);
+    margin-right: 12px;
+  }
+  .lam-prose code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--paper-2);
+    padding: 1px 5px;
+  }
+  .lam-prose pre {
+    background: var(--paper-2);
+    border-left: 3px solid var(--ink);
+    padding: 14px 16px;
+    overflow-x: auto;
+    font: 400 13px/1.5 var(--font-mono);
+  }
+  .lam-prose strong { font-weight: 700; color: var(--ink); }
+  .lam-prose table { width: 100%; border-collapse: collapse; margin: 1em 0; }
+  .lam-prose th {
+    background: var(--ink);
+    color: var(--paper);
+    font: 500 11px/1.3 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: left;
+    padding: 10px 12px;
+  }
+  .lam-prose td { padding: 10px 12px; border-bottom: 1px solid var(--hair); vertical-align: top; }
+
+  @media (max-width: 900px) {
+    .lam-cols {
+      grid-template-columns: 1fr;
+      gap: 34px;
+    }
+    .lam-aside {
+      position: static;
+    }
+  }
+
+  @media print {
+    .lam-aside { position: static; }
+    body { background: #fff; }
+    .lam-btn, .worlds-bar { display: none; }
+  }
+}
+
+/* =====================================================================
+   CAPA PUENTE · remapea el vocabulario oscuro heredado a papel y tinta.
+   Va fuera de @layer para ganar a las utilidades de Tailwind. Es
+   provisional: cada página que se migre a clases lam- deja de necesitarla.
+   ===================================================================== */
+
+/* Superficies */
+.bg-\[\#0f1117\], .bg-\[\#0a0e1a\], .bg-slate-900, .bg-slate-950, .bg-black,
+.bg-\[\#0f1117\]\/95, .bg-\[\#0a0e1a\]\/80, .bg-slate-900\/50, .bg-slate-900\/80,
+.from-slate-900, .via-slate-800, .to-slate-900 {
+  background-color: var(--paper);
+}
+.bg-\[\#1a1f2e\], .bg-\[\#171c28\], .bg-slate-800, .bg-slate-800\/50, .bg-black\/10,
+.bg-black\/20, .bg-black\/30, .bg-white\/5, .bg-white\/\[0\.03\], .bg-white\/10,
+.bg-slate-700, .bg-slate-600\/30, .bg-white {
+  background-color: var(--card);
+}
+.hover\:bg-white\/5:hover, .hover\:bg-white\/10:hover, .hover\:bg-white\/20:hover,
+.hover\:bg-slate-600:hover, .hover\:border-white\/20:hover {
+  background-color: var(--paper-2);
+}
+.bg-black\/70 {
+  background-color: rgba(23, 24, 26, 0.55);
+}
+[class*="bg-gradient"], .bg-clip-text {
+  background-image: none !important;
+}
+.backdrop-blur, .backdrop-blur-xl, .backdrop-blur-sm, .backdrop-blur-md {
+  backdrop-filter: none;
+}
+[class*="blur-\["] { display: none; }
+
+/* Fondos tintados de color → papel-2 con filete, sin tinte saturado */
+.bg-amber-500\/10, .bg-red-500\/10, .bg-red-500\/20, .bg-red-600\/20, .bg-rose-500\/10,
+.bg-green-600\/20, .bg-green-500\/10, .bg-emerald-500\/10, .bg-emerald-500\/20,
+.bg-emerald-400\/10, .bg-blue-600\/20, .bg-blue-600\/10, .bg-blue-500\/20, .bg-blue-400\/10,
+.bg-blue-950\/20, .bg-purple-600\/20, .bg-purple-500\/20, .bg-purple-400\/10, .bg-pink-400\/10,
+.bg-cyan-500\/10, .bg-cyan-400\/10, .bg-cyan-400\/15, .bg-sky-500\/10, .bg-amber-400\/10,
+.hover\:bg-blue-600\/30:hover, .hover\:bg-blue-600\/40:hover, .hover\:bg-purple-600\/40:hover,
+.hover\:bg-emerald-600\/40:hover, .hover\:bg-green-600\/30:hover, .hover\:bg-red-600\/30:hover,
+.hover\:bg-rose-600\/40:hover, .hover\:bg-amber-400\/10:hover, .hover\:bg-sky-400\/10:hover,
+.hover\:bg-emerald-400\/10:hover, .hover\:bg-rose-400\/10:hover {
+  background-color: var(--paper-2);
+}
+
+/* Texto */
+.text-white, .text-slate-100, .text-slate-200, .text-slate-950, .text-slate-800,
+.hover\:text-white:hover, .group-hover\:text-white, .group:hover .group-hover\:text-white,
+.text-blue-100, .text-sky-100, .text-cyan-100, .text-emerald-100, .text-amber-100,
+.text-rose-100, .text-blue-200, .text-cyan-200, .text-sky-200\/90, .text-blue-300,
+.text-cyan-300, .text-sky-300, .text-sky-300\/80, .text-indigo-300, .text-purple-300,
+.text-purple-400, .text-blue-400, .text-cyan-400, .text-pink-400, .text-blue-500,
+.text-orange-300, .text-orange-400, .text-yellow-400, .text-transparent,
+.group-hover\:text-blue-200, .group:hover .group-hover\:text-blue-200{
+  color: var(--ink);
+}
+.text-slate-300, .text-slate-400, .text-white\/50 {
+  color: var(--ink-2);
+}
+.text-slate-500, .text-slate-600, .placeholder-slate-500::placeholder {
+  color: var(--ink-3);
+}
+.text-red-200, .text-red-300, .text-red-400, .text-rose-200, .text-rose-300, .text-rose-400 {
+  color: var(--alert);
+}
+.text-green-400, .text-green-400\/70, .text-emerald-200, .text-emerald-300, .text-emerald-400 {
+  color: var(--ok);
+}
+.text-amber-200, .text-amber-300, .text-amber-400 {
+  color: var(--vigencia);
+}
+
+/* Bordes */
+.border-white\/5, .border-white\/10, .border-white\/15, .border-white\/20, .border-slate-200,
+.border-blue-500\/20, .border-blue-500\/30, .border-purple-500\/30, .border-sky-500\/30,
+.border-sky-400\/30, .border-cyan-400\/50, .focus\:border-cyan-400\/50:focus, .divide-white\/10 > * {
+  border-color: var(--hair);
+}
+.border-blue-500, .focus\:ring-blue-500:focus, .focus\:ring-cyan-500\/30:focus {
+  border-color: var(--ink);
+}
+.border-red-500\/30, .border-rose-500\/20, .border-rose-500\/30, .border-rose-400\/40 {
+  border-color: var(--alert);
+}
+.border-emerald-500\/30, .border-emerald-400\/30, .border-green-500\/30 {
+  border-color: var(--ok);
+}
+.border-amber-500\/20, .border-amber-500\/30, .border-amber-400\/30, .border-amber-400\/40 {
+  border-color: var(--vigencia);
+}
+.focus\:ring-2:focus {
+  --tw-ring-color: var(--ink);
+}
+
+/* Botones de color saturado → tinta con texto papel (van después de .text-white) */
+.bg-blue-600, .bg-blue-500, .bg-emerald-600, .bg-emerald-500, .bg-green-600, .bg-purple-600,
+.bg-pink-600, .bg-cyan-600, .bg-rose-600, .bg-red-600, .bg-indigo-600,
+.hover\:bg-blue-500:hover, .hover\:bg-emerald-500:hover, .hover\:bg-green-700:hover,
+.hover\:bg-purple-500:hover, .hover\:bg-pink-500:hover, .hover\:bg-cyan-500:hover,
+.hover\:bg-rose-500:hover, .hover\:bg-blue-700:hover {
+  background-color: var(--ink);
+  color: var(--paper);
+}
+.bg-rose-600, .bg-red-600 {
+  background-color: var(--alert);
+}
+.accent-blue-500 {
+  accent-color: var(--ink);
+}
+
+/* Prose invertido heredado → prose Lámina */
+.prose-invert {
+  color: var(--ink);
 }

@@ -17,7 +17,6 @@
  */
 
 import { useState, useEffect } from "react";
-import { AlertTriangle, ChevronDown, Key, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/auth-client";
 import { detectDeviceCapability, type DeviceCapability } from "@/lib/device-capability";
@@ -39,7 +38,7 @@ const FALLBACK_ENGINES: Engine[] = [
     {
         id: "webgpu",
         name: "Tu Dispositivo",
-        color: "bg-green-500",
+        color: "bg-ok",
         desc: "Privado (WebGPU) - Gratis",
         tier: "local",
         requires_api_key: false,
@@ -229,29 +228,29 @@ export function EngineSelector({ currentEngine, onSelect, apiKey, onApiKeyChange
         <div className="relative z-50">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-3 py-2 bg-card border border-hair hover:bg-paper-2 transition-colors text-sm font-medium"
             >
-                <div className={`w-2 h-2 rounded-full ${activeEngine.color}`} />
+                <div className={`w-2 h-2 ${activeEngine.color}`} />
                 {activeEngine.name}
                 {activeEngine.id !== "webgpu" && activeEngineHealth && activeEngineHealth.available === false ? (
-                    <AlertTriangle className="w-3.5 h-3.5 text-rose-300" />
+                    <span className="lam-mono text-alert">KO</span>
                 ) : null}
-                <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                <span className="lam-mono lam-mono-ink ml-1">{isOpen ? "Cerrar" : "Cambiar"}</span>
             </button>
             {hasCloudConnectivityIssues || hasRuntimeUnavailableProviders ? (
-                <div className="mt-1 flex items-center gap-1.5 text-[10px] text-rose-300">
-                    <AlertTriangle className="w-3 h-3" />
+                <div className="mt-1 flex items-center gap-1.5 text-[11px] text-alert">
+                    <span className="lam-mono text-alert">Aviso</span>
                     Conectividad cloud degradada. Revisa la recomendación antes de cambiar de motor.
                 </div>
             ) : null}
             {recommendedEngine ? (
-                <div className="mt-1 flex items-center gap-1.5 text-[10px] text-amber-200">
-                    <AlertTriangle className="w-3 h-3" />
+                <div className="mt-1 flex items-center gap-1.5 text-[11px] text-vigencia">
+                    <span className="lam-mono text-vigencia">Aviso</span>
                     Recomendado ahora: {recommendedEngine.name}
                     <button
                         type="button"
                         onClick={() => onSelect(recommendedEngine.id)}
-                        className="rounded border border-amber-400/30 px-1.5 py-0.5 text-[10px] font-medium text-amber-100 transition-colors hover:bg-amber-400/10"
+                        className="lam-btn lam-btn-sm lam-btn-ghost !px-2 !py-1 !text-[10px] !border-vigencia !text-vigencia hover:!bg-vigencia hover:!text-paper"
                     >
                         Aplicar
                     </button>
@@ -259,14 +258,14 @@ export function EngineSelector({ currentEngine, onSelect, apiKey, onApiKeyChange
             ) : null}
 
             {isOpen && (
-                <div className="absolute top-full mt-2 right-0 w-80 bg-[#1a1f2e] border border-white/10 rounded-xl shadow-2xl p-2 backdrop-blur-xl">
+                <div className="absolute top-full mt-2 right-0 w-80 bg-card border border-hair p-2 ">
                     {activeEngine.id !== "webgpu" && activeEngineHealth && activeEngineHealth.available === false ? (
-                        <div className="mb-2 rounded border border-rose-500/20 bg-rose-500/10 px-2 py-1.5 text-[11px] text-rose-200">
+                        <div className="mb-2 border-l-2 border-alert bg-paper-2 px-2 py-1.5 text-[11px] text-alert">
                             {activeEngine.name} no disponible: {activeEngineHealth.reason || "sin conectividad"}.
                         </div>
                     ) : null}
                     {activeEngine.id !== "webgpu" && activeEngineHealth ? (
-                        <div className="mb-2 rounded border border-slate-500/20 bg-slate-500/10 px-2 py-1.5 text-[11px] text-slate-200">
+                        <div className="mb-2 border-l-2 border-ink bg-paper-2 px-2 py-1.5 text-[11px] text-ink-2 font-mono">
                             Test de conexión (sin API key): DNS {activeEngineHealth.dns_ok ? "OK" : "KO"}, TLS{" "}
                             {activeEngineHealth.tls_ok ? "OK" : "KO"}, HTTP{" "}
                             {activeEngineHealth.http_ok ? "OK" : "KO"}
@@ -277,28 +276,28 @@ export function EngineSelector({ currentEngine, onSelect, apiKey, onApiKeyChange
                         </div>
                     ) : null}
                     {edumindHealth && edumindHealth.available === false ? (
-                        <div className="mb-2 rounded border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-200">
+                        <div className="mb-2 border-l-2 border-vigencia bg-paper-2 px-2 py-1.5 text-[11px] text-vigencia">
                             EDUmind Cloud Lite caído temporalmente. Se recomienda WebGPU o BYOK.
                         </div>
                     ) : null}
                     {edumindRuntimeReliability && edumindRuntimeReliability.available === false ? (
-                        <div className="mb-2 rounded border border-rose-500/20 bg-rose-500/10 px-2 py-1.5 text-[11px] text-rose-200">
+                        <div className="mb-2 border-l-2 border-alert bg-paper-2 px-2 py-1.5 text-[11px] text-alert">
                             EDUmind Cloud Lite deshabilitado por degradación operativa:{" "}
                             {edumindRuntimeReliability.reason || "fallback a WebGPU/BYOK"}.
                         </div>
                     ) : null}
                     {!deviceCapability.hasWebGpu ? (
-                        <div className="mb-2 rounded border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-200">
+                        <div className="mb-2 border-l-2 border-vigencia bg-paper-2 px-2 py-1.5 text-[11px] text-vigencia">
                             Este dispositivo no soporta WebGPU. Usa motor cloud o BYOK.
                         </div>
                     ) : null}
                     {deviceCapability.hasWebGpu && deviceCapability.isLikelyLowEnd ? (
-                        <div className="mb-2 rounded border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-200">
+                        <div className="mb-2 border-l-2 border-vigencia bg-paper-2 px-2 py-1.5 text-[11px] text-vigencia">
                             WebGPU desactivado para priorizar estabilidad en este dispositivo. Usa cloud/BYOK.
                         </div>
                     ) : null}
                     {runtimePolicy && !runtimePolicy.managed_public_enabled ? (
-                        <div className="mb-2 rounded border border-rose-500/20 bg-rose-500/10 px-2 py-1.5 text-[11px] text-rose-200">
+                        <div className="mb-2 border-l-2 border-alert bg-paper-2 px-2 py-1.5 text-[11px] text-alert">
                             Modo sostenibilidad activo. El motor cloud gestionado puede estar temporalmente limitado.
                         </div>
                     ) : null}
@@ -312,35 +311,32 @@ export function EngineSelector({ currentEngine, onSelect, apiKey, onApiKeyChange
                                     onSelect(engine.id);
                                 }}
                                 className={cn(
-                                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left",
-                                    currentEngine === engine.id ? "bg-white/10" : "hover:bg-white/5",
+                                    "w-full flex items-center gap-3 px-3 py-2 transition-colors text-left border border-transparent",
+                                    currentEngine === engine.id ? "bg-ink text-paper" : "hover:bg-paper-2",
                                     engine.enabled === false && "opacity-50 cursor-not-allowed hover:bg-transparent"
                                 )}
                             >
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${engine.color} bg-opacity-20`}>
-                                    <div className={`w-2 h-2 rounded-full ${engine.color}`} />
-                                </div>
+                                <div className={`w-2.5 h-2.5 shrink-0 ${engine.color}`} />
                                 <div>
                                     <div className="font-medium text-sm">{engine.name}</div>
-                                    <div className="text-xs text-slate-400">{engine.desc}</div>
+                                    <div className={cn("text-xs", currentEngine === engine.id ? "text-paper/80" : "text-ink-2")}>{engine.desc}</div>
                                     {engine.reason_disabled ? (
-                                        <div className="text-[10px] text-rose-300 mt-0.5">{engine.reason_disabled}</div>
+                                        <div className="text-[10px] text-alert mt-0.5">{engine.reason_disabled}</div>
                                     ) : null}
                                 </div>
                                 {engine.enabled === false ? (
-                                    <Lock className="ml-auto w-3.5 h-3.5 text-slate-400" />
+                                    <span className="ml-auto lam-mono">Bloqueado</span>
                                 ) : null}
                                 {currentEngine === engine.id && (
-                                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white" />
+                                    <span className="ml-auto lam-mono !text-paper">Activo</span>
                                 )}
                             </button>
                         ))}
                     </div>
 
-                    <div className="px-1 pt-2 border-t border-white/10">
+                    <div className="px-1 pt-2 border-t border-hair">
                         <div className="flex items-center gap-2 mb-1.5 px-2">
-                            <Key className="w-3 h-3 text-slate-400" />
-                            <span className="text-xs font-medium text-slate-400">API Key para {activeEngine.name}</span>
+                            <span className="lam-mono">API Key para {activeEngine.name}</span>
                         </div>
                         {activeEngine.requires_api_key ? (
                             <>
@@ -352,22 +348,21 @@ export function EngineSelector({ currentEngine, onSelect, apiKey, onApiKeyChange
                                     placeholder={`sk-... (${activeEngine.name})`}
                                     autoComplete="off"
                                     spellCheck={false}
-                                    className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 transition-colors"
+                                    className="lam-input !py-2 text-xs font-mono"
                                 />
                                 {!apiKey ? (
-                                    <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-amber-300">
-                                        <AlertTriangle className="w-3 h-3" />
+                                    <div className="mt-1.5 text-[11px] text-vigencia">
                                         Este motor requiere BYOK para generar.
                                     </div>
                                 ) : null}
                                 {activeEngineHealth?.auth_required ? (
-                                    <div className="mt-1.5 text-[10px] text-slate-400">
+                                    <div className="mt-1.5 text-[10px] text-ink-2">
                                         El test de conexión no valida tu API key; solo verifica conectividad de red.
                                     </div>
                                 ) : null}
                             </>
                         ) : (
-                            <div className="rounded bg-emerald-500/10 border border-emerald-500/20 px-2 py-1.5 text-[11px] text-emerald-200">
+                            <div className="border-l-2 border-ok bg-paper-2 px-2 py-1.5 text-[11px] text-ok">
                                 Este motor no requiere API key en cliente.
                             </div>
                         )}

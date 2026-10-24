@@ -19,7 +19,6 @@
 import { useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2 } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { EDUCATION_LEVELS } from "@/lib/education-levels";
 import { ContextualFields, type ContextualData } from "@/components/ContextualFields";
@@ -77,8 +76,8 @@ export default function SituationTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
-                    {!output && !loading && <span className="text-slate-500">Esperando generación...</span>}
+                <div className="lam-prose">
+                    {!output && !loading && <span className="text-ink-3">Esperando generación...</span>}
                     {output && <div className="whitespace-pre-wrap">{output}</div>}
                 </div>
             }
@@ -88,14 +87,14 @@ export default function SituationTool() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Tempo. (Número)</label>
-                        <input type="number" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Tempo. (Número)</label>
+                        <input type="number" className="lam-input"
                             placeholder="Ej: 3"
                             value={formData.temporalizacion} onChange={e => setFormData({ ...formData, temporalizacion: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Unidad</label>
-                        <select className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Unidad</label>
+                        <select className="lam-input"
                             value={formData.tipo_temporalizacion} onChange={e => setFormData({ ...formData, tipo_temporalizacion: e.target.value })}>
                             <option value="sesiones">Sesiones</option>
                             <option value="semanas">Semanas</option>
@@ -106,8 +105,8 @@ export default function SituationTool() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Curso</label>
-                        <select className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Curso</label>
+                        <select className="lam-input"
                             value={formData.curso} onChange={e => setFormData({ ...formData, curso: e.target.value })}>
                             {EDUCATION_LEVELS.map((level) => (
                                 <optgroup key={level.stage} label={level.stage}>
@@ -119,8 +118,8 @@ export default function SituationTool() {
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Etapa</label>
-                        <select className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Etapa</label>
+                        <select className="lam-input"
                             value={formData.etapa_educativa} onChange={e => setFormData({ ...formData, etapa_educativa: e.target.value })}>
                             {EDUCATION_LEVELS.map((level) => (
                                 <option key={level.stage} value={level.stage}>{level.stage}</option>
@@ -140,8 +139,8 @@ export default function SituationTool() {
                 />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Objetivos y Contenidos Clave</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                    <label className="lam-label">Objetivos y Contenidos Clave</label>
+                    <textarea className="lam-input h-24 resize-none"
                         placeholder="Describe brevemente los objetivos..."
                         value={formData.objetivos} onChange={e => setFormData({ ...formData, objetivos: e.target.value })} required />
                 </div>
@@ -154,8 +153,8 @@ export default function SituationTool() {
                 {/* Contextual Fields */}
                 <ContextualFields data={contextualData} onChange={setContextualData} />
 
-                <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2">
-                    {loading && <Loader2 className="animate-spin" />} Generar Situación
+                <button type="submit" disabled={loading} className="lam-btn lam-btn-block">
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>} Generar Situación
                 </button>
             </form>
         </GeneratorLayout>
