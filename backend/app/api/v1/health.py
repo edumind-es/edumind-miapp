@@ -133,7 +133,7 @@ async def _build_providers_health_snapshot() -> dict[str, ProviderHealthItem]:
             status="client-dependent",
             available=True,
             reason="Depende de soporte WebGPU del dispositivo.",
-            fallback=["edumind", "gemini", "chatgpt", "deepseek", "claude"],
+            fallback=["edumind", "gemini", "chatgpt", "claude"],
             dns_ok=True,
             tls_ok=True,
             http_ok=True,
@@ -147,7 +147,6 @@ async def _build_providers_health_snapshot() -> dict[str, ProviderHealthItem]:
     host_checks = {
         "gemini": {"host": "generativelanguage.googleapis.com", "probe_url": "https://generativelanguage.googleapis.com/", "auth_required": True},
         "chatgpt": {"host": "api.openai.com", "probe_url": "https://api.openai.com/v1/models", "auth_required": True},
-        "deepseek": {"host": "api.deepseek.com", "probe_url": "https://api.deepseek.com/", "auth_required": True},
         "claude": {"host": "api.anthropic.com", "probe_url": "https://api.anthropic.com/", "auth_required": True},
     }
 
@@ -159,7 +158,7 @@ async def _build_providers_health_snapshot() -> dict[str, ProviderHealthItem]:
             status="unavailable",
             available=False,
             reason="EDUmind Cloud Lite no configurado correctamente.",
-            fallback=["webgpu", "gemini", "chatgpt", "deepseek", "claude"],
+            fallback=["webgpu", "gemini", "chatgpt", "claude"],
             dns_ok=False,
             tls_ok=False,
             http_ok=False,
@@ -227,7 +226,7 @@ async def _build_providers_health_snapshot() -> dict[str, ProviderHealthItem]:
 
         fallback = ["webgpu"]
         if provider_id == "edumind":
-            fallback = ["webgpu", "gemini", "chatgpt", "deepseek", "claude"]
+            fallback = ["webgpu", "gemini", "chatgpt", "claude"]
 
         if dns_ok:
             providers[provider_id] = ProviderHealthItem(

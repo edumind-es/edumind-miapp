@@ -48,7 +48,7 @@ class User(SQLModel, table=True):
 class ApiKey(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
-    engine: str = Field(index=True)  # deepseek, claude, etc.
+    engine: str = Field(index=True)  # chatgpt, claude, gemini, etc.
     encrypted_key: str
     is_active: bool = Field(default=True)
     label: Optional[str] = None

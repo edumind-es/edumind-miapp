@@ -662,3 +662,25 @@ def test_generators_managed_provider_is_blocked_when_forced_disabled_by_guard(
     assert response.status_code == 503
     assert "mantenimiento programado" in response.text.lower()
     assert "webgpu" in (response.headers.get("X-EDUMIND-FALLBACK") or "").lower()
+
+
+def test_sin_fallback_a_claves_de_sistema_para_terceros(monkeypatch):
+    """Ni siquiera un admin usa claves del sistema con proveedores externos."""
+    from app.api.v1 import generators as generators_module
+    from app.core.config import settings as cfg
+
+    monkeypatch.setattr(cfg, "CLAUDE_API_KEY", "clave-del-sistema")
+    monkeypatch.setattr(cfg, "GEMINI_API_KEY", "clave-del-sistema")
+    assert generators_module._resolve_api_key("claude", None, True) is None
+    assert generators_module._resolve_api_key("gemini", "   ", True) is None
+    assert generators_module._resolve_api_key("claude", " sk-usuario ", False) == "sk-usuario"
+
+
+def test_deepseek_retirado_del_catalogo(client, api_v1_prefix):
+    engines = client.get(f"{api_v1_prefix}/config/engines").json()
+    assert all(engine["id"] != "deepseek" for engine in engines)
+    response = client.post(
+        f"{api_v1_prefix}/generators/idea",
+        json={"consulta": "Juegos cooperativos para 3º de Primaria", "provider": "deepseek"},
+    )
+    assert response.status_code == 400

@@ -79,7 +79,7 @@ def _generator_limit_key(request: Request) -> str:
 
 limiter = Limiter(key_func=_generator_limit_key)
 
-BYOK_PROVIDERS = {"chatgpt", "deepseek", "claude", "gemini"}
+BYOK_PROVIDERS = {"chatgpt", "claude", "gemini"}
 MANAGED_PROVIDERS = {"edumind"}
 RESTRICTED_PROVIDERS = {"ollama", "mistral"}
 ALLOWED_PROVIDERS = BYOK_PROVIDERS | MANAGED_PROVIDERS | RESTRICTED_PROVIDERS
@@ -332,18 +332,14 @@ def _normalize_provider(provider: str) -> str:
 
 
 def _resolve_api_key(provider: str, api_key: Optional[str], is_admin: bool) -> Optional[str]:
+    """Clave para proveedores externos: solo la que aporta el usuario.
+
+    No existe fallback a claves del sistema, tampoco para admin: EDUmind no
+    envía textos de usuarios a terceros por cuenta propia.
+    """
+    del provider, is_admin
     if api_key and api_key.strip():
         return api_key.strip()
-    if not is_admin:
-        return None
-    if provider == "deepseek":
-        return settings.DEEPSEEK_API_KEY
-    if provider == "claude":
-        return settings.CLAUDE_API_KEY
-    if provider == "gemini":
-        return settings.GEMINI_API_KEY
-    if provider == "chatgpt":
-        return None
     return None
 
 

@@ -31,7 +31,7 @@ export interface GeneratorRunOptions {
     signal?: AbortSignal;
 }
 
-const BYOK_PROVIDERS = new Set(["chatgpt", "deepseek", "claude", "gemini"]);
+const BYOK_PROVIDERS = new Set(["chatgpt", "claude", "gemini"]);
 const ERROR_PREFIX = "Error:";
 
 function shouldAutoFallbackFromCloudToLocal(provider: string, errorMessage: string): boolean {

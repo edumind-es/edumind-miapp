@@ -83,7 +83,9 @@ class Settings(BaseSettings):
     BACKGROUND_TASK_CIRCUIT_BREAKER_OPEN_SECONDS: int = 120
     BACKGROUND_TASK_REDIS_PREFIX: str = "edumind:background:v1"
     
-    # AI Keys (System Level)
+    # Claves de sistema. DEEPSEEK/CLAUDE/GEMINI ya no se usan en ninguna
+    # petición (los proveedores externos van siempre con clave del usuario);
+    # se conservan solo para que un .env antiguo no rompa el arranque.
     DEEPSEEK_API_KEY: Optional[str] = None
     CLAUDE_API_KEY: Optional[str] = None
     MISTRAL_API_KEY: Optional[str] = None
@@ -320,4 +322,4 @@ settings.DATASET_DIR.mkdir(parents=True, exist_ok=True)
 settings.UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 settings.TRAINING_DIR.mkdir(parents=True, exist_ok=True)
 
-SUPPORTED_ENGINES = ["chatgpt", "deepseek", "claude", "gemini", "edumind", "ollama", "mistral"]
+SUPPORTED_ENGINES = ["chatgpt", "claude", "gemini", "edumind", "ollama", "mistral"]

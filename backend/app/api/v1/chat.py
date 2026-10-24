@@ -36,7 +36,7 @@ def _chat_limit_key(request: Request) -> str:
 
 
 limiter = Limiter(key_func=_chat_limit_key)
-BYOK_PROVIDERS = {"chatgpt", "deepseek", "claude", "gemini"}
+BYOK_PROVIDERS = {"chatgpt", "claude", "gemini"}
 MANAGED_PROVIDERS = {"edumind"}
 RESTRICTED_PROVIDERS = {"ollama", "mistral"}
 ALLOWED_PROVIDERS = BYOK_PROVIDERS | MANAGED_PROVIDERS | RESTRICTED_PROVIDERS
@@ -89,22 +89,14 @@ async def chat_completions(
             detail="Access denied. This model is restricted to administrators or VPN/local network.",
         )
 
-    # BYOK models: users must provide their own key, except admin fallback.
-    if not api_key:
-        if is_admin:
-            # Fallback to system keys for Admin
-            if provider == "deepseek":
-                api_key = settings.DEEPSEEK_API_KEY
-            elif provider == "claude":
-                api_key = settings.CLAUDE_API_KEY
-            elif provider == "gemini":
-                api_key = settings.GEMINI_API_KEY
-
-        if provider in BYOK_PROVIDERS and not api_key:
-            raise HTTPException(
-                status_code=402,
-                detail=f"Sustainability Mode: You must provide your own {provider} API Key to use this model.",
-            )
+    # Proveedores externos: siempre con la clave del propio usuario. No hay
+    # fallback a claves del sistema (ni para admin): EDUmind no envía textos de
+    # usuarios a terceros por cuenta propia.
+    if provider in BYOK_PROVIDERS and not api_key:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Sustainability Mode: You must provide your own {provider} API Key to use this model.",
+        )
 
     # Queue / concurrency protection
     identity = f"user_{current_user.id}" if current_user else f"ip_{client_ip}"

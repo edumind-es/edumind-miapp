@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 interface FeedbackButtonsProps {
     instruction: string;
     output: string;
-    source: string; // "deepseek", "edumind", "webgpu", etc.
+    source: string; // "chatgpt", "edumind", "webgpu", etc.
     onFeedbackSubmitted?: () => void;
 }
 

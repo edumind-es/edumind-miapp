@@ -36,9 +36,8 @@ from app.services.knowledge_service import KnowledgeService
 
 logger = logging.getLogger(__name__)
 
-# Initialize Clients
-deepseek_client = AsyncOpenAI(api_key=settings.DEEPSEEK_API_KEY, base_url="https://api.deepseek.com/v1") if settings.DEEPSEEK_API_KEY else None
-# Note: For user-provided keys, we will instantiate clients per request or pass the key.
+# Los clientes de proveedores externos se crean por petición con la clave
+# del usuario; no se instancia ninguno con claves del sistema.
 
 
 def inject_system_prompt(
@@ -130,21 +129,7 @@ class AIService:
         )
         temperature = get_temperature(provider)
         
-        if provider == "deepseek":
-            client = AsyncOpenAI(api_key=api_key, base_url="https://api.deepseek.com/v1")
-            model = model or "deepseek-chat"
-            async for chunk in await client.chat.completions.create(
-                model=model,
-                messages=enriched_messages,
-                stream=True,
-                max_tokens=4096,
-                temperature=temperature
-            ):
-                content = chunk.choices[0].delta.content
-                if content:
-                    yield content
-
-        elif provider == "mistral":
+        if provider == "mistral":
             # Mistral supports OpenAI format
             client = AsyncOpenAI(api_key=api_key, base_url="https://api.mistral.ai/v1")
             model = model or "mistral-small-latest"

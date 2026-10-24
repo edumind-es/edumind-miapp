@@ -51,11 +51,6 @@ REGLAS INQUEBRANTABLES:
 
 # Provider-specific adaptations
 PROVIDER_CONFIGS = {
-    "deepseek": {
-        "temperature": 0.7,
-        "format_instruction": "Usa Markdown para estructurar (negritas, listas, tablas).",
-        "style_note": "Sé analítico y estructurado."
-    },
     "chatgpt": {
         "temperature": 0.7,
         "format_instruction": "Usa Markdown para estructurar tu respuesta.",
@@ -93,7 +88,7 @@ def get_system_prompt(provider: str = "default", include_knowledge_context: str 
     Get the full system prompt for a specific provider.
     
     Args:
-        provider: AI provider name (deepseek, claude, gemini, etc.)
+        provider: AI provider name (chatgpt, claude, gemini, etc.)
         include_knowledge_context: Optional RAG context from knowledge base
     
     Returns:

@@ -109,17 +109,6 @@ PUBLIC_ENGINES = [
         "region": "Estados Unidos",
     },
     {
-        "id": "deepseek",
-        "name": "DeepSeek (clave propia)",
-        "color": "bg-blue-500",
-        "desc": "Tus textos se envían a DeepSeek (China) con tu clave.",
-        "tier": "byok",
-        "requires_api_key": True,
-        "processing": "third_party",
-        "provider": "DeepSeek",
-        "region": "China",
-    },
-    {
         "id": "claude",
         "name": "Claude (clave propia)",
         "color": "bg-purple-600",
