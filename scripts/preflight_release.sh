@@ -58,6 +58,15 @@ curl -fsS http://127.0.0.1:8100/api/v1/auth/config >/dev/null
 echo "OK  auth/config local"
 
 curl -fsS http://127.0.0.1:8100/api/v1/metrics/prometheus >/dev/null
+
+# Las cabeceras de seguridad deben llegar en la SPA y en los assets (herencia add_header)
+PUBLIC_HOST="${PUBLIC_HOST:-miapp.edumind.es}"
+for ruta in / /index.html /assets/; do
+    if ! curl -ksSI --max-time 10 -H "Host: ${PUBLIC_HOST}" "https://127.0.0.1${ruta}" | grep -qi '^content-security-policy:'; then
+        echo "FALTA Content-Security-Policy en ${ruta} (revisar include miapp-security-headers.inc)" >&2
+        exit 1
+    fi
+done
 echo "OK  metrics/prometheus local"
 
 if [[ -f "${FRONTEND_DIR}/dist/index.html" ]]; then
