@@ -55,3 +55,10 @@ backend/uploads/
 backend/*.db-wal
 backend/*.db-shm
 .claude/
+
+# Documentación interna (planificación, auditorías, notas de trabajo): nunca al repo público
+/CLAUDE.md
+/plan_mejora.md
+/docs/remediacion/
+/docs/MODEL_IMPROVEMENT.md
+/repair_deploy.sh
