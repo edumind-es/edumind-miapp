@@ -124,10 +124,12 @@ def test_dataset_upload_auto_parse_enqueues_background_job(
 def test_process_background_job_payload_marks_document_completed_and_creates_items(
     admin_dataset_context,
     monkeypatch,
+    tmp_path,
 ):
     admin_id = admin_dataset_context["admin_id"]
     with Session(engine) as session:
-        file_path = Path(f"/var/www/edumind_miapp/backend/uploads/test_{uuid4().hex[:8]}.txt")
+        # Directorio temporal de pytest: la ruta absoluta del servidor no existe en CI
+        file_path = tmp_path / f"test_{uuid4().hex[:8]}.txt"
         file_path.write_text("contenido temporal", encoding="utf-8")
         document = Document(
             filename=file_path.name,
@@ -177,10 +179,12 @@ def test_process_background_job_payload_marks_document_completed_and_creates_ite
 def test_execute_claimed_job_requeues_on_failure_and_updates_document_status(
     admin_dataset_context,
     monkeypatch,
+    tmp_path,
 ):
     admin_id = admin_dataset_context["admin_id"]
     with Session(engine) as session:
-        file_path = Path(f"/var/www/edumind_miapp/backend/uploads/test_{uuid4().hex[:8]}.txt")
+        # Directorio temporal de pytest: la ruta absoluta del servidor no existe en CI
+        file_path = tmp_path / f"test_{uuid4().hex[:8]}.txt"
         file_path.write_text("contenido temporal", encoding="utf-8")
         document = Document(
             filename=file_path.name,
