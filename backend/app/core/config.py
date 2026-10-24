@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
     ADMIN_PASSWORD: Optional[str] = None
     TRUSTED_PROXIES: List[str] = ["127.0.0.1", "::1"]
+    # Cabeceras de IP de cliente aceptadas cuando el peer es un proxy fiable.
+    # Añadir "CF-Connecting-IP" solo si el origen está cerrado a Cloudflare.
+    TRUSTED_CLIENT_IP_HEADERS: List[str] = ["X-Real-IP"]
     MAX_UPLOAD_SIZE_MB: int = 10
     AUTH_COOKIE_NAME: str = "edumind_access_token"
     CSRF_COOKIE_NAME: str = "edumind_csrf_token"

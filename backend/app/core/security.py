@@ -33,7 +33,11 @@ def _normalize_ip(raw_ip: str) -> str:
 
 
 def _trusted_forwarded_ip(request: Request) -> str:
-    for header_name in ("CF-Connecting-IP", "X-Real-IP"):
+    # Solo se aceptan las cabeceras que el proxy fija de forma explícita.
+    # Por defecto únicamente X-Real-IP: nginx la sobrescribe siempre con
+    # $remote_addr, mientras que CF-Connecting-IP solo es fiable si la pone
+    # Cloudflare y el origen está protegido (se habilita por configuración).
+    for header_name in settings.TRUSTED_CLIENT_IP_HEADERS:
         header_value = _normalize_ip(request.headers.get(header_name, ""))
         if header_value:
             return header_value

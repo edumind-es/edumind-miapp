@@ -341,7 +341,9 @@ def _resolve_sso_role(claims: dict, existing_role: UserRole | None) -> UserRole:
         return UserRole.ADMIN
     if _matches_role_mapping(claim_values, settings.AUTHENTIK_TEACHER_PREMIUM_MATCHES):
         return UserRole.TEACHER_PREMIUM
-    if existing_role is not None:
+    if existing_role is not None and existing_role != UserRole.ADMIN:
+        # Se respeta un rol concedido desde la app, pero el rol admin solo
+        # se mantiene mientras el IdP lo siga afirmando en el claim.
         return existing_role
     return UserRole(settings.AUTHENTIK_DEFAULT_ROLE)
 
@@ -473,11 +475,34 @@ def _upsert_sso_user(session: Session, claims: dict) -> User:
     preferred_username = str(username_claim).strip() if isinstance(username_claim, str) and username_claim.strip() else fallback_username
 
     user = session.exec(select(User).where(User.oidc_subject == subject)).first()
-    if not user and email:
-        user = session.exec(select(User).where(User.email == email)).first()
     if not user:
-        normalized_username = _normalize_username(preferred_username)
-        user = session.exec(select(User).where(User.username == normalized_username)).first()
+        # Vinculación de una cuenta previa: solo por email verificado por el IdP
+        # y solo si esa cuenta aún no está ligada a otro sujeto OIDC. Nunca por
+        # nombre de usuario: evita que una identidad nueva se apropie de una
+        # cuenta local (por ejemplo, la de administración).
+        email_verified = claims.get("email_verified") is True
+        candidate = None
+        if email:
+            candidate = session.exec(select(User).where(User.email == email)).first()
+        if candidate is None:
+            normalized_username = _normalize_username(preferred_username)
+            candidate = session.exec(select(User).where(User.username == normalized_username)).first()
+        if candidate is not None:
+            linkable = (
+                email_verified
+                and email is not None
+                and candidate.email == email
+                and not candidate.oidc_subject
+            )
+            if not linkable:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Ya existe una cuenta con ese email o usuario. Un administrador debe vincularla.",
+                )
+            user = candidate
+
+    if user and not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cuenta desactivada")
 
     resolved_role = _resolve_sso_role(claims, user.role if user else None)
     desired_username = _build_unique_username(session, preferred_username, user.id if user else None)
@@ -488,7 +513,6 @@ def _upsert_sso_user(session: Session, claims: dict) -> User:
         user.role = resolved_role
         user.auth_provider = "authentik"
         user.oidc_subject = subject
-        user.is_active = True
     else:
         user = User(
             username=desired_username,

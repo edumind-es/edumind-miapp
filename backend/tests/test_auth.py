@@ -8,8 +8,10 @@
 # (at your option) any later version.
 #
 
+import pytest
 from uuid import uuid4
 
+from fastapi import HTTPException
 from sqlmodel import Session, select
 
 from app.api.v1 import auth as auth_module
@@ -277,3 +279,50 @@ def test_default_destination_hides_admin_path_outside_vpn(client, api_v1_prefix)
             if user:
                 session.delete(user)
                 session.commit()
+
+
+def _crear_usuario(username: str, email: str, role: UserRole, **extra) -> None:
+    with Session(engine) as session:
+        session.add(
+            User(
+                username=username,
+                email=email,
+                role=role,
+                hashed_password=auth_module.get_password_hash("Contraseña-larga-123"),
+                is_active=extra.pop("is_active", True),
+                **extra,
+            )
+        )
+        session.commit()
+
+
+def test_sso_no_se_apropia_de_cuenta_local_sin_email_verificado(monkeypatch):
+    tag = uuid4().hex[:8]
+    _crear_usuario(f"admin-local-{tag}", f"admin-{tag}@example.com", UserRole.ADMIN)
+    claims = {"sub": f"sujeto-nuevo-{tag}", "email": f"admin-{tag}@example.com", "preferred_username": f"admin-local-{tag}", "groups": []}
+    with Session(engine) as session:
+        with pytest.raises(HTTPException) as exc:
+            auth_module._upsert_sso_user(session, claims)
+        assert exc.value.status_code == 403
+        user = session.exec(select(User).where(User.username == f"admin-local-{tag}")).one()
+        assert user.oidc_subject is None
+        assert user.role == UserRole.ADMIN
+
+
+def test_sso_vincula_por_email_verificado_y_no_conserva_admin_sin_claim(monkeypatch):
+    tag = uuid4().hex[:8]
+    _crear_usuario(f"profe-{tag}", f"profe-{tag}@example.com", UserRole.ADMIN)
+    claims = {"sub": f"sujeto-profe-{tag}", "email": f"profe-{tag}@example.com", "email_verified": True, "groups": ["otros"]}
+    with Session(engine) as session:
+        user = auth_module._upsert_sso_user(session, claims)
+        assert user.oidc_subject == f"sujeto-profe-{tag}"
+        assert user.role == UserRole(settings.AUTHENTIK_DEFAULT_ROLE)
+
+
+def test_sso_no_reactiva_cuentas_desactivadas(monkeypatch):
+    tag = uuid4().hex[:8]
+    _crear_usuario(f"baja-{tag}", f"baja-{tag}@example.com", UserRole.DOCENTE, is_active=False, oidc_subject=f"sujeto-baja-{tag}")
+    with Session(engine) as session:
+        with pytest.raises(HTTPException) as exc:
+            auth_module._upsert_sso_user(session, {"sub": f"sujeto-baja-{tag}", "email": f"baja-{tag}@example.com"})
+        assert exc.value.status_code == 403

@@ -36,9 +36,14 @@ def _limit_key(request):
 limiter = Limiter(key_func=_limit_key, default_limits=["200/minute"])
 
 # Create App
+# La documentación interactiva y el esquema OpenAPI solo se sirven en
+# desarrollo: en producción publicarían todas las rutas, incluidas las de admin.
+_expose_api_docs = settings.RUNTIME_ENV == "development"
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json" if _expose_api_docs else None,
+    docs_url="/docs" if _expose_api_docs else None,
+    redoc_url="/redoc" if _expose_api_docs else None,
 )
 
 # Attach limiter to app state
@@ -94,7 +99,7 @@ async def anonymous_session_middleware(request, call_next):
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to EDUMind MiApp API", "docs": "/docs"}
+    return {"message": "Welcome to EDUMind MiApp API", "docs": "/docs" if _expose_api_docs else None}
 
 from app.api.v1.api import api_router
 app.include_router(api_router, prefix=settings.API_V1_STR)
