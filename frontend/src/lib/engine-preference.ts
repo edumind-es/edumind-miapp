@@ -25,3 +25,30 @@ export function rememberEngine(engineId: string): void {
         // Sin persistencia: la elección vale solo para esta pantalla
     }
 }
+
+// Aviso de procesamiento aceptado por motor (solo identificadores).
+const ACK_KEY = "edumind_engine_ack";
+
+function readAcks(): string[] {
+    try {
+        const raw = window.localStorage.getItem(ACK_KEY);
+        const parsed: unknown = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === "string") : [];
+    } catch {
+        return [];
+    }
+}
+
+export function hasAcknowledgedEngine(engineId: string): boolean {
+    return readAcks().includes(engineId);
+}
+
+export function acknowledgeEngine(engineId: string): void {
+    try {
+        const acks = readAcks();
+        if (!acks.includes(engineId)) acks.push(engineId);
+        window.localStorage.setItem(ACK_KEY, JSON.stringify(acks));
+    } catch {
+        // Sin persistencia: se volverá a mostrar el aviso en la próxima sesión
+    }
+}
