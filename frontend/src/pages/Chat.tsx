@@ -24,6 +24,7 @@ import { FeedbackButtons } from "../components/FeedbackButtons";
 import { FeedbackModal } from "../components/FeedbackModal";
 import { authFetch } from "@/lib/auth-client";
 import { detectDeviceCapability } from "@/lib/device-capability";
+import { getInitialEngine } from "@/lib/engine-preference";
 
 // Queue Interface
 interface QueueStatus {
@@ -59,7 +60,7 @@ export default function Chat() {
         { role: "assistant", content: `Hola, soy tu asistente para el perfil de **${role}**. ¿En qué puedo ayudarte hoy?` }
     ]);
     const [isLoading, setIsLoading] = useState(false);
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
 
     // New State

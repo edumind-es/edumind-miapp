@@ -26,6 +26,7 @@ import {
     normativeService,
     type CurriculumAreaItem,
 } from "@/lib/normative-retrieval";
+import { getInitialEngine } from "@/lib/engine-preference";
 
 const PRIMARY_COURSES = [
     "1o Primaria",
@@ -45,7 +46,7 @@ function splitManualContents(raw: string): string[] {
 
 export default function ReinforcementPlanTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
 
     const [curriculumAreas, setCurriculumAreas] = useState<CurriculumAreaItem[]>([]);

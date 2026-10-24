@@ -22,6 +22,7 @@ import { EngineSelector } from "@/components/EngineSelector";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 import { generatorService } from "@/lib/generator-service";
+import { getInitialEngine } from "@/lib/engine-preference";
 
 const DOCUMENT_TYPES = [
     { value: "informe_tecnico", label: "Informe Técnico" },
@@ -50,7 +51,7 @@ const AMBITOS = [
 
 export default function InspectionReportTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
 
     const [formData, setFormData] = useState({

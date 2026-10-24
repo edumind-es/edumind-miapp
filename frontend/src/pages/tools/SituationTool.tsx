@@ -27,10 +27,11 @@ import { NEAEDetailedSelector } from "@/components/NEAESelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 import { getModelDisplayName } from "@/lib/pedagogical-models";
 import { formatNEAEForPrompt, type NEAECase } from "@/lib/neae";
+import { getInitialEngine } from "@/lib/engine-preference";
 
 export default function SituationTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
 
     const [formData, setFormData] = useState({

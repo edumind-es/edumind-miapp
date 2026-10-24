@@ -20,6 +20,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/auth-client";
 import { detectDeviceCapability, type DeviceCapability } from "@/lib/device-capability";
+import { rememberEngine } from "@/lib/engine-preference";
 
 interface Engine {
     id: string;
@@ -249,7 +250,10 @@ export function EngineSelector({ currentEngine, onSelect, apiKey, onApiKeyChange
                     Recomendado ahora: {recommendedEngine.name}
                     <button
                         type="button"
-                        onClick={() => onSelect(recommendedEngine.id)}
+                        onClick={() => {
+                            rememberEngine(recommendedEngine.id);
+                            onSelect(recommendedEngine.id);
+                        }}
                         className="lam-btn lam-btn-sm lam-btn-ghost !px-2 !py-1 !text-[10px] !border-vigencia !text-vigencia hover:!bg-vigencia hover:!text-paper"
                     >
                         Aplicar
@@ -308,6 +312,7 @@ export function EngineSelector({ currentEngine, onSelect, apiKey, onApiKeyChange
                                 disabled={engine.enabled === false}
                                 onClick={() => {
                                     if (engine.enabled === false) return;
+                                    rememberEngine(engine.id);
                                     onSelect(engine.id);
                                 }}
                                 className={cn(

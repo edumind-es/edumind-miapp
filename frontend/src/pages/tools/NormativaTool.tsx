@@ -14,6 +14,7 @@ import {
     type NormativeResultItem,
     type NormativeSearchResponse,
 } from "@/lib/normative-retrieval";
+import { getInitialEngine } from "@/lib/engine-preference";
 
 const PAGE_SIZE = 5;
 
@@ -38,7 +39,7 @@ export default function NormativaTool() {
         clearError,
     } = useGeneratorRequest();
 
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
     const [query, setQuery] = useState("");
 

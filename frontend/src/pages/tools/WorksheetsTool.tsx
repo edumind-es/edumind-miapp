@@ -10,6 +10,7 @@ import { EngineSelector } from "@/components/EngineSelector";
 import { ContextualFields, type ContextualData } from "@/components/ContextualFields";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 import { cleanGeneratedText } from "@/lib/content-format";
+import { getInitialEngine } from "@/lib/engine-preference";
 
 function escapeHtml(value: string): string {
     return value
@@ -22,7 +23,7 @@ function escapeHtml(value: string): string {
 
 export default function WorksheetsTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
 
     const [formData, setFormData] = useState({
