@@ -27,6 +27,12 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Audit backend dependencies (pip-audit)
+        run: |
+          source .venv/bin/activate
+          pip install pip-audit
+          pip-audit -r requirements.txt --strict
+
       - name: Run backend tests
         run: |
           source .venv/bin/activate
@@ -69,8 +75,25 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      # Pasa a bloqueante (sin continue-on-error) cuando react-router esté en >= 7.17
+      - name: Audit frontend dependencies (npm audit)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
+
       - name: Lint frontend
         run: npm run lint
 
       - name: Build frontend
         run: npm run build
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for leaked secrets (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
