@@ -17,7 +17,6 @@
  */
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
 
 export interface ContextualData {
     num_alumnos?: number;
@@ -71,35 +70,30 @@ export function ContextualFields({ data, onChange }: ContextualFieldsProps) {
         return "Innovador";
     };
 
-    const getSliderGradient = (value: number): string => {
-        const hue = value * 1.2; // 0 (red) to 120 (green)
-        return `hsl(${hue}, 70%, 50%)`;
-    };
-
     return (
-        <div className="border border-white/10 rounded-lg bg-white/5">
+        <div className="border border-hair bg-card">
             {/* Toggle Header */}
             <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full px-4 py-3 flex items-center justify-between text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                className="w-full px-4 py-3 flex items-center justify-between lam-label hover:text-ink transition-colors"
             >
-                <span>📊 Información Contextual (Opcional pero Recomendado)</span>
-                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                <span>Información contextual (opcional, recomendado)</span>
+                <span className="lam-mono lam-mono-ink">{isExpanded ? "Ocultar" : "Mostrar"}</span>
             </button>
 
             {/* Collapsible Content */}
             {isExpanded && (
-                <div className="p-4 space-y-4 border-t border-white/10">
+                <div className="p-4 space-y-4 border-t border-hair">
                     {/* Number of Students */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Número de Alumnos</label>
+                        <label className="lam-label">Número de Alumnos</label>
                         <input
                             type="number"
                             min="1"
                             max="40"
                             placeholder="Ej: 25"
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                             value={data.num_alumnos || ""}
                             onChange={e => onChange({ ...data, num_alumnos: parseInt(e.target.value) || undefined })}
                         />
@@ -107,9 +101,9 @@ export function ContextualFields({ data, onChange }: ContextualFieldsProps) {
 
                     {/* Grouping Type */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Tipo de Agrupamiento</label>
+                        <label className="lam-label">Tipo de Agrupamiento</label>
                         <select
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                             value={data.tipo_agrupamiento || ""}
                             onChange={e => onChange({ ...data, tipo_agrupamiento: e.target.value })}
                         >
@@ -123,11 +117,9 @@ export function ContextualFields({ data, onChange }: ContextualFieldsProps) {
                     {/* Methodology Slider */}
                     <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                            <label className="text-sm font-medium text-slate-300">Enfoque Metodológico</label>
-                            <span className="text-xs px-2 py-1 rounded-full" style={{
-                                backgroundColor: getSliderGradient(data.metodologia_slider || 50),
-                                color: '#fff'
-                            }}>
+                            <label className="lam-label">Enfoque Metodológico</label>
+                            {/* Etiqueta del enfoque: inversión de tinta, sin color saturado */}
+                            <span className="lam-mono lam-mono-ink bg-ink !text-paper px-2 py-1">
                                 {getMethodologyLabel(data.metodologia_slider || 50)}
                             </span>
                         </div>
@@ -138,17 +130,14 @@ export function ContextualFields({ data, onChange }: ContextualFieldsProps) {
                                 max="100"
                                 value={data.metodologia_slider || 50}
                                 onChange={e => onChange({ ...data, metodologia_slider: parseInt(e.target.value) })}
-                                className="w-full accent-blue-500"
-                                style={{
-                                    background: `linear-gradient(to right, #ef4444 0%, #f59e0b 50%, #10b981 100%)`
-                                }}
+                                className="w-full accent-ink"
                             />
-                            <div className="flex justify-between text-xs text-slate-400">
+                            <div className="flex justify-between text-xs text-ink-2">
                                 <span>Tradicional</span>
                                 <span>Innovador</span>
                             </div>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1">
+                        <p className="text-xs text-ink-2 mt-1">
                             {data.metodologia_slider !== undefined && (
                                 <>
                                     {data.metodologia_slider < 30 && "Instrucción directa, ejercicios estructurados, evaluación tradicional"}
@@ -161,15 +150,15 @@ export function ContextualFields({ data, onChange }: ContextualFieldsProps) {
 
                     {/* NEAE Cases */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Casuísticas NEAE Presentes</label>
+                        <label className="lam-label">Casuísticas NEAE Presentes</label>
                         <div className="grid grid-cols-2 gap-2">
                             {NEAE_COMMON_CASES.map(caseItem => (
-                                <label key={caseItem} className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer hover:text-white transition-colors">
+                                <label key={caseItem} className="flex items-center gap-2 text-sm text-ink-2 cursor-pointer hover:text-ink transition-colors">
                                     <input
                                         type="checkbox"
                                         checked={(data.neae_cases || []).includes(caseItem)}
                                         onChange={() => toggleCase(caseItem)}
-                                        className="rounded border-white/20 bg-[#1a1f2e] text-blue-500 focus:ring-blue-500"
+                                        className="border-hair bg-card accent-ink"
                                     />
                                     {caseItem}
                                 </label>
@@ -179,9 +168,9 @@ export function ContextualFields({ data, onChange }: ContextualFieldsProps) {
 
                     {/* Other NEAE */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Otros Casos NEAE Específicos</label>
+                        <label className="lam-label">Otros Casos NEAE Específicos</label>
                         <textarea
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-16 resize-none"
+                            className="lam-input h-16 resize-none"
                             placeholder="Describe otros casos específicos..."
                             value={data.neae_otros || ""}
                             onChange={e => onChange({ ...data, neae_otros: e.target.value })}
@@ -190,9 +179,9 @@ export function ContextualFields({ data, onChange }: ContextualFieldsProps) {
 
                     {/* Additional Context */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Contexto Adicional Relevante</label>
+                        <label className="lam-label">Contexto Adicional Relevante</label>
                         <textarea
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-20 resize-none"
+                            className="lam-input h-20 resize-none"
                             placeholder="Cualquier información adicional que pueda mejorar la respuesta (entorno socioeconómico, características del centro, recursos disponibles, etc.)"
                             value={data.contexto_adicional || ""}
                             onChange={e => onChange({ ...data, contexto_adicional: e.target.value })}

@@ -17,7 +17,6 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Loader2 } from "lucide-react";
 
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
@@ -162,9 +161,9 @@ export default function ReinforcementPlanTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
+                <div className="lam-prose">
                     {!output && !loading ? (
-                        <span className="text-slate-500">
+                        <span className="text-ink-3">
                             El plan de refuerzo se mostrara aqui con estructura operativa.
                         </span>
                     ) : null}
@@ -180,29 +179,24 @@ export default function ReinforcementPlanTool() {
                     onApiKeyChange={setApiKey}
                 />
 
-                <div className="rounded border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-100">
-                    <div className="flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <div>
-                            <p className="font-semibold">Proteccion de datos activa</p>
-                            <p>
-                                Este formulario no recoge nombre, apellidos ni identificadores personales. El plan se
-                                genera de forma anonima.
-                            </p>
-                        </div>
-                    </div>
+                <div className="lam-note vigencia">
+                    <span className="tag">Proteccion de datos activa</span>
+                    <p className="m-0 text-sm">
+                        Este formulario no recoge nombre, apellidos ni identificadores personales. El plan se
+                        genera de forma anonima.
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Area educativa</label>
+                        <label className="lam-label">Area educativa</label>
                         <select
                             required
                             value={formData.area_educativa}
                             onChange={(event) =>
                                 setFormData((prev) => ({ ...prev, area_educativa: event.target.value }))
                             }
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                             disabled={curriculumLoading}
                         >
                             {curriculumAreas.map((area) => (
@@ -214,14 +208,14 @@ export default function ReinforcementPlanTool() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Curso</label>
+                        <label className="lam-label">Curso</label>
                         <select
                             required
                             value={formData.curso}
                             onChange={(event) =>
                                 setFormData((prev) => ({ ...prev, curso: event.target.value }))
                             }
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                         >
                             {PRIMARY_COURSES.map((course) => (
                                 <option key={course} value={course}>
@@ -234,18 +228,18 @@ export default function ReinforcementPlanTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Etapa educativa</label>
+                        <label className="lam-label">Etapa educativa</label>
                         <input
                             required
                             value={formData.etapa_educativa}
                             onChange={(event) =>
                                 setFormData((prev) => ({ ...prev, etapa_educativa: event.target.value }))
                             }
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Inicio del refuerzo</label>
+                        <label className="lam-label">Inicio del refuerzo</label>
                         <input
                             required
                             type="date"
@@ -253,11 +247,11 @@ export default function ReinforcementPlanTool() {
                             onChange={(event) =>
                                 setFormData((prev) => ({ ...prev, fecha_inicio_refuerzo: event.target.value }))
                             }
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Fin estimado</label>
+                        <label className="lam-label">Fin estimado</label>
                         <input
                             required
                             type="date"
@@ -265,32 +259,30 @@ export default function ReinforcementPlanTool() {
                             onChange={(event) =>
                                 setFormData((prev) => ({ ...prev, fecha_fin_estimada: event.target.value }))
                             }
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className="lam-input"
                         />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">
+                    <label className="lam-label">
                         Contenidos curriculares a reforzar (Galicia Primaria)
                     </label>
                     {curriculumLoading ? (
-                        <div className="rounded border border-white/10 bg-black/20 px-3 py-2 text-sm text-slate-300 flex items-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Cargando contenidos curriculares...
-                        </div>
+                        <p className="lam-mono">Cargando contenidos curriculares...</p>
                     ) : null}
                     {curriculumError ? (
-                        <div className="rounded border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-                            {curriculumError}
+                        <div className="lam-note vigencia">
+                            <span className="tag">Aviso</span>
+                            <p className="m-0 text-sm">{curriculumError}</p>
                         </div>
                     ) : null}
                     {currentArea?.contents?.length ? (
-                        <div className="max-h-52 overflow-y-auto rounded border border-white/10 bg-[#1a1f2e] p-3 space-y-2">
+                        <div className="max-h-52 overflow-y-auto border border-hair bg-card p-3 space-y-2">
                             {currentArea.contents.map((content) => {
                                 const checked = selectedContents.includes(content);
                                 return (
-                                    <label key={content} className="flex items-start gap-2 text-sm text-slate-200">
+                                    <label key={content} className="flex items-start gap-2 text-sm text-ink">
                                         <input
                                             type="checkbox"
                                             checked={checked}
@@ -308,26 +300,26 @@ export default function ReinforcementPlanTool() {
                         onChange={(event) =>
                             setFormData((prev) => ({ ...prev, contenidos_manual: event.target.value }))
                         }
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                        className="lam-input h-24 resize-none"
                         placeholder="Si necesitas, añade contenidos manuales (separados por linea, coma o punto y coma)."
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Criterios de evaluacion asociados</label>
+                    <label className="lam-label">Criterios de evaluacion asociados</label>
                     <textarea
                         required
                         value={formData.criterios_evaluacion}
                         onChange={(event) =>
                             setFormData((prev) => ({ ...prev, criterios_evaluacion: event.target.value }))
                         }
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                        className="lam-input h-24 resize-none"
                         placeholder="Describe criterios vinculados al area y al contenido no superado."
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">
+                    <label className="lam-label">
                         Instrumentos de evaluacion aplicados y datos de evidencia
                     </label>
                     <textarea
@@ -336,13 +328,13 @@ export default function ReinforcementPlanTool() {
                         onChange={(event) =>
                             setFormData((prev) => ({ ...prev, instrumentos_evaluacion: event.target.value }))
                         }
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                        className="lam-input h-24 resize-none"
                         placeholder="Ej: pruebas escritas, rubricas, observacion sistematica, tareas de desempeno..."
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">
+                    <label className="lam-label">
                         Evidencias que avalan la necesidad de refuerzo
                     </label>
                     <textarea
@@ -354,65 +346,65 @@ export default function ReinforcementPlanTool() {
                                 evidencias_necesidad_refuerzo: event.target.value,
                             }))
                         }
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                        className="lam-input h-24 resize-none"
                         placeholder="Aporta resultados observables: calificaciones, indicadores, brechas detectadas..."
                     />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Forma de trabajo aplicada</label>
+                        <label className="lam-label">Forma de trabajo aplicada</label>
                         <textarea
                             required
                             value={formData.forma_trabajo_aplicada}
                             onChange={(event) =>
                                 setFormData((prev) => ({ ...prev, forma_trabajo_aplicada: event.target.value }))
                             }
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                            className="lam-input h-24 resize-none"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Recursos empleados</label>
+                        <label className="lam-label">Recursos empleados</label>
                         <textarea
                             required
                             value={formData.recursos_empleados}
                             onChange={(event) =>
                                 setFormData((prev) => ({ ...prev, recursos_empleados: event.target.value }))
                             }
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                            className="lam-input h-24 resize-none"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Desarrollo aplicado</label>
+                        <label className="lam-label">Desarrollo aplicado</label>
                         <textarea
                             required
                             value={formData.desarrollo_aplicado}
                             onChange={(event) =>
                                 setFormData((prev) => ({ ...prev, desarrollo_aplicado: event.target.value }))
                             }
-                            className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                            className="lam-input h-24 resize-none"
                         />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Normativa aplicable</label>
+                    <label className="lam-label">Normativa aplicable</label>
                     <input
                         required
                         value={formData.normativa_aplicable}
                         onChange={(event) =>
                             setFormData((prev) => ({ ...prev, normativa_aplicable: event.target.value }))
                         }
-                        className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        className="lam-input"
                     />
                 </div>
 
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2"
+                    className="lam-btn lam-btn-block"
                 >
-                    {loading ? <Loader2 className="animate-spin" /> : null}
+                    {loading ? <span className="font-mono" aria-hidden="true">···</span> : null}
                     Generar Plan de Refuerzo
                 </button>
             </form>

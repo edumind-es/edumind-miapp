@@ -6,7 +6,6 @@
 import { useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2, Printer } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { ContextualFields, type ContextualData } from "@/components/ContextualFields";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
@@ -84,13 +83,13 @@ export default function WorksheetsTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
-                    {!output && !loading && <span className="text-slate-500">Esperando generación...</span>}
+                <div className="lam-prose">
+                    {!output && !loading && <span className="text-ink-3">Esperando generación...</span>}
                     {output && (
                         <div className="space-y-4">
                             <div className="flex justify-end">
-                                <button onClick={handlePrint} className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                                    <Printer size={16} /> Imprimir / PDF
+                                <button onClick={handlePrint} className="flex items-center gap-2 lam-btn lam-btn-sm">
+                                    Imprimir / PDF
                                 </button>
                             </div>
                             <div className="whitespace-pre-wrap">{output}</div>
@@ -103,16 +102,16 @@ export default function WorksheetsTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Tema Principal</label>
-                    <input type="text" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                    <label className="lam-label">Tema Principal</label>
+                    <input type="text" className="lam-input"
                         placeholder="Ej: El Ciclo del Agua"
                         value={formData.tema} onChange={e => setFormData({ ...formData, tema: e.target.value })} required />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Tipo de Recurso</label>
-                        <select className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Tipo de Recurso</label>
+                        <select className="lam-input"
                             value={formData.tipo} onChange={e => setFormData({ ...formData, tipo: e.target.value })}>
                             <option>Ficha de repaso</option>
                             <option>Ficha de ampliación</option>
@@ -122,24 +121,24 @@ export default function WorksheetsTool() {
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300">Edad / Nivel</label>
-                        <input type="text" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                        <label className="lam-label">Edad / Nivel</label>
+                        <input type="text" className="lam-input"
                             placeholder="Ej: 3º Primaria (8-9 años)"
                             value={formData.edad} onChange={e => setFormData({ ...formData, edad: e.target.value })} required />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Objetivo de Aprendizaje</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-24 resize-none"
+                    <label className="lam-label">Objetivo de Aprendizaje</label>
+                    <textarea className="lam-input h-24 resize-none"
                         placeholder="¿Qué deben aprender o practicar?"
                         value={formData.objetivo} onChange={e => setFormData({ ...formData, objetivo: e.target.value })} required />
                 </div>
 
                 <ContextualFields data={contextualData} onChange={setContextualData} />
 
-                <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2">
-                    {loading && <Loader2 className="animate-spin" />} Generar Ficha
+                <button type="submit" disabled={loading} className="lam-btn lam-btn-block">
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>} Generar Ficha
                 </button>
             </form>
         </GeneratorLayout>

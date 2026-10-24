@@ -11,7 +11,7 @@ interface AdminProtectedRouteProps {
 
 function AccessFallback() {
     return (
-        <div className="min-h-[40vh] flex items-center justify-center text-slate-400 text-sm">
+        <div className="min-h-[40vh] flex items-center justify-center text-ink-2 text-sm">
             Verificando acceso...
         </div>
     );
@@ -19,7 +19,7 @@ function AccessFallback() {
 
 function ConcealedRoute() {
     return (
-        <div className="min-h-[40vh] flex items-center justify-center text-slate-500 text-sm">
+        <div className="min-h-[40vh] flex items-center justify-center lam-mono">
             Recurso no disponible.
         </div>
     );

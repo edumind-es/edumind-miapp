@@ -7,11 +7,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import {
-    ArrowLeft, Users, Calendar, Clock, FileText,
-    Plus, Trash2, Loader2, Printer, Download, BookOpen
-} from "lucide-react";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { NoticeBanner } from "@/components/NoticeBanner";
 import {
@@ -95,21 +90,23 @@ export default function ClassDetail() {
             <head>
                 <title>Lista de Alumnos - ${escapeHtml(teacherClass.name)}</title>
                 <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; }
-                    h1 { color: #1e40af; }
+                    /* Impresión en modo EDUmind-Lámina: papel, tinta y filetes */
+                    body { font-family: Archivo, Arial, sans-serif; color: #17181a; padding: 24px; }
+                    h1 { font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
+                    .meta { font-family: "JetBrains Mono", monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: #5c5a55; }
                     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                    th { background-color: #f3f4f6; }
-                    .header { margin-bottom: 20px; }
+                    th, td { border-bottom: 1px solid #c9c4b8; padding: 12px; text-align: left; }
+                    th { background: #17181a; color: #ece9e1; font-family: "JetBrains Mono", monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
+                    .header { margin-bottom: 20px; border-bottom: 2px solid #17181a; padding-bottom: 12px; }
                     .code { font-weight: bold; font-size: 1.2em; }
-                    .name-field { border-bottom: 1px solid #000; min-width: 200px; }
+                    .name-field { min-width: 200px; }
+                    .pie { margin-top: 30px; font-size: 0.85em; color: #5c5a55; border-top: 2px solid #17181a; padding-top: 12px; }
                 </style>
             </head>
             <body>
                 <div class="header">
                     <h1>${escapeHtml(teacherClass.name)}</h1>
-                    <p><strong>Materia:</strong> ${escapeHtml(teacherClass.subject)}</p>
-                    <p><strong>Curso escolar:</strong> ${escapeHtml(teacherClass.academic_year)}</p>
+                    <p class="meta">Materia · ${escapeHtml(teacherClass.subject)} · Curso ${escapeHtml(teacherClass.academic_year)}</p>
                 </div>
                 <table>
                     <tr>
@@ -123,9 +120,9 @@ export default function ClassDetail() {
                         </tr>
                     `).join('')}
                 </table>
-                <p style="margin-top: 30px; font-size: 0.9em; color: #666;">
-                    Documento generado por EDUmind MiApp - Este documento es confidencial.
-                    La asociación de nombres a códigos debe realizarse en papel.
+                <p class="pie">
+                    EDUmind® · Luis Vilela Acuña · MiApp. Documento confidencial:
+                    la asociación de nombres a códigos debe realizarse en papel.
                 </p>
             </body>
             </html>
@@ -141,17 +138,17 @@ export default function ClassDetail() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-                <Loader2 className="animate-spin text-blue-400" size={48} />
+            <div className="min-h-screen bg-paper flex items-center justify-center">
+                <span className="lam-mono animate-pulse">Cargando clase</span>
             </div>
         );
     }
 
     if (!teacherClass) {
         return (
-            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white">
-                <h1 className="text-2xl mb-4">Clase no encontrada</h1>
-                <Link to="/classroom" className="text-blue-400 hover:underline">
+            <div className="min-h-screen bg-paper flex flex-col items-center justify-center text-ink">
+                <h1 className="text-[26px] font-bold mb-4">Clase no encontrada</h1>
+                <Link to="/classroom" className="lam-btn lam-btn-sm lam-btn-ghost">
                     Volver a mis clases
                 </Link>
             </div>
@@ -159,8 +156,8 @@ export default function ClassDetail() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-            <div className="container mx-auto px-4 py-6">
+        <div className="min-h-screen bg-paper text-ink">
+            <div className="lam-wrap py-10">
                 {notice ? (
                     <NoticeBanner
                         variant={notice.variant}
@@ -170,38 +167,29 @@ export default function ClassDetail() {
                     />
                 ) : null}
 
-                {/* Header */}
-                <div className="flex items-center gap-4 mb-6">
-                    <Link
-                        to="/classroom"
-                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                        <ArrowLeft size={24} />
-                    </Link>
-                    <div className="flex-1">
-                        <h1 className="text-3xl font-bold" style={{ color: teacherClass.color }}>
+                {/* Cabecera: el color de la clase solo como filete izquierdo */}
+                <Link to="/classroom" className="lam-mono lam-mono-ink inline-block mb-5 hover:underline underline-offset-4">
+                    ← Mis clases
+                </Link>
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 pl-5 border-l-[3px]" style={{ borderLeftColor: teacherClass.color }}>
+                    <div>
+                        <p className="lam-eyebrow mb-3">EDUmind · Aula</p>
+                        <h1 className="m-0 text-[32px] font-extrabold tracking-[-0.03em] leading-none">
                             {teacherClass.name}
                         </h1>
-                        <p className="text-slate-400">{teacherClass.subject} • {teacherClass.academic_year}</p>
+                        <p className="text-ink-2 mt-3">{teacherClass.subject} · {teacherClass.academic_year}</p>
                     </div>
-                    <div className="flex gap-2">
-                        <span className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-sm">
-                            <Users size={14} />
-                            {teacherClass.student_count} alumnos
-                        </span>
-                    </div>
+                    <span className="lam-mono lam-mono-ink">{teacherClass.student_count} alumnos</span>
                 </div>
 
-                {/* Tabs */}
-                <div className="flex gap-2 mb-6 border-b border-white/10 pb-2">
+                {/* Pestañas: estado activo por inversión de tinta */}
+                <div className="lam-seg mb-6 flex-wrap">
                     {(['info', 'schedule', 'students', 'resources'] as const).map((tab) => (
                         <button
                             key={tab}
+                            type="button"
                             onClick={() => setActiveTab(tab)}
-                            className={`px-4 py-2 rounded-t-lg transition-colors ${activeTab === tab
-                                ? 'bg-white/10 text-white'
-                                : 'text-slate-400 hover:text-white'
-                                }`}
+                            aria-pressed={activeTab === tab}
                         >
                             {tab === 'info' && 'Información'}
                             {tab === 'schedule' && 'Horario'}
@@ -212,54 +200,26 @@ export default function ClassDetail() {
                 </div>
 
                 {/* Tab Content */}
-                <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-slate-800/50 rounded-xl p-6 border border-white/10"
-                >
+                <div key={activeTab} className="bg-card p-6 border border-hair">
                     {activeTab === 'info' && (
                         <div className="grid md:grid-cols-2 gap-6">
                             <div>
-                                <h3 className="text-lg font-semibold mb-4">Datos de la Clase</h3>
-                                <dl className="space-y-3">
-                                    <div className="flex justify-between">
-                                        <dt className="text-slate-400">Curso:</dt>
-                                        <dd>{teacherClass.course}</dd>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <dt className="text-slate-400">Grupo:</dt>
-                                        <dd>{teacherClass.group}</dd>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <dt className="text-slate-400">Materia:</dt>
-                                        <dd>{teacherClass.subject}</dd>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <dt className="text-slate-400">Año académico:</dt>
-                                        <dd>{teacherClass.academic_year}</dd>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <dt className="text-slate-400">Nº Alumnos:</dt>
-                                        <dd>{teacherClass.student_count}</dd>
-                                    </div>
+                                <h3 className="lam-mono mb-2">Datos de la clase</h3>
+                                <dl className="lam-spec">
+                                    <div><dt>Curso</dt><dd>{teacherClass.course}</dd></div>
+                                    <div><dt>Grupo</dt><dd>{teacherClass.group}</dd></div>
+                                    <div><dt>Materia</dt><dd>{teacherClass.subject}</dd></div>
+                                    <div><dt>Año académico</dt><dd>{teacherClass.academic_year}</dd></div>
+                                    <div><dt>Nº de alumnos</dt><dd>{teacherClass.student_count}</dd></div>
                                 </dl>
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold mb-4">Acciones Rápidas</h3>
-                                <div className="space-y-2">
-                                    <Link
-                                        to="/planner"
-                                        className="flex items-center gap-2 p-3 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg transition-colors"
-                                    >
-                                        <Calendar size={18} />
-                                        Ver en el Planner
+                                <h3 className="lam-mono mb-4">Acciones rápidas</h3>
+                                <div className="flex flex-col gap-3">
+                                    <Link to="/planner" className="lam-btn lam-btn-ghost lam-btn-block">
+                                        Ver en el planificador
                                     </Link>
-                                    <button
-                                        onClick={handlePrintStudentList}
-                                        className="flex items-center gap-2 p-3 bg-green-600/20 hover:bg-green-600/30 rounded-lg transition-colors w-full text-left"
-                                    >
-                                        <Printer size={18} />
+                                    <button type="button" onClick={handlePrintStudentList} className="lam-btn lam-btn-ghost lam-btn-block">
                                         Imprimir lista de alumnos
                                     </button>
                                 </div>
@@ -270,50 +230,36 @@ export default function ClassDetail() {
                     {activeTab === 'schedule' && (
                         <div>
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-semibold">Horario Semanal</h3>
-                                <button
-                                    onClick={() => setShowScheduleModal(true)}
-                                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm"
-                                >
-                                    <Plus size={16} />
-                                    Añadir Horario
+                                <h3 className="lam-mono m-0">Horario semanal</h3>
+                                <button type="button" onClick={() => setShowScheduleModal(true)} className="lam-btn lam-btn-sm">
+                                    Añadir horario
                                 </button>
                             </div>
 
                             {schedule.length === 0 ? (
-                                <div className="text-center py-8 text-slate-500">
-                                    <Clock size={48} className="mx-auto mb-3 opacity-50" />
-                                    <p>Sin horarios configurados</p>
-                                </div>
+                                <p className="text-ink-3 py-6 border-t border-hair">Sin horarios configurados.</p>
                             ) : (
-                                <div className="grid gap-3">
+                                <ul className="lam-rules">
                                     {schedule.map((slot) => (
-                                        <div
-                                            key={slot.id}
-                                            className="flex items-center justify-between p-4 bg-white/5 rounded-lg"
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className="font-semibold" style={{ color: teacherClass.color }}>
-                                                    {DAYS[slot.day_of_week]}
-                                                </div>
-                                                <div className="text-slate-400">
-                                                    {slot.start_time} - {slot.end_time}
-                                                </div>
-                                                {slot.room && (
-                                                    <div className="text-sm text-slate-500">
-                                                        Aula: {slot.room}
-                                                    </div>
-                                                )}
-                                            </div>
+                                        <li key={slot.id} className="items-center">
+                                            <span className="w-[3px] self-stretch shrink-0" style={{ background: teacherClass.color }} aria-hidden="true" />
+                                            <span className="font-semibold w-28">{DAYS[slot.day_of_week]}</span>
+                                            <span className="font-mono text-[13px] text-ink-2">
+                                                {slot.start_time} – {slot.end_time}
+                                            </span>
+                                            {slot.room && (
+                                                <span className="lam-mono">Aula {slot.room}</span>
+                                            )}
                                             <button
+                                                type="button"
                                                 onClick={() => setScheduleToDelete(slot.id)}
-                                                className="p-2 text-red-400 hover:bg-red-500/20 rounded transition-colors"
+                                                className="ml-auto lam-mono !text-alert hover:underline underline-offset-4"
                                             >
-                                                <Trash2 size={16} />
+                                                Eliminar
                                             </button>
-                                        </div>
+                                        </li>
                                     ))}
-                                </div>
+                                </ul>
                             )}
                         </div>
                     )}
@@ -321,17 +267,13 @@ export default function ClassDetail() {
                     {activeTab === 'students' && (
                         <div>
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-semibold">Códigos de Alumnos</h3>
-                                <button
-                                    onClick={handlePrintStudentList}
-                                    className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-sm"
-                                >
-                                    <Download size={16} />
+                                <h3 className="lam-mono m-0">Códigos de alumnos</h3>
+                                <button type="button" onClick={handlePrintStudentList} className="lam-btn lam-btn-sm">
                                     Imprimir listado
                                 </button>
                             </div>
 
-                            <p className="text-slate-400 text-sm mb-4">
+                            <p className="text-ink-2 text-sm mb-4">
                                 Los códigos son anónimos. Usa el documento imprimible para asociar nombres en papel.
                             </p>
 
@@ -339,11 +281,11 @@ export default function ClassDetail() {
                                 {students.map((student) => (
                                     <div
                                         key={student.id}
-                                        className="p-3 bg-white/5 rounded-lg text-center"
+                                        className="p-3 bg-paper border border-hair text-center"
                                         style={{ borderLeft: `3px solid ${teacherClass.color}` }}
                                     >
-                                        <div className="font-bold">{student.code}</div>
-                                        <div className="text-xs text-slate-500">Alumno {student.number}</div>
+                                        <div className="font-mono font-medium">{student.code}</div>
+                                        <div className="lam-mono mt-1">Nº {student.number}</div>
                                     </div>
                                 ))}
                             </div>
@@ -352,42 +294,34 @@ export default function ClassDetail() {
 
                     {activeTab === 'resources' && (
                         <div>
-                            <h3 className="text-lg font-semibold mb-6">Recursos IA Vinculados</h3>
+                            <h3 className="lam-mono mb-4">Recursos IA vinculados</h3>
 
                             {resources.length === 0 ? (
-                                <div className="text-center py-8 text-slate-500">
-                                    <BookOpen size={48} className="mx-auto mb-3 opacity-50" />
-                                    <p>Sin recursos vinculados</p>
-                                    <p className="text-sm mt-2">
-                                        Genera rúbricas, sesiones o planificaciones y vincúlalas aquí
+                                <div className="py-6 border-t border-hair text-ink-3">
+                                    <p className="m-0">Sin recursos vinculados.</p>
+                                    <p className="m-0 mt-2 text-sm">
+                                        Genera rúbricas, sesiones o planificaciones y vincúlalas aquí.
                                     </p>
                                 </div>
                             ) : (
-                                <div className="grid gap-3">
+                                <ul className="lam-rules">
                                     {resources.map((resource) => (
-                                        <div
-                                            key={resource.id}
-                                            className="p-4 bg-white/5 rounded-lg flex items-center gap-4"
-                                        >
-                                            <div className="p-2 bg-purple-500/20 rounded">
-                                                <FileText size={20} className="text-purple-400" />
-                                            </div>
+                                        <li key={resource.id} className="items-center">
+                                            <span className="dash">—</span>
                                             <div className="flex-1">
                                                 <div className="font-medium">{resource.title}</div>
-                                                <div className="text-sm text-slate-400 capitalize">
-                                                    {resource.resource_type}
-                                                </div>
+                                                <div className="lam-mono mt-1">{resource.resource_type}</div>
                                             </div>
-                                        </div>
+                                        </li>
                                     ))}
-                                </div>
+                                </ul>
                             )}
                         </div>
                     )}
-                </motion.div>
+                </div>
             </div>
 
-            {/* Add Schedule Modal */}
+            {/* Modal de nuevo tramo horario */}
             {showScheduleModal && (
                 <AddScheduleModal
                     classId={classId}
@@ -447,19 +381,16 @@ function AddScheduleModal({
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-slate-800 rounded-2xl p-6 w-full max-w-md border border-white/10"
-            >
-                <h2 className="text-xl font-bold mb-4">Añadir Horario</h2>
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: "rgba(23, 24, 26, 0.55)" }} role="dialog" aria-modal="true">
+            <div className="bg-paper p-6 w-full max-w-md border-2 border-ink">
+                <span className="lam-mono">Horario</span>
+                <h2 className="text-[22px] font-bold leading-tight mt-2 mb-5">Añadir tramo horario</h2>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm text-slate-400 mb-1">Día de la semana</label>
+                        <label className="lam-label">Día de la semana</label>
                         <select
-                            className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2"
+                            className="lam-input"
                             value={formData.day_of_week}
                             onChange={(e) => setFormData({ ...formData, day_of_week: parseInt(e.target.value) })}
                         >
@@ -471,20 +402,20 @@ function AddScheduleModal({
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm text-slate-400 mb-1">Hora inicio</label>
+                            <label className="lam-label">Hora inicio</label>
                             <input
                                 type="time"
-                                className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2"
+                                className="lam-input"
                                 value={formData.start_time}
                                 onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm text-slate-400 mb-1">Hora fin</label>
+                            <label className="lam-label">Hora fin</label>
                             <input
                                 type="time"
-                                className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2"
+                                className="lam-input"
                                 value={formData.end_time}
                                 onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
                                 required
@@ -493,35 +424,26 @@ function AddScheduleModal({
                     </div>
 
                     <div>
-                        <label className="block text-sm text-slate-400 mb-1">Aula (opcional)</label>
+                        <label className="lam-label">Aula (opcional)</label>
                         <input
                             type="text"
                             placeholder="Ej: Gimnasio"
-                            className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2"
+                            className="lam-input"
                             value={formData.room || ""}
                             onChange={(e) => setFormData({ ...formData, room: e.target.value })}
                         />
                     </div>
 
                     <div className="flex gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 py-2 border border-white/10 rounded-lg hover:bg-white/5"
-                        >
+                        <button type="button" onClick={onClose} className="lam-btn lam-btn-sm lam-btn-ghost flex-1">
                             Cancelar
                         </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg flex items-center justify-center gap-2"
-                        >
-                            {loading && <Loader2 className="animate-spin" size={18} />}
-                            Añadir
+                        <button type="submit" disabled={loading} className="lam-btn lam-btn-sm flex-1">
+                            {loading ? "Guardando..." : "Añadir"}
                         </button>
                     </div>
                 </form>
-            </motion.div>
+            </div>
         </div>
     );
 }

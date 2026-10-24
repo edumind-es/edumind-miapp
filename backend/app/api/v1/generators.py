@@ -47,6 +47,7 @@ from app.schemas import PlanningRequest, ProjectRequest, SituationRequest
 from app.services.admission_control_service import admission_control
 from app.services.ai_service import AIService
 from app.services.background_task_queue_service import enqueue_provider_alert_push_job
+from app.services.curriculum_matrix_service import CurriculumMatrixService
 from app.services.metrics_service import metrics
 from app.services.provider_observability_service import (
     apply_provider_guard_overrides,
@@ -669,6 +670,9 @@ async def _generate_tool(
 ):
     api_key = await _resolve_request_api_key(request, api_key)
 
+    # Si el payload referencia una matriz curricular oficial, se inyectan sus elementos
+    payload_data = CurriculumMatrixService.enrich_generator_payload(payload_data)
+
     try:
         prompt_bundle = get_generator_prompt(tool_name, payload_data)
     except KeyError as exc:
@@ -700,7 +704,7 @@ async def render_prompt(
     payload: dict[str, Any] = Body(default_factory=dict),
 ):
     try:
-        bundle = get_generator_prompt(tool, payload)
+        bundle = get_generator_prompt(tool, CurriculumMatrixService.enrich_generator_payload(payload))
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except PromptValidationError as exc:

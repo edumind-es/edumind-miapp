@@ -6,7 +6,6 @@
 import { useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2 } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { ContextualFields, type ContextualData } from "@/components/ContextualFields";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
@@ -49,8 +48,8 @@ export default function OrganizationTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
-                    {!output && !loading && <span className="text-slate-500">Esperando diseño...</span>}
+                <div className="lam-prose">
+                    {!output && !loading && <span className="text-ink-3">Esperando diseño...</span>}
                     {output && <div className="whitespace-pre-wrap">{output}</div>}
                 </div>
             }
@@ -59,37 +58,37 @@ export default function OrganizationTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Enfoque Metodológico</label>
-                    <input type="text" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                    <label className="lam-label">Enfoque Metodológico</label>
+                    <input type="text" className="lam-input"
                         placeholder="Ej: Trabajo por Rincones, Aprendizaje Cooperativo..."
                         value={formData.metodologia} onChange={e => setFormData({ ...formData, metodologia: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Características del Espacio</label>
-                    <input type="text" className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white"
+                    <label className="lam-label">Características del Espacio</label>
+                    <input type="text" className="lam-input"
                         placeholder="Ej: Aula pequeña, luz natural, mesas móviles..."
                         value={formData.espacio} onChange={e => setFormData({ ...formData, espacio: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Recursos Disponibles</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-20 resize-none"
+                    <label className="lam-label">Recursos Disponibles</label>
+                    <textarea className="lam-input h-20 resize-none"
                         placeholder="PDI, Tablets, Material manipulativo..."
                         value={formData.recursos} onChange={e => setFormData({ ...formData, recursos: e.target.value })} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Casuística Alumnado (DUA)</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-20 resize-none"
+                    <label className="lam-label">Casuística Alumnado (DUA)</label>
+                    <textarea className="lam-input h-20 resize-none"
                         placeholder="Alumnado con movilidad reducida, TDAH..."
                         value={formData.casuistica} onChange={e => setFormData({ ...formData, casuistica: e.target.value })} />
                 </div>
 
                 <ContextualFields data={contextualData} onChange={setContextualData} />
 
-                <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2">
-                    {loading && <Loader2 className="animate-spin" />} Generar Distribución
+                <button type="submit" disabled={loading} className="lam-btn lam-btn-block">
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>} Generar Distribución
                 </button>
             </form>
         </GeneratorLayout>

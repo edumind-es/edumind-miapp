@@ -39,7 +39,7 @@ function renderInline(text: string): ReactNode[] {
     return segments.map((segment, index) => {
         if (segment.startsWith("**") && segment.endsWith("**")) {
             return (
-                <strong key={`${segment}-${index}`} className="font-semibold text-white">
+                <strong key={`${segment}-${index}`} className="font-semibold text-ink">
                     {segment.slice(2, -2)}
                 </strong>
             );
@@ -48,7 +48,7 @@ function renderInline(text: string): ReactNode[] {
             return (
                 <code
                     key={`${segment}-${index}`}
-                    className="rounded bg-black/30 px-1.5 py-0.5 font-mono text-[0.92em] text-sky-100"
+                    className="bg-paper-2 px-1.5 py-0.5 font-mono text-[0.92em] text-ink"
                 >
                     {segment.slice(1, -1)}
                 </code>
@@ -174,29 +174,27 @@ function isRenderablePrimitive(value: StructuredValue): value is string | number
 
 function renderStructuredValue(value: StructuredValue, path: string, depth = 0): ReactNode {
     if (value === null) {
-        return <span className="text-sm italic text-slate-400">Sin dato relevante.</span>;
+        return <span className="text-sm italic text-ink-2">Sin dato relevante.</span>;
     }
 
     if (typeof value === "string") {
         return (
-            <p className="whitespace-pre-wrap text-[15px] leading-7 text-slate-100">
+            <p className="whitespace-pre-wrap text-[15px] leading-7 text-ink">
                 {renderInline(value)}
             </p>
         );
     }
 
     if (typeof value === "number") {
-        return <p className="text-[15px] font-medium leading-7 text-slate-100">{value}</p>;
+        return <p className="text-[15px] font-medium leading-7 text-ink">{value}</p>;
     }
 
     if (typeof value === "boolean") {
         return (
             <span
                 className={cn(
-                    "inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide",
-                    value
-                        ? "border-amber-400/40 bg-amber-500/10 text-amber-100"
-                        : "border-emerald-400/40 bg-emerald-500/10 text-emerald-100"
+                    "lam-stamp !py-1.5 !px-2.5",
+                    value ? "!border-vigencia !text-vigencia" : "!border-ok !text-ok"
                 )}
             >
                 {value ? "Sí" : "No"}
@@ -206,16 +204,17 @@ function renderStructuredValue(value: StructuredValue, path: string, depth = 0):
 
     if (Array.isArray(value)) {
         if (value.length === 0) {
-            return <span className="text-sm italic text-slate-400">Sin elementos.</span>;
+            return <span className="text-sm italic text-ink-2">Sin elementos.</span>;
         }
 
         if (value.every((item) => isRenderablePrimitive(item))) {
             return (
-                <ul className="space-y-2 rounded-2xl border border-white/5 bg-white/[0.03] px-5 py-4 text-[15px] text-slate-100">
+                <ul className="lam-rules text-[15px] text-ink">
                     {value.map((item, index) => (
-                        <li key={`${path}-${index}`} className="list-disc leading-7">
+                        <li key={`${path}-${index}`} className="leading-7 !py-2">
+                            <span className="dash">—</span>
                             {item === null ? (
-                                <span className="italic text-slate-400">Sin dato relevante.</span>
+                                <span className="italic text-ink-2">Sin dato relevante.</span>
                             ) : typeof item === "string" ? (
                                 renderInline(item)
                             ) : typeof item === "boolean" ? (
@@ -234,7 +233,7 @@ function renderStructuredValue(value: StructuredValue, path: string, depth = 0):
                 {value.map((item, index) => (
                     <div
                         key={`${path}-${index}`}
-                        className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+                        className="border-l-2 border-hair pl-4"
                     >
                         {renderStructuredValue(item, `${path}-${index}`, depth + 1)}
                     </div>
@@ -256,12 +255,9 @@ function renderStructuredValue(value: StructuredValue, path: string, depth = 0):
             {entries.map(([key, entryValue]) => (
                 <section
                     key={`${path}-${key}`}
-                    className={cn(
-                        "rounded-2xl border border-white/8 bg-white/[0.03] p-4",
-                        depth === 0 ? "shadow-[0_0_0_1px_rgba(255,255,255,0.02)]" : ""
-                    )}
+                    className={cn("pt-3", depth === 0 ? "border-t-2 border-rule" : "border-t border-hair")}
                 >
-                    <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-sky-200/90">
+                    <div className="lam-mono mb-3">
                         {humanizeKey(key)}
                     </div>
                     {renderStructuredValue(entryValue, `${path}-${key}`, depth + 1)}
@@ -272,9 +268,10 @@ function renderStructuredValue(value: StructuredValue, path: string, depth = 0):
 }
 
 function getHeadingClass(level: number): string {
-    if (level <= 1) return "text-2xl font-semibold text-white";
-    if (level === 2) return "text-xl font-semibold text-white";
-    return "text-base font-semibold uppercase tracking-wide text-slate-100";
+    // Jerarquía Lámina: filete de tinta sobre los títulos, mono en los menores
+    if (level <= 1) return "text-[24px] font-bold tracking-[-0.02em] border-t-2 border-rule pt-3 mt-6";
+    if (level === 2) return "text-[20px] font-bold tracking-[-0.02em] border-t-2 border-rule pt-3 mt-5";
+    return "lam-mono lam-mono-ink border-t border-hair pt-2 mt-4";
 }
 
 export function FormattedContent({
@@ -288,14 +285,14 @@ export function FormattedContent({
 
     if (!cleaned) {
         return (
-            <div className={cn("rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-sm text-slate-400", className)}>
+            <div className={cn("border border-dashed border-hair p-6 text-sm text-ink-2", className)}>
                 {emptyState}
             </div>
         );
     }
 
     return (
-        <div className={cn("space-y-4 text-slate-100", className)}>
+        <div className={cn("space-y-4 text-ink", className)}>
             {structuredContent ? renderStructuredValue(structuredContent, "root") : null}
             {!structuredContent ? blocks.map((block, blockIndex) => {
                 if (block.type === "heading") {
@@ -308,7 +305,7 @@ export function FormattedContent({
 
                 if (block.type === "paragraph") {
                     return (
-                        <p key={`paragraph-${blockIndex}`} className="whitespace-pre-wrap text-[15px] leading-7 text-slate-100">
+                        <p key={`paragraph-${blockIndex}`} className="whitespace-pre-wrap text-[15px] leading-7 text-ink">
                             {renderInline(block.text)}
                         </p>
                     );
@@ -316,9 +313,10 @@ export function FormattedContent({
 
                 if (block.type === "unordered") {
                     return (
-                        <ul key={`unordered-${blockIndex}`} className="space-y-2 rounded-2xl border border-white/5 bg-white/[0.03] px-5 py-4 text-[15px] text-slate-100">
+                        <ul key={`unordered-${blockIndex}`} className="lam-rules text-[15px] text-ink">
                             {block.items.map((item, itemIndex) => (
-                                <li key={`unordered-item-${itemIndex}`} className="list-disc leading-7">
+                                <li key={`unordered-item-${itemIndex}`} className="leading-7 !py-2">
+                                    <span className="dash">—</span>
                                     {renderInline(item)}
                                 </li>
                             ))}
@@ -328,9 +326,10 @@ export function FormattedContent({
 
                 if (block.type === "ordered") {
                     return (
-                        <ol key={`ordered-${blockIndex}`} className="space-y-2 rounded-2xl border border-white/5 bg-white/[0.03] px-5 py-4 text-[15px] text-slate-100">
+                        <ol key={`ordered-${blockIndex}`} className="lam-rules text-[15px] text-ink">
                             {block.items.map((item, itemIndex) => (
-                                <li key={`ordered-item-${itemIndex}`} className="list-decimal leading-7">
+                                <li key={`ordered-item-${itemIndex}`} className="leading-7 !py-2">
+                                    <span className="lam-mono lam-mono-ink !text-mental pt-1.5 shrink-0">{String(itemIndex + 1).padStart(2, "0")}</span>
                                     {renderInline(item)}
                                 </li>
                             ))}
@@ -339,11 +338,11 @@ export function FormattedContent({
                 }
 
                 return (
-                    <div key={`code-${blockIndex}`} className="overflow-x-auto rounded-2xl border border-sky-500/20 bg-[#0b1220] p-4">
+                    <div key={`code-${blockIndex}`} className="overflow-x-auto border-l-[3px] border-ink bg-paper-2 p-4">
                         {block.language ? (
-                            <div className="mb-2 text-xs uppercase tracking-wide text-sky-300/80">{block.language}</div>
+                            <div className="lam-mono mb-2">{block.language}</div>
                         ) : null}
-                        <pre className="whitespace-pre-wrap break-words font-mono text-sm leading-6 text-sky-100">
+                        <pre className="whitespace-pre-wrap break-words font-mono text-sm leading-6 text-ink">
                             {block.text}
                         </pre>
                     </div>

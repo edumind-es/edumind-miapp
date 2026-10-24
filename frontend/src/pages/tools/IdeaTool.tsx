@@ -19,7 +19,6 @@
 import { useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
-import { Loader2 } from "lucide-react";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 
@@ -52,8 +51,8 @@ export default function IdeaTool() {
             isLoading={loading}
             onCancel={cancelGeneration}
             preview={
-                <div className="prose prose-invert max-w-none">
-                    {!output && !loading && <span className="text-slate-500">La respuesta aparecerá aquí...</span>}
+                <div className="lam-prose">
+                    {!output && !loading && <span className="text-ink-3">La respuesta aparecerá aquí...</span>}
                     {output && <div className="whitespace-pre-wrap">{output}</div>}
                 </div>
             }
@@ -62,14 +61,14 @@ export default function IdeaTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Tu Consulta</label>
-                    <textarea className="w-full bg-[#1a1f2e] border border-white/10 rounded-lg px-3 py-2 text-white h-48 resize-none"
+                    <label className="lam-label">Tu Consulta</label>
+                    <textarea className="lam-input h-48 resize-none"
                         placeholder="Ej. Necesito una idea original para introducir la Edad Media en 2º de ESO..."
                         value={formData.consulta} onChange={e => setFormData({ ...formData, consulta: e.target.value })} required />
                 </div>
 
-                <button type="submit" disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg flex justify-center gap-2">
-                    {loading && <Loader2 className="animate-spin" />} Consultar Mentor
+                <button type="submit" disabled={loading} className="lam-btn lam-btn-block">
+                    {loading && <span className="font-mono" aria-hidden="true">···</span>} Consultar Mentor
                 </button>
             </form>
         </GeneratorLayout>
