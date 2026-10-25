@@ -28,6 +28,7 @@ import {
 } from "@/lib/normative-retrieval";
 import { getInitialEngine } from "@/lib/engine-preference";
 import { CurriculumMatrixSelector } from "@/components/CurriculumMatrixSelector";
+import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 import type { MatrizCurricularRef } from "@/lib/curriculum-service";
 
 const PRIMARY_COURSES = [
@@ -72,6 +73,15 @@ export default function ReinforcementPlanTool() {
         normativa_aplicable:
             "Orden del 8 de septiembre de 2021 y Decreto 229/2011, de 7 de diciembre (Galicia).",
     });
+
+    // Perfil docente: el curso habitual prellena el formulario una sola vez si el docente no ha escrito nada
+    // (ajuste de estado durante el render, sin efecto).
+    const teacherProfile = useTeacherProfile();
+    const [cursoPerfilAplicado, setCursoPerfilAplicado] = useState<string | null>(null);
+    if (teacherProfile?.curso && cursoPerfilAplicado !== teacherProfile.curso) {
+        setCursoPerfilAplicado(teacherProfile.curso);
+        if (!formData.curso) setFormData({ ...formData, curso: teacherProfile.curso });
+    }
     const [selectedContents, setSelectedContents] = useState<string[]>([]);
     const [localValidationError, setLocalValidationError] = useState<string | null>(null);
 

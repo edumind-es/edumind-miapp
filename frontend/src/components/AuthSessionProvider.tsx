@@ -12,6 +12,7 @@ import {
     type SessionUser,
 } from "@/lib/auth-client";
 import { onSessionExpired } from "@/lib/auth-events";
+import { fetchTeacherProfile, invalidateProfileCache } from "@/lib/profile-service";
 import { AuthSessionContext } from "@/hooks/useAuthSession";
 
 // Rutas que no tienen sentido sin sesión (las herramientas públicas no están aquí).
@@ -28,6 +29,10 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
             setUser(currentUser);
             if (!currentUser) {
                 clearLegacyAuthState();
+                invalidateProfileCache();
+            } else {
+                // Prellena la matriz curricular preferida antes de que el docente abra una herramienta.
+                void fetchTeacherProfile().catch(() => undefined);
             }
             return currentUser;
         } catch (error) {
@@ -43,6 +48,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     function clearSessionState() {
         setUser(null);
         clearLegacyAuthState();
+        invalidateProfileCache();
     }
 
     useEffect(() => {

@@ -23,6 +23,7 @@ import { EngineSelector } from "@/components/EngineSelector";
 import { EDUCATION_LEVELS } from "@/lib/education-levels";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 import { getInitialEngine } from "@/lib/engine-preference";
+import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 
 export default function StemTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
@@ -35,6 +36,15 @@ export default function StemTool() {
         materiales: "",
         neae: ""
     });
+
+    // Perfil docente: el curso habitual prellena el formulario una sola vez si el docente no ha escrito nada
+    // (ajuste de estado durante el render, sin efecto).
+    const teacherProfile = useTeacherProfile();
+    const [cursoPerfilAplicado, setCursoPerfilAplicado] = useState<string | null>(null);
+    if (teacherProfile?.curso && cursoPerfilAplicado !== teacherProfile.curso) {
+        setCursoPerfilAplicado(teacherProfile.curso);
+        if (!formData.curso) setFormData({ ...formData, curso: teacherProfile.curso });
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

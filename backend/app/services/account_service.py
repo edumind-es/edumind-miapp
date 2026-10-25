@@ -30,6 +30,7 @@ from app.models import (
     ResourceLink,
     StudentCode,
     TeacherClass,
+    TeacherProfile,
     TrainingItem,
     TrainingJob,
     User,
@@ -81,6 +82,7 @@ def delete_user_account(session: Session, user: User) -> Dict[str, int]:
     )
     counts["planner_entries"] = _rowcount(session.exec(delete(PlannerEntry).where(PlannerEntry.user_id == user_id)))
     counts["resources"] = _rowcount(session.exec(delete(GeneratedResource).where(GeneratedResource.user_id == user_id)))
+    counts["profile"] = _rowcount(session.exec(delete(TeacherProfile).where(TeacherProfile.user_id == user_id)))
     counts["api_keys"] = _rowcount(session.exec(delete(ApiKey).where(ApiKey.user_id == user_id)))
     counts["feedback"] = _rowcount(session.exec(delete(AppFeedback).where(AppFeedback.user_id == user_id)))
     counts["activity_logs"] = _rowcount(session.exec(delete(ActivityLog).where(ActivityLog.user_id == user_id)))

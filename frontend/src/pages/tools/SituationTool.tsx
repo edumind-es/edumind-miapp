@@ -29,6 +29,7 @@ import { getModelDisplayName } from "@/lib/pedagogical-models";
 import { formatNEAEForPrompt, type NEAECase } from "@/lib/neae";
 import { getInitialEngine } from "@/lib/engine-preference";
 import { CurriculumMatrixSelector } from "@/components/CurriculumMatrixSelector";
+import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 import type { MatrizCurricularRef } from "@/lib/curriculum-service";
 
 export default function SituationTool() {
@@ -50,6 +51,15 @@ export default function SituationTool() {
         temporalizacion: "3",
         tipo_temporalizacion: "semanas"
     });
+
+    // Perfil docente: el curso habitual prellena el formulario una sola vez si el docente no ha escrito nada
+    // (ajuste de estado durante el render, sin efecto).
+    const teacherProfile = useTeacherProfile();
+    const [cursoPerfilAplicado, setCursoPerfilAplicado] = useState<string | null>(null);
+    if (teacherProfile?.curso && cursoPerfilAplicado !== teacherProfile.curso) {
+        setCursoPerfilAplicado(teacherProfile.curso);
+        if (!formData.curso) setFormData({ ...formData, curso: teacherProfile.curso });
+    }
 
     const [neaeCases, setNeaeCases] = useState<NEAECase[]>([]);
     const [contextualData, setContextualData] = useState<ContextualData>({});

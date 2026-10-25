@@ -22,6 +22,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+import { TeacherProfileForm } from "@/components/TeacherProfileForm";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { deleteCurrentAccount } from "@/lib/auth-client";
 import { toolsForProfile, type ToolDefinition, type ToolProfile } from "@/lib/tools-registry";
@@ -154,6 +155,13 @@ export default function Dashboard() {
                             <dd>Sin nombre ni identificadores del alumnado</dd>
                         </div>
                     </dl>
+
+                    {user ? (
+                        <section className="mt-8 border-t border-ink pt-5" aria-labelledby="perfil-docente">
+                            <div id="perfil-docente" className="lam-mono mb-3">Mi perfil docente</div>
+                            <TeacherProfileForm />
+                        </section>
+                    ) : null}
 
                     {user ? (
                         <section className="mt-8 border-t border-ink pt-5" aria-labelledby="eliminar-cuenta">
