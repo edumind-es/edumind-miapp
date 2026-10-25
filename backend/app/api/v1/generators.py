@@ -16,6 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -446,6 +447,92 @@ def _persist_generation_trace(
         db.rollback()
 
 
+def _fallback_to_ollama_allowed(current_user: Optional[User]) -> bool:
+    modo = (config.settings.MANAGED_FALLBACK_TO_OLLAMA or "off").strip().lower()
+    if modo == "all":
+        return True
+    if modo == "registered":
+        return current_user is not None
+    return False
+
+
+async def _provider_stream(
+    provider: str,
+    messages: list[dict[str, str]],
+    api_key: Optional[str],
+    tool_name: str,
+    current_user: Optional[User],
+    served_by: dict[str, str],
+):
+    """Stream del proveedor con reintento ante fallos transitorios y degradación real.
+
+    Cadena: EDUmind Core → Gemma 4 en el servidor EDUmind (si la política lo permite)
+    → el cliente decide WebGPU. El primer trozo se inspecciona: un "Error:" inicial
+    del motor gestionado dispara el reintento o el salto de proveedor sin que el
+    usuario vea el error intermedio.
+    """
+    candidatos = [provider]
+    if provider == "edumind" and _fallback_to_ollama_allowed(current_user):
+        candidatos.append("ollama")
+
+    # Último fallo visto: ("empty", None) | ("error_chunk", texto) | ("exception", exc).
+    # Si no queda a quién saltar, se reproduce tal cual para conservar los diagnósticos
+    # y métricas de siempre (vacío, DNS, timeout...).
+    ultimo: tuple[str, object] = ("empty", None)
+    for indice, candidato in enumerate(candidatos):
+        reintentos = config.settings.AI_TRANSIENT_RETRIES if candidato in MANAGED_PROVIDERS | {"ollama"} else 0
+        intento = 0
+        while True:
+            try:
+                stream = AIService.stream_chat(candidato, messages, api_key, generator_type=tool_name)
+                primero = None
+                async for chunk in stream:
+                    if chunk and chunk.strip():
+                        primero = chunk
+                        break
+                if primero is None:
+                    ultimo = ("empty", None)
+                    break
+                if primero.lstrip().lower().startswith("error:"):
+                    ultimo = ("error_chunk", primero)
+                    break
+                served_by["provider"] = candidato
+                if indice > 0:
+                    yield "[Sistema]: EDUmind Core no está disponible; esta respuesta la genera Gemma 4 en el servidor EDUmind.\n"
+                yield primero
+                async for chunk in stream:
+                    yield chunk
+                return
+            except Exception as exc:  # fallo transitorio (timeout, conexión): se reintenta con espera
+                ultimo = ("exception", exc)
+                logger.warning("Proveedor %s falló (intento %s/%s): %s", candidato, intento + 1, reintentos + 1, exc)
+                if intento >= reintentos:
+                    break
+                intento += 1
+                await asyncio.sleep(1.5 * intento)
+    tipo, dato = ultimo
+    if tipo == "error_chunk":
+        yield str(dato)
+    elif tipo == "exception":
+        raise dato  # type: ignore[misc]
+    # "empty": no se emite nada y el llamador lo reporta como salida vacía
+
+
+def _curriculum_review(prompt_bundle: PromptBundle, text: str) -> Optional[dict[str, Any]]:
+    """Si la generación partía de una matriz oficial, comprueba los códigos citados en la salida."""
+    matriz_id = (prompt_bundle.sanitized_payload or {}).get("matriz_id")
+    if not isinstance(matriz_id, str) or not matriz_id:
+        return None
+    resultado = CurriculumMatrixService.validate_cited_codes(matriz_id, text)
+    if not resultado["desconocidos"]:
+        return None
+    return {
+        "matriz": matriz_id,
+        "codigos_no_encontrados": resultado["desconocidos"],
+        "aviso": "La salida cita códigos que no existen en la matriz oficial seleccionada. Revísala antes de usarla.",
+    }
+
+
 async def _stream_generator(
     provider: str,
     api_key: Optional[str],
@@ -465,15 +552,18 @@ async def _stream_generator(
     failed = False
     outcome = "success"
     has_substantive_output = False
+    served_by = {"provider": provider}
     started_at = time.monotonic()
     try:
         if prompt_bundle.response_format == "json":
             raw_response = ""
-            async for chunk in AIService.stream_chat(
+            async for chunk in _provider_stream(
                 provider,
                 messages,
                 api_key,
-                generator_type=tool_name,
+                tool_name,
+                current_user,
+                served_by,
             ):
                 cleaned_chunk = _strip_provider_artifacts(chunk)
                 if not cleaned_chunk:
@@ -508,6 +598,12 @@ async def _stream_generator(
             else:
                 try:
                     full_response = _normalize_structured_output(raw_response, prompt_bundle)
+                    revision = _curriculum_review(prompt_bundle, full_response)
+                    if revision:
+                        documento = json.loads(full_response)
+                        if isinstance(documento, dict):
+                            documento["_revision_curricular"] = revision
+                            full_response = json.dumps(documento, ensure_ascii=False)
                     yield full_response
                 except Exception:
                     failed = True
@@ -518,11 +614,13 @@ async def _stream_generator(
                         "Revisa los datos de entrada o prueba otro motor."
                     )
         else:
-            async for chunk in AIService.stream_chat(
+            async for chunk in _provider_stream(
                 provider,
                 messages,
                 api_key,
-                generator_type=tool_name,
+                tool_name,
+                current_user,
+                served_by,
             ):
                 cleaned_chunk = clean_text_chunk(chunk)
                 if not cleaned_chunk:
@@ -533,6 +631,16 @@ async def _stream_generator(
                 full_response += cleaned_chunk
 
             stripped_response = full_response.lstrip()
+            if has_substantive_output and not stripped_response.lower().startswith("error:"):
+                revision = _curriculum_review(prompt_bundle, full_response)
+                if revision:
+                    aviso = (
+                        "\n\n[Revisión curricular]: códigos citados que no existen en la matriz "
+                        f"{revision['matriz']}: {', '.join(revision['codigos_no_encontrados'])}. "
+                        "Revísalos antes de usar el documento.\n"
+                    )
+                    yield aviso
+                    full_response += aviso
             if not has_substantive_output:
                 failed = True
                 outcome = "empty"
@@ -564,7 +672,7 @@ async def _stream_generator(
         duration_ms = (time.monotonic() - started_at) * 1000
         metrics.record_generation(
             tool_name=tool_name,
-            provider=provider,
+            provider=served_by["provider"],
             outcome=outcome,
             duration_ms=duration_ms,
         )
@@ -573,7 +681,7 @@ async def _stream_generator(
             current_user=current_user,
             request_ip=request_ip,
             tool_name=tool_name,
-            provider=provider,
+            provider=served_by["provider"],
             prompt_bundle=prompt_bundle,
             response_chars=len(full_response),
             failed=failed,

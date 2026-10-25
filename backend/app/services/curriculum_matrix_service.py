@@ -361,6 +361,7 @@ class CurriculumMatrixService:
 
         # La comunidad autónoma se deriva de la matriz: los prompts dejan de asumir Galicia.
         datos.setdefault("comunidad", matriz.get("comunidad"))
+        datos["matriz_id"] = matriz["id"]  # permite validar después los códigos que cite la salida
         datos["marco_curricular"] = cls.build_prompt_context(
             matriz["id"],
             competencias=referencia.get("competencias"),
@@ -369,3 +370,34 @@ class CurriculumMatrixService:
         )
         datos["matriz_curricular_id"] = matriz["id"]
         return datos
+
+
+    @classmethod
+    def validate_cited_codes(cls, matriz_id: str, text: str) -> dict[str, list[str]]:
+        """Comprueba que los códigos curriculares que cita un texto existen en la matriz.
+
+        Se consideran candidatos los tokens con la misma familia de prefijo que los
+        códigos de la matriz (p. ej. CE1.1, B2.3, OBJ4). Devuelve los citados que sí
+        existen y los que no (posibles invenciones del modelo).
+        """
+        matriz = cls.get_matriz(matriz_id)
+        if not matriz or not text:
+            return {"citados": [], "desconocidos": []}
+        conocidos: set[str] = set()
+        for clave in ("competencias_especificas", "criterios", "saberes"):
+            for item in matriz.get(clave) or []:
+                codigo = (item.get("codigo") or "").strip().upper()
+                if codigo:
+                    conocidos.add(codigo)
+        prefijos = {re.match(r"[A-Z]+", c).group(0) for c in conocidos if re.match(r"[A-Z]+", c)}
+        if not prefijos:
+            return {"citados": [], "desconocidos": []}
+        patron = re.compile(r"\b(" + "|".join(sorted(prefijos, key=len, reverse=True)) + r")\d+(?:\.\d+){0,2}\b")
+        citados: list[str] = []
+        desconocidos: list[str] = []
+        for m in patron.finditer(text.upper()):
+            codigo = m.group(0)
+            destino = citados if codigo in conocidos else desconocidos
+            if codigo not in destino:
+                destino.append(codigo)
+        return {"citados": citados, "desconocidos": desconocidos}

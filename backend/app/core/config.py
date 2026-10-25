@@ -103,6 +103,19 @@ class Settings(BaseSettings):
     # Core
     EDUMIND_CORE_URL: Optional[str] = None
     EDUMIND_CORE_TOKEN: Optional[str] = None
+    EDUMIND_CORE_MODEL: str = "/models/mistral-7b-instruct-v0.1.Q4_K_M.gguf"
+    EDUMIND_CORE_READ_TIMEOUT_SECONDS: float = 120.0
+
+    # Modelos por defecto de los proveedores con clave del usuario (se pueden fijar por .env)
+    OPENAI_DEFAULT_MODEL: str = "gpt-4.1"
+    CLAUDE_DEFAULT_MODEL: str = "claude-sonnet-4-5"
+    GEMINI_DEFAULT_MODEL: str = "gemini-2.5-flash"
+    MISTRAL_DEFAULT_MODEL: str = "mistral-small-latest"
+    AI_MAX_OUTPUT_TOKENS: int = 4096
+    OLLAMA_NUM_CTX: int = 8192
+    # Si EDUmind Core falla, servir con Gemma 4 del servidor: off | registered | all
+    MANAGED_FALLBACK_TO_OLLAMA: str = "registered"
+    AI_TRANSIENT_RETRIES: int = 1
 
     # Cache / Redis
     REDIS_URL: Optional[str] = None

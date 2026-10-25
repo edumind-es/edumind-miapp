@@ -132,7 +132,7 @@ class AIService:
         if provider == "mistral":
             # Mistral supports OpenAI format
             client = AsyncOpenAI(api_key=api_key, base_url="https://api.mistral.ai/v1")
-            model = model or "mistral-small-latest"
+            model = model or settings.MISTRAL_DEFAULT_MODEL
             async for chunk in await client.chat.completions.create(
                 model=model,
                 messages=enriched_messages,
@@ -146,12 +146,12 @@ class AIService:
         elif provider == "chatgpt":
             # OpenAI ChatGPT - uses official API
             client = AsyncOpenAI(api_key=api_key)
-            model = model or "gpt-4o"
+            model = model or settings.OPENAI_DEFAULT_MODEL
             async for chunk in await client.chat.completions.create(
                 model=model,
                 messages=enriched_messages,
                 stream=True,
-                max_tokens=4096,
+                max_tokens=settings.AI_MAX_OUTPUT_TOKENS,
                 temperature=temperature
             ):
                 content = chunk.choices[0].delta.content
@@ -162,7 +162,7 @@ class AIService:
             # Anthropic Claude - requires special message format
             from anthropic import AsyncAnthropic
             client = AsyncAnthropic(api_key=api_key)
-            model = model or "claude-3-5-sonnet-20241022"
+            model = model or settings.CLAUDE_DEFAULT_MODEL
             
             # Claude SDK handles system separately from messages
             system_content = ""
@@ -174,10 +174,11 @@ class AIService:
                     user_messages.append(msg)
             
             async with client.messages.stream(
-                max_tokens=4096,
+                max_tokens=settings.AI_MAX_OUTPUT_TOKENS,
                 system=system_content if system_content else None,
                 messages=user_messages,
                 model=model,
+                temperature=temperature,
             ) as stream:
                 async for text in stream.text_stream:
                     yield text
@@ -194,22 +195,23 @@ class AIService:
                 return
 
             client = genai.Client(api_key=api_key)
-            model_name = model or "gemini-2.0-flash"
+            model_name = model or settings.GEMINI_DEFAULT_MODEL
             
-            # Build full context for Gemini (concatenate system + user messages)
-            full_content = ""
-            for msg in enriched_messages:
-                if msg['role'] == 'system':
-                    full_content += f"[System Instructions]\n{msg['content']}\n\n"
-                else:
-                    full_content += f"{msg['content']}\n"
-            
-            # Use streaming
-            response = client.models.generate_content_stream(
-                model=model_name,
-                contents=full_content
+            # El system prompt va como system_instruction; el resto como contenido del usuario.
+            system_parts = [msg["content"] for msg in enriched_messages if msg["role"] == "system"]
+            user_content = "\n".join(msg["content"] for msg in enriched_messages if msg["role"] != "system")
+            config = types.GenerateContentConfig(
+                system_instruction="\n".join(system_parts) or None,
+                temperature=temperature,
+                max_output_tokens=settings.AI_MAX_OUTPUT_TOKENS,
             )
-            for chunk in response:
+            # Cliente asíncrono: la versión síncrona bloqueaba el event loop durante todo el stream.
+            response = await client.aio.models.generate_content_stream(
+                model=model_name,
+                contents=user_content,
+                config=config,
+            )
+            async for chunk in response:
                 if chunk.text:
                     yield chunk.text
         
@@ -239,7 +241,7 @@ class AIService:
             }
             
             payload = {
-                "model": model or "/models/mistral-7b-instruct-v0.1.Q4_K_M.gguf",
+                "model": model or settings.EDUMIND_CORE_MODEL,
                 "messages": enriched_messages,
                 "stream": True
             }
@@ -251,7 +253,7 @@ class AIService:
                         f"{core_url}/v1/chat/completions",
                         json=payload,
                         headers=headers,
-                        timeout=httpx.Timeout(connect=8.0, read=35.0, write=10.0, pool=10.0),
+                        timeout=httpx.Timeout(connect=8.0, read=settings.EDUMIND_CORE_READ_TIMEOUT_SECONDS, write=10.0, pool=10.0),
                     ) as response:
                         if response.status_code != 200:
                             logger.warning("EDUmind Core returned status %s", response.status_code)
@@ -291,8 +293,11 @@ class AIService:
                 "messages": enriched_messages,
                 "stream": True,
                 "options": {
-                    "temperature": 0.7
-                }
+                    "temperature": temperature,
+                    # Sin num_ctx Ollama usa 2048 tokens y trunca el marco curricular; num_predict acota la salida.
+                    "num_ctx": settings.OLLAMA_NUM_CTX,
+                    "num_predict": settings.AI_MAX_OUTPUT_TOKENS,
+                },
             }
             
             try:

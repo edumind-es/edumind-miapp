@@ -25,7 +25,7 @@ import { FormattedContent } from "@/components/FormattedContent";
 import { NoticeBanner } from "@/components/NoticeBanner";
 import { WebLLMLoader } from "@/components/WebLLMLoader";
 import { ServerLoadingIndicator } from "@/components/ServerLoadingIndicator";
-import { cleanGeneratedText } from "@/lib/content-format";
+import { cleanGeneratedText, detectReviewFlags } from "@/lib/content-format";
 
 interface GeneratorLayoutProps {
     title: string;
@@ -122,6 +122,8 @@ export function GeneratorLayout({
         }
         return candidate;
     }, [cleanedPreviewText, editableOutput]);
+    // Avisos previos al uso: revisión humana (JSON) y códigos curriculares no encontrados.
+    const reviewFlags = useMemo(() => detectReviewFlags(effectiveOutput), [effectiveOutput]);
     const editorKey = `${previewText.length}-${previewText.slice(0, 64)}`;
     const systemProgress = useMemo(() => {
         const progressLines = previewText
@@ -294,6 +296,20 @@ export function GeneratorLayout({
                                 message={notice.message}
                                 className="mb-5"
                                 onClose={() => setNotice(null)}
+                            />
+                        ) : null}
+                        {reviewFlags.humanReview ? (
+                            <NoticeBanner
+                                variant="warning"
+                                className="mb-5"
+                                message="El modelo ha marcado esta salida como pendiente de revisión humana: contrástala antes de usarla."
+                            />
+                        ) : null}
+                        {reviewFlags.unknownCurriculumCodes.length ? (
+                            <NoticeBanner
+                                variant="warning"
+                                className="mb-5"
+                                message={`Revisión curricular: la salida cita códigos que no existen en la matriz oficial elegida (${reviewFlags.unknownCurriculumCodes.join(", ")}).`}
                             />
                         ) : null}
 
