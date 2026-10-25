@@ -34,13 +34,14 @@ from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from slowapi import Limiter
 from sqlmodel import Session, select
 
 from app.core.config import settings
-from app.core.security import get_client_ip, get_client_ip_for_log, is_vpn_or_local_request
+from app.core.token_denylist import token_denylist
+from app.core.security import get_client_ip_for_log, is_vpn_or_local_request
 from app.db import get_session
 from app.models import ActivityLog, User, UserRole
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
@@ -52,11 +53,6 @@ _SSO_CODE_VERIFIER_COOKIE_NAME = "edumind_sso_code_verifier"
 _SSO_NEXT_COOKIE_NAME = "edumind_sso_next"
 
 
-def _auth_limit_key(request: Request) -> str:
-    return get_client_ip(request)
-
-
-limiter = Limiter(key_func=_auth_limit_key)
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -113,7 +109,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
+    # jti permite revocar la sesión en el logout; iat deja constancia de cuándo se emitió.
+    to_encode.update({"exp": expire, "iat": datetime.utcnow(), "jti": secrets.token_urlsafe(16)})
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
@@ -236,6 +233,9 @@ def _sanitize_next_path(next_path: Optional[str], *, default: str = "/dashboard"
     if not next_path:
         return default
     candidate = next_path.strip()
+    # Los navegadores tratan "\" como "/": "/\evil.com" acabaría en //evil.com. Sin barras invertidas ni controles.
+    if "\\" in candidate or any(ord(ch) < 0x20 or ch in " \t\r\n" for ch in candidate):
+        return default
     parsed = urlparse(candidate)
     if parsed.scheme in {"https", "http"} and parsed.netloc:
         origin = f"{parsed.scheme}://{parsed.netloc}".lower()
@@ -295,6 +295,18 @@ def _enforce_csrf_if_needed(request: Request, token_source: Optional[Literal["he
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF validation failed.")
 
 
+def _revoke_request_token(request: Request) -> None:
+    """Anula el token de la petición (cookie o cabecera) hasta su caducidad."""
+    token, _ = _extract_token_from_request(request)
+    if not token:
+        return
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except JWTError:
+        return
+    token_denylist.revoke(payload.get("jti"), payload.get("exp"))
+
+
 def _resolve_user_from_token(
     token: str,
     session: Session,
@@ -306,6 +318,9 @@ def _resolve_user_from_token(
         if username is None:
             raise credentials_exception
     except JWTError:
+        raise credentials_exception
+
+    if token_denylist.is_revoked(payload.get("jti")):
         raise credentials_exception
 
     user = session.exec(select(User).where(User.username == username)).first()
@@ -825,6 +840,7 @@ async def delete_me(
     from app.services.account_service import delete_user_account
 
     delete_user_account(session, current_user)
+    _revoke_request_token(request)
     # Registro sin vínculo con la persona: solo cuenta el hecho, no quién.
     session.add(ActivityLog(action="account_deleted", ip_address=get_client_ip_for_log(request)))
     session.commit()
@@ -835,6 +851,7 @@ async def delete_me(
 
 @router.post("/logout", response_model=LogoutResponse)
 async def logout(request: Request, response: Response):
+    _revoke_request_token(request)
     _clear_auth_cookies(response)
     _clear_sso_flow_cookies(response)
     logout_url = await build_sso_logout_url(request)

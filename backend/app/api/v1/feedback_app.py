@@ -17,22 +17,16 @@
 #
 
 from fastapi import APIRouter, Depends, Request
-from slowapi import Limiter
 from sqlmodel import Session
 from app.db import get_session
 from app.models import AppFeedback, User
 from app.api.v1.auth import get_current_user_optional
 from pydantic import BaseModel, Field
-from app.core.security import get_client_ip
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
 
-def _feedback_limit_key(request: Request) -> str:
-    return get_client_ip(request)
-
-
-limiter = Limiter(key_func=_feedback_limit_key)
 
 class FeedbackCreate(BaseModel):
     content: str = Field(min_length=2, max_length=4000)

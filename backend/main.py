@@ -20,20 +20,13 @@ import time
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
-from app.core.security import get_client_ip
+from app.core.rate_limit import limiter
 from app.core.anonymous_session import ensure_anonymous_cookie
 from app.db import init_db
 from app.services.metrics_service import metrics
-
-# Rate Limiter
-def _limit_key(request):
-    return get_client_ip(request)
-
-
-limiter = Limiter(key_func=_limit_key, default_limits=["200/minute"])
 
 # Create App
 # La documentación interactiva y el esquema OpenAPI solo se sirven en

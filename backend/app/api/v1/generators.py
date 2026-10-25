@@ -27,7 +27,6 @@ from typing import Any, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from slowapi import Limiter
 from sqlmodel import Session
 
 from app import schemas
@@ -41,6 +40,7 @@ from app.core.prompt_registry import (
 )
 from app.core.queue_manager import queue_manager
 from app.core.security import get_client_ip, get_client_ip_for_log, is_vpn_or_local_request
+from app.core.rate_limit import limiter
 from app.services.dataset_privacy import scrub_personal_data
 from app.db import get_session
 from app.models import ActivityLog, TrainingItem, TrainingItemSource, User, UserRole
@@ -74,11 +74,6 @@ INTERNAL_OUTPUT_LINE_PATTERNS = (
 )
 
 
-def _generator_limit_key(request: Request) -> str:
-    return get_client_ip(request)
-
-
-limiter = Limiter(key_func=_generator_limit_key)
 
 BYOK_PROVIDERS = {"chatgpt", "claude", "gemini"}
 MANAGED_PROVIDERS = {"edumind"}

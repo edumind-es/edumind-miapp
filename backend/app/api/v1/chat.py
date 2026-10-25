@@ -18,7 +18,6 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from slowapi import Limiter
 from app.schemas import ChatRequest
 from app.services.ai_service import AIService
 from app.services.admission_control_service import admission_control
@@ -27,15 +26,10 @@ from app.core.queue_manager import queue_manager
 from app.core.security import get_client_ip, is_vpn_or_local_request
 from app.models import User, UserRole
 from app.api.v1.auth import get_current_user_optional
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
-# Rate limiter for chat (stricter limit)
-def _chat_limit_key(request: Request) -> str:
-    return get_client_ip(request)
-
-
-limiter = Limiter(key_func=_chat_limit_key)
 BYOK_PROVIDERS = {"chatgpt", "claude", "gemini"}
 MANAGED_PROVIDERS = {"edumind"}
 RESTRICTED_PROVIDERS = {"ollama", "mistral"}

@@ -32,7 +32,8 @@ class Settings(BaseSettings):
     SECRET_KEY: Optional[str] = None
     DEBUG: bool = False
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
+    # Sesión de 12 horas; además el logout revoca el token (ver core/token_denylist.py).
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 12
     ADMIN_PASSWORD: Optional[str] = None
     TRUSTED_PROXIES: List[str] = ["127.0.0.1", "::1"]
     # Cabeceras de IP de cliente aceptadas cuando el peer es un proxy fiable.
@@ -40,6 +41,9 @@ class Settings(BaseSettings):
     TRUSTED_CLIENT_IP_HEADERS: List[str] = ["X-Real-IP"]
     # Días que se conservan los registros de actividad (IP ya enmascarada); 0 desactiva la purga.
     ACTIVITY_LOG_RETENTION_DAYS: int = 90
+    # Almacén del limitador de peticiones; por defecto REDIS_URL si existe, si no memoria por proceso.
+    RATE_LIMIT_STORAGE_URI: Optional[str] = None
+    TOKEN_DENYLIST_REDIS_PREFIX: str = "edumind:token-denylist:v1"
     MAX_UPLOAD_SIZE_MB: int = 10
     AUTH_COOKIE_NAME: str = "edumind_access_token"
     CSRF_COOKIE_NAME: str = "edumind_csrf_token"

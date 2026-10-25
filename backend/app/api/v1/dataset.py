@@ -102,6 +102,35 @@ def _normalize_filename(filename: str) -> str:
     return sanitized[:180]
 
 
+# Firmas de los formatos admitidos: la extensión no basta para decidir qué parser se ejecuta.
+_MAGIC_BY_TYPE = {
+    "pdf": (b"%PDF",),
+    "docx": (b"PK\x03\x04",),
+    "xlsx": (b"PK\x03\x04",),
+    "pptx": (b"PK\x03\x04",),
+    "image": (b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff"),
+}
+
+
+def _matches_declared_type(file_type: str, head: bytes) -> bool:
+    """Comprueba que los primeros bytes corresponden al tipo declarado por la extensión."""
+    firmas = _MAGIC_BY_TYPE.get(file_type)
+    if firmas:
+        return any(head.startswith(firma) for firma in firmas)
+    # Formatos de texto: UTF-8 válido y sin bytes nulos.
+    if b"\x00" in head:
+        return False
+    try:
+        head.decode("utf-8")
+    except UnicodeDecodeError:
+        # Un corte en mitad de un carácter multibyte es aceptable al final del bloque
+        try:
+            head[:-3].decode("utf-8")
+        except UnicodeDecodeError:
+            return False
+    return True
+
+
 def _build_secure_upload_path(original_filename: str) -> Path:
     base_name = _normalize_filename(original_filename)
     unique_name = f"{datetime.utcnow():%Y%m%d_%H%M%S}_{uuid4().hex[:10]}_{base_name}"
@@ -367,10 +396,18 @@ async def upload_file(
 
     try:
         with open(file_location, "wb") as file_object:
+            primero = True
             while True:
                 chunk = await file.read(1024 * 1024)
                 if not chunk:
                     break
+                if primero:
+                    primero = False
+                    if not _matches_declared_type(file_type, chunk[:4096]):
+                        raise HTTPException(
+                            status_code=400,
+                            detail="El contenido del fichero no corresponde a su extensión.",
+                        )
                 written += len(chunk)
                 if written > max_upload_bytes:
                     raise HTTPException(

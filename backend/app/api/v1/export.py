@@ -18,29 +18,43 @@
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from slowapi import Limiter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from io import BytesIO
+from pathlib import Path
 from fpdf import FPDF
 import html
+import logging
+import re
 
-from app.core.security import get_client_ip
+from app.core.rate_limit import limiter
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
-def _export_limit_key(request: Request) -> str:
-    return get_client_ip(request)
 
 
-limiter = Limiter(key_func=_export_limit_key)
+# Límites: la exportación es anónima y genera PDF en CPU; sin tope era un DoS trivial.
+MAX_EXPORT_CHARS = 200_000
 
 
 class ExportRequest(BaseModel):
-    content: str
-    filename: str = "documento"
-    title: Optional[str] = None
+    content: str = Field(max_length=MAX_EXPORT_CHARS)
+    filename: str = Field(default="documento", max_length=120)
+    title: Optional[str] = Field(default=None, max_length=200)
+
+
+def _safe_filename(raw: str, extension: str) -> str:
+    """Nombre de fichero ASCII seguro para Content-Disposition (sin comillas, saltos ni rutas)."""
+    base = Path(raw or "").name
+    base = re.sub(r"[^A-Za-z0-9._-]+", "_", base).strip("._-") or "documento"
+    return f"{base[:80]}.{extension}"
+
+
+def _content_disposition(raw: str, extension: str) -> dict:
+    return {"Content-Disposition": f'attachment; filename="{_safe_filename(raw, extension)}"'}
 
 
 @router.post("/pdf")
@@ -79,12 +93,11 @@ async def export_pdf(request: Request, payload: ExportRequest):
         return StreamingResponse(
             buffer,
             media_type="application/pdf",
-            headers={
-                "Content-Disposition": f"attachment; filename={payload.filename}.pdf"
-            }
+            headers=_content_disposition(payload.filename, "pdf"),
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
+    except Exception:
+        logger.exception("Error generando PDF")
+        raise HTTPException(status_code=500, detail="No se pudo generar el PDF.")
 
 
 @router.post("/txt")
@@ -102,12 +115,11 @@ async def export_txt(request: Request, payload: ExportRequest):
         return StreamingResponse(
             buffer,
             media_type="text/plain; charset=utf-8",
-            headers={
-                "Content-Disposition": f"attachment; filename={payload.filename}.txt"
-            }
+            headers=_content_disposition(payload.filename, "txt"),
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating TXT: {str(e)}")
+    except Exception:
+        logger.exception("Error generando TXT")
+        raise HTTPException(status_code=500, detail="No se pudo generar el TXT.")
 
 
 @router.post("/html")
@@ -115,15 +127,16 @@ async def export_txt(request: Request, payload: ExportRequest):
 async def export_html(request: Request, payload: ExportRequest):
     """Export content to HTML format (can be opened in Word)."""
     try:
-        # Convert line breaks to HTML
-        html_content = payload.content.replace('\n', '<br>\n')
+        # El contenido es texto del usuario: se escapa antes de insertarlo en el documento.
+        html_content = html.escape(payload.content).replace('\n', '<br>\n')
+        safe_title = html.escape(payload.title or payload.filename)
         
         full_html = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{payload.title or payload.filename}</title>
+    <title>{safe_title}</title>
     <style>
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -141,7 +154,7 @@ async def export_html(request: Request, payload: ExportRequest):
     </style>
 </head>
 <body>
-    {f'<h1>{payload.title}</h1>' if payload.title else ''}
+    {f'<h1>{safe_title}</h1>' if payload.title else ''}
     <div class="content">
         {html_content}
     </div>
@@ -157,9 +170,8 @@ async def export_html(request: Request, payload: ExportRequest):
         return StreamingResponse(
             buffer,
             media_type="text/html; charset=utf-8",
-            headers={
-                "Content-Disposition": f"attachment; filename={payload.filename}.html"
-            }
+            headers=_content_disposition(payload.filename, "html"),
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating HTML: {str(e)}")
+    except Exception:
+        logger.exception("Error generando HTML")
+        raise HTTPException(status_code=500, detail="No se pudo generar el HTML.")
