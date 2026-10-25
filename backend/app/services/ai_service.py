@@ -29,6 +29,7 @@ from urllib.parse import urlparse
 from app.core.config import settings
 from app.core.system_prompts import (
     get_generator_prompt as get_generator_system_prompt,
+    get_prompt_profile,
     get_system_prompt,
     get_temperature,
 )
@@ -62,9 +63,9 @@ def inject_system_prompt(
     if has_system:
         return messages
     
-    # Get knowledge context for enrichment
+    # Get knowledge context for enrichment (solo para modelos grandes con clave del usuario)
     knowledge_context = ""
-    if include_knowledge:
+    if include_knowledge and get_prompt_profile(provider) == "full":
         knowledge_context = KnowledgeService.get_context_for_prompt(
             include_lomloe=True,
             include_competencias=True

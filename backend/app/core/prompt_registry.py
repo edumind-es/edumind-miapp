@@ -392,12 +392,7 @@ CONTRATO DE CALIDAD DE RESPUESTA (OBLIGATORIO):
 - Basa la propuesta en los datos recibidos; si falta un dato crítico, indícalo en una sola línea en el bloque de límites.
 - No inventes normativa, evidencias, fechas, responsables ni decisiones no apoyadas en los datos recibidos.
 - Asegura coherencia entre objetivos, acciones, recursos, evaluación y atención a la diversidad.
-
-CIERRE DE CALIDAD (añádelo al final de la respuesta con estos títulos exactos):
-1. RESUMEN OPERATIVO
-2. PLAN DE APLICACIÓN INMEDIATA (24-72h)
-3. INDICADORES DE CALIDAD Y SEGUIMIENTO
-4. SUPUESTOS Y LÍMITES
+- Termina con un bloque breve "LÍMITES Y SUPUESTOS" (3 líneas como máximo) solo si hubo datos ausentes o decisiones asumidas.
 """
 
 

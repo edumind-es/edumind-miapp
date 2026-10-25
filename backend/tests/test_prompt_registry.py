@@ -30,7 +30,8 @@ def test_prompt_registry_returns_versioned_bundle_for_classroom():
     assert bundle.response_format == "text"
     assert "planificación didáctica" in bundle.prompt_text.lower()
     assert "contrato de calidad de respuesta" in bundle.prompt_text.lower()
-    assert "plan de aplicación inmediata (24-72h)" in bundle.prompt_text.lower()
+    # El cierre de consultoría se retiró (fase D): se comprueba el contrato de calidad vigente.
+    assert "límites y supuestos" in bundle.prompt_text.lower()
 
 
 def test_prompt_registry_returns_versioned_bundle_for_organization():

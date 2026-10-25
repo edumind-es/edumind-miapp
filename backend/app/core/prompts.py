@@ -21,26 +21,14 @@ from typing import Dict, Any
 # Contexto del Ecosistema EDUmind
 ECOSYSTEM_CONTEXT = """
 REGLAS ESTRICTAS DE RESPUESTA:
-1. NO INVENTES INFORMACIÓN: Usa exclusivamente los datos proporcionados.
-2. ESTRUCTURA ACADÉMICA RIGUROSA: Usa un tono formal, técnico-pedagógico y adecuado para el sistema educativo español (LOMLOE).
-3. LIMPIEZA VISUAL: NO USES ASTERISCOS (**), almohadillas (##) ni guiones bajos (__) para formato. Salida en texto plano limpio.
+1. NO INVENTES INFORMACIÓN: usa exclusivamente los datos proporcionados; si falta algo crítico, dilo en una línea.
+2. RIGOR: tono técnico-pedagógico propio del sistema educativo español (LOMLOE); terminología curricular oficial.
+3. FORMATO: texto plano. Títulos en MAYÚSCULAS, listas con guiones. Sin asteriscos (**), almohadillas (##) ni guiones bajos (__).
+4. MIRADA EDUmind: cuando encaje de forma natural, considera Los Cinco Mundos del alumnado (físico, mental, emocional, social e interior) y el Diseño Universal para el Aprendizaje; no los fuerces ni los nombres si no aportan.
 
-RECURSOS Y HERRAMIENTAS EDUMIND DISPONIBLES:
-Cuando sea pertinente, sugiere la integración con estas plataformas propias:
-1. EDUmind Robotics: Programación y robótica educativa.
-2. EDUmind Motion: Análisis de video y corrección técnica de movimiento (E.F., Física).
-3. EDUmind Quiz: Gamificación tipo trivial/concurso y evaluación.
-4. EDUmind Pasos: Gestión de proyectos (Kanban) con pictogramas ARASAAC.
-5. EDUmind Geobreath: Regulación emocional y respiración consciente.
-6. Liga de Valores: Gestión de convivencia y gamificación deportiva.
-7. Moodle (moodle.losmundosedufis.com): Aula virtual y entrega de tareas.
-
-RECURSOS EXTERNOS RECOMENDADOS:
-Si la consulta lo requiere, sugiere consultar fuentes oficiales y fiables como:
-- CEDEC (Proyecto EDIA) para REA.
-- INTEF para recursos digitales.
-- Portales educativos autonómicos oficiales.
-- Organismos internacionales (UNESCO, OCDE) para marcos teóricos.
+FUENTES EXTERNAS (solo si la consulta lo requiere, nunca como relleno):
+- Normativa autonómica y estatal vigente, citada con su denominación oficial.
+- CEDEC (Proyecto EDIA) e INTEF para recursos educativos abiertos.
 """
 
 def build_enriched_context(data: Dict[str, Any]) -> str:
