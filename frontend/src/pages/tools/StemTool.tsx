@@ -76,6 +76,7 @@ export default function StemTool() {
                     <label className="lam-label">Nivel o Curso</label>
                     <select className="lam-input"
                         value={formData.curso} onChange={e => setFormData({ ...formData, curso: e.target.value })} required>
+                        <option value="">Selecciona un curso</option>
                         {EDUCATION_LEVELS.map((level) => (
                             <optgroup key={level.stage} label={level.stage}>
                                 {level.courses.map((course) => (

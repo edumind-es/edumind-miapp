@@ -95,7 +95,7 @@ async function runLocalWebGpu(
         promptText = webLlmService.buildGenericPrompt(endpoint, data);
     }
 
-    await webLlmService.generate(promptText, onChunk, (msg) => onChunk(`[Sistema]: ${msg}\n`));
+    await webLlmService.generate(promptText, onChunk, (msg) => onChunk(`[Sistema]: ${msg}\n`), options?.signal);
 }
 
 // Helper to route between Server Stream and WebGPU

@@ -77,6 +77,7 @@ export default function PlanningTool() {
                         value={formData.curso}
                         onChange={e => setFormData({ ...formData, curso: e.target.value })}
                     >
+                        <option value="">Selecciona un curso</option>
                         {EDUCATION_LEVELS.map((level) => (
                             <optgroup key={level.stage} label={level.stage}>
                                 {level.courses.map((course) => (

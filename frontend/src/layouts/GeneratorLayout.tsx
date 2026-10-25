@@ -100,7 +100,6 @@ export function GeneratorLayout({
     isLoading = false,
     onCancel
 }: GeneratorLayoutProps) {
-    const [usage] = useState(() => parseInt(localStorage.getItem("edumind_usage") || "0"));
     const previewText = useMemo(() => extractTextFromChildren(preview), [preview]);
     const cleanedPreviewText = useMemo(() => cleanGeneratedText(previewText), [previewText]);
     const [editableOutput, setEditableOutput] = useState(cleanedPreviewText);
@@ -110,7 +109,6 @@ export function GeneratorLayout({
     const [isContributing, setIsContributing] = useState(false);
     const [showContributeConfirm, setShowContributeConfirm] = useState(false);
     const [notice, setNotice] = useState<NoticeState>(null);
-    const LIMIT = 1000;
 
     useEffect(() => {
         setEditableOutput(cleanedPreviewText);
@@ -214,7 +212,6 @@ export function GeneratorLayout({
         }
     };
 
-    const usagePercent = Math.min((usage / LIMIT) * 100, 100);
     const exportButtons: Array<{ format: "pdf" | "html" | "txt"; label: string }> = [
         { format: "pdf", label: "PDF" },
         { format: "html", label: "HTML" },
@@ -249,21 +246,6 @@ export function GeneratorLayout({
                         <p className="lam-eyebrow mb-3">EDUmind · Generador</p>
                         <h1 className="m-0 text-[26px] sm:text-[30px] font-bold leading-[1.05] tracking-[-0.02em]">{title}</h1>
                         <p className="mt-3 text-[15px] leading-6 text-ink-2 max-w-[48ch]">{description}</p>
-
-                        <div className="mt-5 pt-4 border-t border-hair">
-                            <div className="flex justify-between lam-mono mb-2">
-                                <span>Uso demo en la nube</span>
-                                <span className="lam-mono-ink">{usage} / {LIMIT}</span>
-                            </div>
-                            <div className="lam-progress" role="progressbar" aria-valuenow={usage} aria-valuemin={0} aria-valuemax={LIMIT}>
-                                <i style={{ width: `${usagePercent}%` }} />
-                            </div>
-                            {usage >= LIMIT && (
-                                <p className="mt-3 text-[13px] text-alert">
-                                    Límite alcanzado. <a href="#" className="underline underline-offset-4 font-semibold">Instala EDUmind Local</a> para uso ilimitado.
-                                </p>
-                            )}
-                        </div>
                     </div>
                     <div className="flex-1 overflow-y-auto p-5 sm:p-7">
                         {children}

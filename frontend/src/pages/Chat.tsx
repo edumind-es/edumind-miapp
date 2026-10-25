@@ -60,6 +60,7 @@ export default function Chat() {
         { role: "assistant", content: `Hola, soy tu asistente para el perfil de **${role}**. ¿En qué puedo ayudarte hoy?` }
     ]);
     const [isLoading, setIsLoading] = useState(false);
+    const abortRef = useRef<AbortController | null>(null);
     const [engine, setEngine] = useState(getInitialEngine);
     const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
 
@@ -130,6 +131,10 @@ export default function Chat() {
         setMessages(prev => [...prev, userMsg]);
         setInput("");
         setIsLoading(true);
+        // F-03: una sola generación activa; Detener aborta la petición o la GPU.
+        abortRef.current?.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
 
         // Prepare for streaming response
         setMessages(prev => [...prev, { role: "assistant", content: "" }]);
@@ -171,7 +176,8 @@ export default function Chat() {
                                 return newHistory;
                             });
                         },
-                        (initMsg) => console.log(initMsg)
+                        (initMsg) => console.log(initMsg),
+                        controller.signal
                     );
 
                 } catch (e) {
@@ -191,6 +197,7 @@ export default function Chat() {
                         api_key: apiKeys[engine] || "", // Only send if set, backend handles fallback
                         model: null
                     }),
+                    signal: controller.signal,
                 });
 
                 if (!response.ok) {
@@ -207,7 +214,8 @@ export default function Chat() {
                     const { done, value } = await reader.read();
                     if (done) break;
 
-                    const chunk = decoder.decode(value);
+                    // stream: true evita que "ñ" o "á" partidas entre dos trozos salgan como �
+                    const chunk = decoder.decode(value, { stream: true });
                     assistantMsg += chunk;
 
                     setMessages(prev => {
@@ -219,15 +227,34 @@ export default function Chat() {
             }
 
         } catch (error) {
-            console.error("Chat error:", error);
-            const detail =
-                error instanceof Error && error.message.trim()
-                    ? error.message
-                    : "Error al conectar con la IA.";
-            setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: detail }]);
+            if (error instanceof DOMException && error.name === "AbortError") {
+                // Cancelado por el usuario: se conserva lo generado hasta ese momento.
+                setMessages(prev => {
+                    const last = prev[prev.length - 1];
+                    return last?.role === "assistant" && !last.content ? prev.slice(0, -1) : prev;
+                });
+            } else {
+                console.error("Chat error:", error);
+                const detail =
+                    error instanceof Error && error.message.trim()
+                        ? error.message
+                        : "Error al conectar con la IA.";
+                setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: detail }]);
+            }
         } finally {
+            if (abortRef.current === controller) abortRef.current = null;
             setIsLoading(false);
         }
+    };
+
+    const handleStop = () => {
+        abortRef.current?.abort();
+    };
+
+    const handleNewChat = () => {
+        abortRef.current?.abort();
+        setMessages([{ role: "assistant", content: `Hola, soy tu asistente para el perfil de **${role}**. ¿En qué puedo ayudarte hoy?` }]);
+        setInput("");
     };
 
     const setKeyForEngine = (key: string) => {
@@ -242,25 +269,14 @@ export default function Chat() {
                     <h1 className="m-0 lam-mono lam-mono-ink">EDUmind · Chat IA</h1>
                 </div>
                 <div className="p-4 overflow-y-auto flex-1">
-                    {/* Historial de ejemplo (sin persistencia) */}
-                    <div className="lam-mono mb-2">Hoy</div>
-                    <ul className="lam-rules">
-                        <li>
-                            <span className="dash">—</span>
-                            <button type="button" className="flex-1 text-left text-sm text-ink-2 hover:text-ink truncate">
-                                Planificación de 3º ESO
-                            </button>
-                        </li>
-                        <li>
-                            <span className="dash">—</span>
-                            <button type="button" className="flex-1 text-left text-sm text-ink-2 hover:text-ink truncate">
-                                Rúbrica de evaluación oral
-                            </button>
-                        </li>
-                    </ul>
+                    <div className="lam-mono mb-2">Privacidad</div>
+                    <p className="m-0 text-sm text-ink-2 leading-snug">
+                        Las conversaciones no se guardan en el servidor. Al cerrar o recargar esta página desaparecen;
+                        puedes descargarlas desde el botón de exportar.
+                    </p>
                 </div>
                 <div className="p-4 border-t border-hair">
-                    <button type="button" className="lam-btn lam-btn-sm lam-btn-ghost lam-btn-block">
+                    <button type="button" onClick={handleNewChat} className="lam-btn lam-btn-sm lam-btn-ghost lam-btn-block">
                         Nuevo chat
                     </button>
                 </div>
@@ -359,14 +375,20 @@ export default function Chat() {
                             className="flex-1 bg-transparent border-none focus:outline-none text-ink placeholder:text-ink-3 resize-none max-h-32 py-2 px-2"
                             rows={1}
                         />
-                        <button
-                            type="button"
-                            onClick={handleSend}
-                            disabled={isLoading || !input.trim()}
-                            className="lam-btn lam-btn-sm"
-                        >
-                            Enviar
-                        </button>
+                        {isLoading ? (
+                            <button type="button" onClick={handleStop} className="lam-btn lam-btn-sm lam-btn-ghost">
+                                Detener
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handleSend}
+                                disabled={!input.trim()}
+                                className="lam-btn lam-btn-sm"
+                            >
+                                Enviar
+                            </button>
+                        )}
                     </div>
                     <div className="lam-mono mt-3 text-center">
                         EDUmind puede cometer errores. Verifica la información importante.

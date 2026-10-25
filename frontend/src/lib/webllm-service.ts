@@ -81,10 +81,20 @@ export const webLlmService = {
     generate: async (
         prompt: string | WebLlmMessage[],
         onChunk: (chunk: string) => void,
-        onInit: (msg: string) => void
+        onInit: (msg: string) => void,
+        signal?: AbortSignal
     ) => {
+        const abortError = () => new DOMException("Generation aborted", "AbortError");
+        if (signal?.aborted) throw abortError();
+        let eng: MLCEngine | null = null;
+        // F-02: sin esto la GPU seguía generando tras cancelar y los tokens se mezclaban con la siguiente petición.
+        const onAbort = () => {
+            void eng?.interruptGenerate();
+        };
+        signal?.addEventListener("abort", onAbort, { once: true });
         try {
-            const eng = await webLlmService.initialize(onInit);
+            eng = await webLlmService.initialize(onInit);
+            if (signal?.aborted) throw abortError();
             const messages: WebLlmMessage[] = Array.isArray(prompt)
                 ? [
                     { role: "system", content: SYSTEM_PROMPT },
@@ -106,14 +116,19 @@ export const webLlmService = {
             });
 
             for await (const chunk of chunks) {
+                if (signal?.aborted) break;
                 const delta = chunk.choices[0]?.delta?.content || "";
                 if (delta) onChunk(delta);
             }
+            if (signal?.aborted) throw abortError();
         } catch (error) {
+            if (error instanceof DOMException && error.name === "AbortError") throw error;
             console.error("WebLLM error:", error);
             onChunk(
                 "\nError: No se pudo ejecutar el modelo local en navegador. Revisa soporte WebGPU (Chrome/Edge actualizado)."
             );
+        } finally {
+            signal?.removeEventListener("abort", onAbort);
         }
     },
 

@@ -218,6 +218,7 @@ export default function ReinforcementPlanTool() {
                             }
                             className="lam-input"
                         >
+                            <option value="">Selecciona un curso</option>
                             {PRIMARY_COURSES.map((course) => (
                                 <option key={course} value={course}>
                                     {course}
