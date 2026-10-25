@@ -9,11 +9,14 @@ import { generatorService } from "@/lib/generator-service";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 import { getInitialEngine } from "@/lib/engine-preference";
+import { CurriculumMatrixSelector } from "@/components/CurriculumMatrixSelector";
+import type { MatrizCurricularRef } from "@/lib/curriculum-service";
 
 export default function RubricsTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
     const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
+    const [matriz, setMatriz] = useState<MatrizCurricularRef | null>(null);
 
     const [formData, setFormData] = useState({
         nombre: "",
@@ -27,6 +30,7 @@ export default function RubricsTool() {
         await runGeneration((onChunk, options) =>
             generatorService.generateRubrics({
                 ...formData,
+                matriz_curricular: matriz ?? undefined,
                 provider: engine,
                 api_key: apiKey
             }, onChunk, options)
@@ -74,6 +78,8 @@ export default function RubricsTool() {
         >
             <form onSubmit={handleSubmit} className="space-y-6">
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
+
+                <CurriculumMatrixSelector value={matriz} onChange={setMatriz} />
 
                 <div className="space-y-2">
                     <label className="lam-label" htmlFor="rubrics-titulo-de-la-rubrica">Título de la Rúbrica</label>

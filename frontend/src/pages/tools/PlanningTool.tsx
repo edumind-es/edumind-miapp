@@ -23,11 +23,14 @@ import { EngineSelector } from "@/components/EngineSelector";
 import { EDUCATION_LEVELS } from "@/lib/education-levels";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 import { getInitialEngine } from "@/lib/engine-preference";
+import { CurriculumMatrixSelector } from "@/components/CurriculumMatrixSelector";
+import type { MatrizCurricularRef } from "@/lib/curriculum-service";
 
 export default function PlanningTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
     const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
+    const [matriz, setMatriz] = useState<MatrizCurricularRef | null>(null);
 
     const [formData, setFormData] = useState({
         curso: "3º ESO",
@@ -42,6 +45,7 @@ export default function PlanningTool() {
         await runGeneration((onChunk, options) =>
             generatorService.generatePlanning({
                 ...formData,
+                matriz_curricular: matriz ?? undefined,
                 provider: engine,
                 api_key: apiKey
             }, onChunk, options)
@@ -69,6 +73,8 @@ export default function PlanningTool() {
         >
             <form onSubmit={handleSubmit} className="space-y-6">
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
+
+                <CurriculumMatrixSelector value={matriz} onChange={setMatriz} />
 
                 <div className="space-y-2">
                     <label className="lam-label" htmlFor="planning-curso">Curso</label>

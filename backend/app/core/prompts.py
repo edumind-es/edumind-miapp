@@ -415,10 +415,17 @@ def build_reinforcement_plan_prompt(data: Dict[str, Any]) -> str:
         cleaned_contents = [str(contenidos).strip()] if str(contenidos).strip() else []
     contenidos_text = "; ".join(cleaned_contents) if cleaned_contents else "No especificados"
 
-    normativa_aplicable = (
-        data.get("normativa_aplicable")
-        or "Orden del 8 de septiembre de 2021 y Decreto 229/2011, de 7 de diciembre (Galicia)."
-    )
+    comunidad = str(data.get("comunidad") or "Galicia").strip() or "Galicia"
+    if data.get("normativa_aplicable"):
+        normativa_aplicable = str(data["normativa_aplicable"])
+    elif comunidad.lower() == "galicia":
+        normativa_aplicable = "Orden del 8 de septiembre de 2021 y Decreto 229/2011, de 7 de diciembre (Galicia)."
+    else:
+        # Sin referencia concreta no se inventa: se pide citar solo normativa oficial verificable.
+        normativa_aplicable = (
+            f"Normativa autonómica vigente de {comunidad} sobre atención a la diversidad y refuerzo "
+            "(cita únicamente referencias oficiales que conozcas con certeza; si no, indícalo)."
+        )
 
     return f"""
     Elaboracion de PLAN DE REFUERZO EDUCATIVO individualizado con enfoque privacy-first.
@@ -452,9 +459,8 @@ def build_reinforcement_plan_prompt(data: Dict[str, Any]) -> str:
     6. PLAN DE EVALUACION Y SEGUIMIENTO (instrumentos, frecuencia, umbrales de progreso)
     7. REAJUSTE DEL PLAN SEGUN EVIDENCIAS (decision rules claras)
     8. COORDINACION DOCENTE-FAMILIA-CENTRO (sin exponer datos personales)
-    9. ENCAJE NORMATIVO (Galicia) con referencias explicitas a:
-       - Orden del 8 de septiembre de 2021
-       - Decreto 229/2011, de 7 de diciembre
+    9. ENCAJE NORMATIVO ({comunidad}) con referencias explicitas a:
+       - {normativa_aplicable}
     10. PLAN DE APLICACION INMEDIATA (24-72h) y cronograma hasta cierre
 
     REQUISITOS CRITICOS:

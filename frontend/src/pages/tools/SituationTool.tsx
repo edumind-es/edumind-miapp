@@ -28,11 +28,14 @@ import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 import { getModelDisplayName } from "@/lib/pedagogical-models";
 import { formatNEAEForPrompt, type NEAECase } from "@/lib/neae";
 import { getInitialEngine } from "@/lib/engine-preference";
+import { CurriculumMatrixSelector } from "@/components/CurriculumMatrixSelector";
+import type { MatrizCurricularRef } from "@/lib/curriculum-service";
 
 export default function SituationTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
     const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
+    const [matriz, setMatriz] = useState<MatrizCurricularRef | null>(null);
 
     const [formData, setFormData] = useState({
         curso: "3º ESO",
@@ -56,6 +59,7 @@ export default function SituationTool() {
         await runGeneration((onChunk, options) =>
             generatorService.generateSituation({
                 ...formData,
+                matriz_curricular: matriz ?? undefined,
                 modelo_pedagogico: getModelDisplayName(formData.modelo_pedagogico, formData.modelo_pedagogico_custom),
                 casos_neae: formatNEAEForPrompt(neaeCases),
                 ...contextualData,
@@ -85,6 +89,8 @@ export default function SituationTool() {
         >
             <form onSubmit={handleSubmit} className="space-y-6">
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
+
+                <CurriculumMatrixSelector value={matriz} onChange={setMatriz} />
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">

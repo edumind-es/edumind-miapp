@@ -27,6 +27,8 @@ import {
     type CurriculumAreaItem,
 } from "@/lib/normative-retrieval";
 import { getInitialEngine } from "@/lib/engine-preference";
+import { CurriculumMatrixSelector } from "@/components/CurriculumMatrixSelector";
+import type { MatrizCurricularRef } from "@/lib/curriculum-service";
 
 const PRIMARY_COURSES = [
     "1o Primaria",
@@ -48,6 +50,7 @@ export default function ReinforcementPlanTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
     const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
+    const [matriz, setMatriz] = useState<MatrizCurricularRef | null>(null);
 
     const [curriculumAreas, setCurriculumAreas] = useState<CurriculumAreaItem[]>([]);
     const [curriculumLoading, setCurriculumLoading] = useState(true);
@@ -144,6 +147,7 @@ export default function ReinforcementPlanTool() {
                     recursos_empleados: formData.recursos_empleados,
                     desarrollo_aplicado: formData.desarrollo_aplicado,
                     normativa_aplicable: formData.normativa_aplicable,
+                    matriz_curricular: matriz ?? undefined,
                     provider: engine,
                     api_key: apiKey,
                 },
@@ -179,6 +183,8 @@ export default function ReinforcementPlanTool() {
                     apiKey={apiKey}
                     onApiKeyChange={setApiKey}
                 />
+
+                <CurriculumMatrixSelector value={matriz} onChange={setMatriz} />
 
                 <div className="lam-note vigencia">
                     <span className="tag">Proteccion de datos activa</span>

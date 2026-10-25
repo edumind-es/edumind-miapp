@@ -208,6 +208,7 @@ class RubricsRequest(BaseModel):
     area: str
     criterios: int
     descripcion: str
+    matriz_curricular: Optional[MatrizCurricularRef] = None
     provider: str = "edumind"
     api_key: Optional[str] = None
 

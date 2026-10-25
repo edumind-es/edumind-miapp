@@ -359,6 +359,8 @@ class CurriculumMatrixService:
         else:
             anexar("contenidos", lineas_sab)
 
+        # La comunidad autónoma se deriva de la matriz: los prompts dejan de asumir Galicia.
+        datos.setdefault("comunidad", matriz.get("comunidad"))
         datos["marco_curricular"] = cls.build_prompt_context(
             matriz["id"],
             competencias=referencia.get("competencias"),

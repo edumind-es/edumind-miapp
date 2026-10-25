@@ -11,6 +11,8 @@ import { ContextualFields, type ContextualData } from "@/components/ContextualFi
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 import { cleanGeneratedText } from "@/lib/content-format";
 import { getInitialEngine } from "@/lib/engine-preference";
+import { CurriculumMatrixSelector } from "@/components/CurriculumMatrixSelector";
+import type { MatrizCurricularRef } from "@/lib/curriculum-service";
 
 function escapeHtml(value: string): string {
     return value
@@ -25,6 +27,7 @@ export default function WorksheetsTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
     const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
+    const [matriz, setMatriz] = useState<MatrizCurricularRef | null>(null);
 
     const [formData, setFormData] = useState({
         tema: "",
@@ -40,6 +43,7 @@ export default function WorksheetsTool() {
         await runGeneration((onChunk, options) =>
             generatorService.generateWorksheets({
                 ...formData,
+                matriz_curricular: matriz ?? undefined,
                 ...contextualData,
                 provider: engine,
                 api_key: apiKey
@@ -101,6 +105,8 @@ export default function WorksheetsTool() {
         >
             <form onSubmit={handleSubmit} className="space-y-6">
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
+
+                <CurriculumMatrixSelector value={matriz} onChange={setMatriz} />
 
                 <div className="space-y-2">
                     <label className="lam-label" htmlFor="worksheets-tema-principal">Tema Principal</label>
