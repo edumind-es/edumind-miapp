@@ -37,13 +37,15 @@ export default function ClassDetail() {
     const [students, setStudents] = useState<StudentCode[]>([]);
     const [resources, setResources] = useState<GeneratedResource[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'info' | 'schedule' | 'students' | 'resources'>('info');
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [scheduleToDelete, setScheduleToDelete] = useState<number | null>(null);
     const [notice, setNotice] = useState<{ variant: "success" | "error" | "info"; message: string } | null>(null);
 
-    const loadData = useCallback(async () => {
+    const loadData = useCallback(async (isActive: () => boolean = () => true) => {
         setLoading(true);
+        setLoadError(null);
         try {
             const [classData, scheduleData, studentsData, resourcesData] = await Promise.all([
                 classroomService.getClass(classId),
@@ -51,21 +53,32 @@ export default function ClassDetail() {
                 classroomService.getStudents(classId),
                 resourceService.getResourcesByClass(classId)
             ]);
+            if (!isActive()) return;
             setTeacherClass(classData);
             setSchedule(scheduleData);
             setStudents(studentsData);
             setResources(resourcesData);
         } catch (err) {
+            if (!isActive()) return;
             console.error(err);
+            // F-08: un fallo de red o del servidor no es "clase no encontrada".
+            const status = (err as { response?: { status?: number } })?.response?.status;
+            setLoadError(
+                status === 404 ? null : "No se pudo cargar la clase. Comprueba la conexión e inténtalo de nuevo."
+            );
         } finally {
-            setLoading(false);
+            if (isActive()) setLoading(false);
         }
     }, [classId]);
 
+    // F-04: si el componente se desmonta antes de que responda el servidor, no se toca el estado.
     useEffect(() => {
-        if (classId) {
-            void loadData();
-        }
+        if (!classId) return;
+        let active = true;
+        void loadData(() => active);
+        return () => {
+            active = false;
+        };
     }, [classId, loadData]);
 
     const handleDeleteSchedule = async () => {
@@ -147,7 +160,15 @@ export default function ClassDetail() {
     if (!teacherClass) {
         return (
             <div className="min-h-screen bg-paper flex flex-col items-center justify-center text-ink">
-                <h1 className="text-[26px] font-bold mb-4">Clase no encontrada</h1>
+                <h1 className="text-[26px] font-bold mb-4">{loadError ? "No se pudo cargar la clase" : "Clase no encontrada"}</h1>
+                {loadError ? (
+                    <>
+                        <p className="text-ink-2 mb-4">{loadError}</p>
+                        <button type="button" className="lam-btn lam-btn-sm mb-3" onClick={() => void loadData()}>
+                            Reintentar
+                        </button>
+                    </>
+                ) : null}
                 <Link to="/classroom" className="lam-btn lam-btn-sm lam-btn-ghost">
                     Volver a mis clases
                 </Link>

@@ -60,7 +60,7 @@ export default function AdminDashboard() {
             const response = await authFetch("/admin/stats");
 
             if (!response.ok) {
-                throw new Error("Failed to fetch stats");
+                throw new Error("No se pudieron cargar las estadísticas.");
             }
 
             const data = await response.json();

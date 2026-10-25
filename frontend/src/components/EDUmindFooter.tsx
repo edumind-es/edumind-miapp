@@ -168,11 +168,6 @@ export default function EDUmindFooter({
                                 </a>
                             </li>
                         ))}
-                        <li>
-                            <a href="/proponer-deporte" className="footer-link">
-                                Proponer deporte
-                            </a>
-                        </li>
                         {feedbackUrl && (
                             <li>
                                 <a href={feedbackUrl} target="_blank" rel="noopener noreferrer" className="footer-link">

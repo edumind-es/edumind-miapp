@@ -19,7 +19,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { buildAuthHeaders } from "./auth-client";
 import { detectDeviceCapability } from "./device-capability";
-import { buildSafeLocalPrompt, type LocalPromptContract } from "./local-prompt-builder";
+import { buildSafeLocalPrompt } from "./local-prompt-builder";
+import { LocalPromptValidationError, prepareLocalPromptContract } from "./local-prompt-contracts";
 
 export interface GeneratorRequest {
     provider: string;
@@ -31,7 +32,7 @@ export interface GeneratorRunOptions {
     signal?: AbortSignal;
 }
 
-const BYOK_PROVIDERS = new Set(["chatgpt", "deepseek", "claude", "gemini"]);
+const BYOK_PROVIDERS = new Set(["chatgpt", "claude", "gemini"]);
 const ERROR_PREFIX = "Error:";
 
 function shouldAutoFallbackFromCloudToLocal(provider: string, errorMessage: string): boolean {
@@ -51,27 +52,6 @@ function buildRequestHeaders(): HeadersInit {
 
 function endpointToTool(endpoint: string): string {
     return endpoint.replace(/^\/+/, "");
-}
-
-async function fetchRenderedPrompt(
-    endpoint: string,
-    data: GeneratorRequest,
-    options?: GeneratorRunOptions
-): Promise<LocalPromptContract> {
-    const tool = endpointToTool(endpoint);
-    const response = await fetch(`/api/v1/generators/render/${tool}`, {
-        method: "POST",
-        headers: buildRequestHeaders(),
-        body: JSON.stringify(data),
-        credentials: "include",
-        signal: options?.signal,
-    });
-
-    if (!response.ok) {
-        const msg = await response.text();
-        throw new Error(msg || `Prompt render failed (${response.status})`);
-    }
-    return (await response.json()) as LocalPromptContract;
 }
 
 async function runLocalWebGpu(
@@ -101,15 +81,21 @@ async function runLocalWebGpu(
     let promptText = "";
 
     try {
-        const rendered = await fetchRenderedPrompt(endpoint, data, options);
-        promptText = buildSafeLocalPrompt(rendered);
+        // Modo local honesto: el formulario no sale del navegador; solo se descargan las reglas una vez.
+        const contract = await prepareLocalPromptContract(endpointToTool(endpoint), data, options?.signal);
+        promptText = buildSafeLocalPrompt(contract);
     } catch (error) {
-        console.error("Prompt render fallback:", error);
-        onChunk("[Sistema]: No se pudo obtener prompt centralizado. Usando fallback local.\n");
+        if (error instanceof LocalPromptValidationError) {
+            onChunk(`[Sistema]: ${error.message}\n`);
+            throw error;
+        }
+        if (error instanceof DOMException && error.name === "AbortError") throw error;
+        console.error("Reglas locales no disponibles, se usa el prompt genérico:", error);
+        onChunk("[Sistema]: No se pudieron cargar las reglas de la herramienta. Usando prompt genérico local.\n");
         promptText = webLlmService.buildGenericPrompt(endpoint, data);
     }
 
-    await webLlmService.generate(promptText, onChunk, (msg) => onChunk(`[Sistema]: ${msg}\n`));
+    await webLlmService.generate(promptText, onChunk, (msg) => onChunk(`[Sistema]: ${msg}\n`), options?.signal);
 }
 
 // Helper to route between Server Stream and WebGPU
@@ -152,7 +138,7 @@ async function streamOrLocal(
 
     if (!response.ok) {
         const msg = await response.text();
-        const errorMessage = msg || `Generator request failed (${response.status})`;
+        const errorMessage = msg || `La generación falló (HTTP ${response.status}).`;
         const serverFallbackHint = (response.headers.get("X-EDUMIND-FALLBACK") || "").toLowerCase();
         if (
             normalizedProvider === "edumind" &&

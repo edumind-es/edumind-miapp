@@ -22,11 +22,16 @@ import { generatorService } from "@/lib/generator-service";
 import { EngineSelector } from "@/components/EngineSelector";
 import { EDUCATION_LEVELS } from "@/lib/education-levels";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
+import { getInitialEngine } from "@/lib/engine-preference";
+import { CurriculumMatrixSelector } from "@/components/CurriculumMatrixSelector";
+import { useTeacherProfile } from "@/hooks/useTeacherProfile";
+import type { MatrizCurricularRef } from "@/lib/curriculum-service";
 
 export default function SessionTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
+    const [matriz, setMatriz] = useState<MatrizCurricularRef | null>(null);
 
     const [formData, setFormData] = useState({
         tema: "",
@@ -34,11 +39,21 @@ export default function SessionTool() {
         descripcion: ""
     });
 
+    // Perfil docente: el curso habitual prellena el formulario una sola vez si el docente no ha escrito nada
+    // (ajuste de estado durante el render, sin efecto).
+    const teacherProfile = useTeacherProfile();
+    const [cursoPerfilAplicado, setCursoPerfilAplicado] = useState<string | null>(null);
+    if (teacherProfile?.curso && cursoPerfilAplicado !== teacherProfile.curso) {
+        setCursoPerfilAplicado(teacherProfile.curso);
+        if (!formData.curso) setFormData({ ...formData, curso: teacherProfile.curso });
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         await runGeneration((onChunk, options) =>
             generatorService.generateSession({
                 ...formData,
+                matriz_curricular: matriz ?? undefined,
                 provider: engine,
                 api_key: apiKey
             }, onChunk, options)
@@ -63,17 +78,20 @@ export default function SessionTool() {
             <form onSubmit={handleSubmit} className="space-y-6">
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
+                <CurriculumMatrixSelector value={matriz} onChange={setMatriz} />
+
                 <div className="space-y-2">
-                    <label className="lam-label">Tema o Contenido</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="session-tema-o-contenido">Tema o Contenido</label>
+                    <input id="session-tema-o-contenido" type="text" className="lam-input"
                         placeholder="Ej. Ecuaciones de primer grado, La Célula..."
                         value={formData.tema} onChange={e => setFormData({ ...formData, tema: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Curso y Grupo</label>
-                    <select className="lam-input"
+                    <label className="lam-label" htmlFor="session-curso-y-grupo">Curso y Grupo</label>
+                    <select id="session-curso-y-grupo" className="lam-input"
                         value={formData.curso} onChange={e => setFormData({ ...formData, curso: e.target.value })} required>
+                        <option value="">Selecciona un curso</option>
                         {EDUCATION_LEVELS.map((level) => (
                             <optgroup key={level.stage} label={level.stage}>
                                 {level.courses.map((course) => (
@@ -85,8 +103,8 @@ export default function SessionTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Enfoque Metodológico (Opcional)</label>
-                    <textarea className="lam-input h-32 resize-none"
+                    <label className="lam-label" htmlFor="session-enfoque-metodologico-opcional">Enfoque Metodológico (Opcional)</label>
+                    <textarea id="session-enfoque-metodologico-opcional" className="lam-input h-32 resize-none"
                         placeholder="Ej. Aprendizaje Cooperativo, Gamificación, Flipped Classroom..."
                         value={formData.descripcion} onChange={e => setFormData({ ...formData, descripcion: e.target.value })} />
                 </div>

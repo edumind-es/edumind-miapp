@@ -1,0 +1,32 @@
+{
+  "session": {
+    "tema": "Saltos con comba en parejas",
+    "curso": "5.º de Primaria",
+    "descripcion": "Sesión de 55 minutos en el pabellón con 24 alumnos y dos alumnas con TDAH"
+  },
+  "situation": {
+    "curso": "6.º de Primaria",
+    "etapa_educativa": "Primaria",
+    "modelo_pedagogico": "Aprendizaje cooperativo",
+    "tipo_tarea": "Reto motor",
+    "estilo_ensenanza": "Descubrimiento guiado",
+    "contenidos": "Orientación deportiva en el entorno próximo",
+    "objetivos": "Interpretar un plano sencillo y cooperar en equipo",
+    "criterios_evaluacion": "CE3.2 Resolver retos de orientación con autonomía",
+    "temporalizacion": "4"
+  },
+  "reinforcement_plan": {
+    "area_educativa": "Matemáticas",
+    "curso": "4.º de Primaria",
+    "etapa_educativa": "Primaria",
+    "fecha_inicio_refuerzo": "2026-11-03",
+    "fecha_fin_estimada": "2026-12-19",
+    "contenidos_refuerzo": ["Fracciones equivalentes", "Resolución de problemas de dos pasos"],
+    "criterios_evaluacion": "CE2.1 y CE2.3",
+    "instrumentos_evaluacion": "Prueba escrita y registro de observación",
+    "evidencias_necesidad_refuerzo": "Dos pruebas con menos del 40 % de aciertos en fracciones",
+    "forma_trabajo_aplicada": "Gran grupo con fichas individuales",
+    "recursos_empleados": "Libro de texto y regletas",
+    "desarrollo_aplicado": "Repaso de fracciones en tres sesiones sin manipulativos"
+  }
+}

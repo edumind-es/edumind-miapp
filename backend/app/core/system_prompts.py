@@ -49,41 +49,66 @@ REGLAS INQUEBRANTABLES:
 6. Cuando cites normativa, indica el documento de origen
 """
 
+# System prompt compacto para modelos medianos (Core, Gemma 4): menos persona, mismas reglas.
+COMPACT_SYSTEM_PROMPT = """
+Eres EDUmind, asistente pedagógico del sistema educativo español (LOMLOE).
+Reglas: usa solo los datos aportados; no inventes normativa, cifras ni citas; si falta un dato clave, dilo en una línea;
+atiende siempre a la diversidad del alumnado (DUA); terminología curricular oficial; español claro y publicable.
+"""
+
+# Perfil de prompt según la capacidad del motor:
+#   full    → modelos grandes con clave del usuario: persona completa, contexto de conocimiento.
+#   medium  → EDUmind Core / Gemma 4 del servidor: prompt compacto, sin contexto genérico.
+#   minimal → modelo local en el navegador (lo compone el cliente, ver local-prompt-builder.ts).
+PROMPT_PROFILES = {
+    "chatgpt": "full",
+    "claude": "full",
+    "gemini": "full",
+    "mistral": "full",
+    "edumind": "medium",
+    "ollama": "medium",
+    "webgpu": "minimal",
+}
+
+
+def get_prompt_profile(provider: str) -> str:
+    return PROMPT_PROFILES.get((provider or "").lower(), "medium")
+
+
+# Formato único para todos los proveedores: la salida se renderiza como texto plano y el
+# backend elimina Markdown de cada trozo, así que pedir Markdown solo generaba ruido.
+PLAIN_TEXT_FORMAT = "Texto plano: títulos en MAYÚSCULAS, listas con guiones, sin Markdown (**, ##, __)."
+
 # Provider-specific adaptations
 PROVIDER_CONFIGS = {
-    "deepseek": {
-        "temperature": 0.7,
-        "format_instruction": "Usa Markdown para estructurar (negritas, listas, tablas).",
-        "style_note": "Sé analítico y estructurado."
-    },
     "chatgpt": {
         "temperature": 0.7,
-        "format_instruction": "Usa Markdown para estructurar tu respuesta.",
+        "format_instruction": PLAIN_TEXT_FORMAT,
         "style_note": "Sé claro, detallado y pedagógico."
     },
     "claude": {
         "temperature": 0.8,
-        "format_instruction": "Estructura tu respuesta con secciones claras y numeradas.",
+        "format_instruction": PLAIN_TEXT_FORMAT,
         "style_note": "Desarrolla con profundidad y empatía pedagógica."
     },
     "gemini": {
         "temperature": 0.7,
-        "format_instruction": "Usa Markdown y considera incluir elementos visuales cuando ayuden.",
+        "format_instruction": PLAIN_TEXT_FORMAT,
         "style_note": "Sé claro, visual y organizado."
     },
     "mistral": {
         "temperature": 0.6,
-        "format_instruction": "Texto estructurado con secciones claras.",
+        "format_instruction": PLAIN_TEXT_FORMAT,
         "style_note": "Sé directo y técnico."
     },
     "edumind": {
         "temperature": 0.7,
-        "format_instruction": "Texto plano bien estructurado con indentación clara.",
+        "format_instruction": PLAIN_TEXT_FORMAT,
         "style_note": "Mantén el estilo académico español formal."
     },
     "ollama": {
         "temperature": 0.7,
-        "format_instruction": "Texto estructurado sin exceso de formato.",
+        "format_instruction": PLAIN_TEXT_FORMAT,
         "style_note": "Sé conciso pero completo."
     }
 }
@@ -93,15 +118,16 @@ def get_system_prompt(provider: str = "default", include_knowledge_context: str 
     Get the full system prompt for a specific provider.
     
     Args:
-        provider: AI provider name (deepseek, claude, gemini, etc.)
+        provider: AI provider name (chatgpt, claude, gemini, etc.)
         include_knowledge_context: Optional RAG context from knowledge base
     
     Returns:
         Complete system prompt string.
     """
     config = PROVIDER_CONFIGS.get(provider.lower(), PROVIDER_CONFIGS["edumind"])
-    
-    prompt_parts = [BASE_SYSTEM_PROMPT]
+    profile = get_prompt_profile(provider)
+
+    prompt_parts = [BASE_SYSTEM_PROMPT if profile == "full" else COMPACT_SYSTEM_PROMPT]
     
     # Add provider-specific instructions
     prompt_parts.append(f"""
@@ -110,8 +136,8 @@ INSTRUCCIONES DE FORMATO:
 {config['style_note']}
 """)
     
-    # Add knowledge context if provided
-    if include_knowledge_context:
+    # Add knowledge context if provided (solo perfil completo: en modelos medianos resta contexto útil)
+    if include_knowledge_context and profile == "full":
         prompt_parts.append(f"""
 DOCUMENTACIÓN DE REFERENCIA (Usa esta información como fuente autorizada):
 {include_knowledge_context}

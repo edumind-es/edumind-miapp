@@ -22,10 +22,12 @@ import { generatorService } from "@/lib/generator-service";
 import { EngineSelector } from "@/components/EngineSelector";
 import { EDUCATION_LEVELS } from "@/lib/education-levels";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
+import { getInitialEngine } from "@/lib/engine-preference";
+import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 
 export default function StemTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
 
     const [formData, setFormData] = useState({
@@ -34,6 +36,15 @@ export default function StemTool() {
         materiales: "",
         neae: ""
     });
+
+    // Perfil docente: el curso habitual prellena el formulario una sola vez si el docente no ha escrito nada
+    // (ajuste de estado durante el render, sin efecto).
+    const teacherProfile = useTeacherProfile();
+    const [cursoPerfilAplicado, setCursoPerfilAplicado] = useState<string | null>(null);
+    if (teacherProfile?.curso && cursoPerfilAplicado !== teacherProfile.curso) {
+        setCursoPerfilAplicado(teacherProfile.curso);
+        if (!formData.curso) setFormData({ ...formData, curso: teacherProfile.curso });
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -65,16 +76,17 @@ export default function StemTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Producto Final Deseado</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="stem-producto-final-deseado">Producto Final Deseado</label>
+                    <input id="stem-producto-final-deseado" type="text" className="lam-input"
                         placeholder="Ej. Cohete de agua, Robot sigue-líneas..."
                         value={formData.producto} onChange={e => setFormData({ ...formData, producto: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Nivel o Curso</label>
-                    <select className="lam-input"
+                    <label className="lam-label" htmlFor="stem-nivel-o-curso">Nivel o Curso</label>
+                    <select id="stem-nivel-o-curso" className="lam-input"
                         value={formData.curso} onChange={e => setFormData({ ...formData, curso: e.target.value })} required>
+                        <option value="">Selecciona un curso</option>
                         {EDUCATION_LEVELS.map((level) => (
                             <optgroup key={level.stage} label={level.stage}>
                                 {level.courses.map((course) => (
@@ -86,15 +98,15 @@ export default function StemTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Materiales Disponibles</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="stem-materiales-disponibles">Materiales Disponibles</label>
+                    <textarea id="stem-materiales-disponibles" className="lam-input h-24 resize-none"
                         placeholder="Ej. Cartón, motores DC, Arduino..."
                         value={formData.materiales} onChange={e => setFormData({ ...formData, materiales: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Casuísticas NEAE</label>
-                    <textarea className="lam-input h-20 resize-none"
+                    <label className="lam-label" htmlFor="stem-casuisticas-neae">Casuísticas NEAE</label>
+                    <textarea id="stem-casuisticas-neae" className="lam-input h-20 resize-none"
                         placeholder="Adaptaciones necesarias..."
                         value={formData.neae} onChange={e => setFormData({ ...formData, neae: e.target.value })} />
                 </div>

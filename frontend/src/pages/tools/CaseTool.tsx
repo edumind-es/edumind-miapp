@@ -21,10 +21,11 @@ import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
+import { getInitialEngine } from "@/lib/engine-preference";
 
 export default function CaseTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
 
     const [formData, setFormData] = useState({
@@ -66,8 +67,8 @@ export default function CaseTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Cuerpo y Especialidad</label>
-                    <input type="text" className="lam-input mb-2"
+                    <label className="lam-label" htmlFor="case-cuerpo-y-especialidad">Cuerpo y Especialidad</label>
+                    <input id="case-cuerpo-y-especialidad" type="text" className="lam-input mb-2"
                         placeholder="Cuerpo" value={formData.cuerpo} onChange={e => setFormData({ ...formData, cuerpo: e.target.value })} />
                     <input type="text" className="lam-input"
                         placeholder="Especialidad" value={formData.especialidad} onChange={e => setFormData({ ...formData, especialidad: e.target.value })} />
@@ -75,13 +76,13 @@ export default function CaseTool() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Nº Preguntas</label>
-                        <input type="number" className="lam-input"
+                        <label className="lam-label" htmlFor="case-no-preguntas">Nº Preguntas</label>
+                        <input id="case-no-preguntas" type="number" className="lam-input"
                             value={formData.numero_preguntas} onChange={e => setFormData({ ...formData, numero_preguntas: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Tiempo (min)</label>
-                        <input type="number" className="lam-input"
+                        <label className="lam-label" htmlFor="case-tiempo-min">Tiempo (min)</label>
+                        <input id="case-tiempo-min" type="number" className="lam-input"
                             value={formData.tiempo_respuesta} onChange={e => setFormData({ ...formData, tiempo_respuesta: e.target.value })} />
                     </div>
                 </div>

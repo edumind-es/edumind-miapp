@@ -21,10 +21,11 @@ import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
+import { getInitialEngine } from "@/lib/engine-preference";
 
 export default function IdeaTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
 
     const [formData, setFormData] = useState({
@@ -61,8 +62,8 @@ export default function IdeaTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Tu Consulta</label>
-                    <textarea className="lam-input h-48 resize-none"
+                    <label className="lam-label" htmlFor="idea-tu-consulta">Tu Consulta</label>
+                    <textarea id="idea-tu-consulta" className="lam-input h-48 resize-none"
                         placeholder="Ej. Necesito una idea original para introducir la Edad Media en 2º de ESO..."
                         value={formData.consulta} onChange={e => setFormData({ ...formData, consulta: e.target.value })} required />
                 </div>

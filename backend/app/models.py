@@ -48,7 +48,7 @@ class User(SQLModel, table=True):
 class ApiKey(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
-    engine: str = Field(index=True)  # deepseek, claude, etc.
+    engine: str = Field(index=True)  # chatgpt, claude, gemini, etc.
     encrypted_key: str
     is_active: bool = Field(default=True)
     label: Optional[str] = None
@@ -208,6 +208,26 @@ class StudentCode(SQLModel, table=True):
     number: int  # Número ordinal del alumno (1, 2, 3...)
     notes: Optional[str] = None  # Notas privadas del docente
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class TeacherProfile(SQLModel, table=True):
+    """Perfil pedagógico del docente: solo preferencias de trabajo, nunca datos personales.
+
+    Sirve para prellenar comunidad, etapa, curso y matriz curricular en las herramientas
+    y para dar contexto estable a los generadores. Se borra con la cuenta.
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True, unique=True)
+    comunidad_key: Optional[str] = None  # p. ej. "galicia"
+    etapa_key: Optional[str] = None  # infantil | primaria | secundaria
+    area_key: Optional[str] = None  # p. ej. "educacion-fisica"
+    curso: Optional[str] = None  # p. ej. "5.º de Primaria"
+    matriz_id: Optional[str] = None  # comunidad/etapa/area/nivel de la última matriz preferida
+    metodologia_slider: Optional[int] = None  # 0-100 (tradicional ↔ innovador)
+    tipo_agrupamiento: Optional[str] = None
+    contexto_aula: Optional[str] = None  # texto breve y anonimizado sobre el aula o el centro
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class ResourceType(str, Enum):

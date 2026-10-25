@@ -50,3 +50,42 @@ export function cleanGeneratedText(raw: string): string {
 
     return normalized.trim();
 }
+
+export interface ReviewFlags {
+    /** El modelo (salida JSON) ha marcado requiere_revision_humana. */
+    humanReview: boolean;
+    /** Códigos curriculares citados que no existen en la matriz oficial elegida. */
+    unknownCurriculumCodes: string[];
+}
+
+// Avisos que el docente debe ver antes de usar una salida: revisión humana (campo de los
+// esquemas JSON) y revisión curricular (códigos inventados, detectados por el servidor).
+export function detectReviewFlags(raw: string): ReviewFlags {
+    const flags: ReviewFlags = { humanReview: false, unknownCurriculumCodes: [] };
+    const text = cleanGeneratedText(raw);
+    if (!text) return flags;
+
+    try {
+        const parsed: unknown = JSON.parse(text);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            const record = parsed as Record<string, unknown>;
+            flags.humanReview = record.requiere_revision_humana === true;
+            const revision = record._revision_curricular as { codigos_no_encontrados?: unknown } | undefined;
+            if (Array.isArray(revision?.codigos_no_encontrados)) {
+                flags.unknownCurriculumCodes = revision.codigos_no_encontrados.filter(
+                    (c): c is string => typeof c === "string"
+                );
+            }
+            return flags;
+        }
+    } catch {
+        // Texto plano: se busca la línea de revisión curricular añadida por el servidor
+    }
+
+    // Los códigos llevan puntos (CE1.1): se captura hasta el ". Revísalos" que cierra la frase.
+    const match = text.match(/\[Revisión curricular\][^\n]*?matriz\s+\S+:\s*(.+?)\.\s*Rev[ií]salos/);
+    if (match) {
+        flags.unknownCurriculumCodes = match[1].split(",").map((c) => c.trim()).filter(Boolean);
+    }
+    return flags;
+}

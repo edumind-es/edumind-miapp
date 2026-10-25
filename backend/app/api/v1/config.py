@@ -47,6 +47,12 @@ class EngineConfig(BaseModel):
     enabled: bool = True
     reason_disabled: str | None = None
     is_default: bool = False
+    # Dónde se procesan los textos del usuario: en su dispositivo, en un
+    # servidor de EDUmind o en un proveedor externo. La UI lo muestra antes
+    # de la primera petición a cualquier motor que no sea el dispositivo.
+    processing: str = "third_party"  # device | edumind | third_party
+    provider: str | None = None
+    region: str | None = None
 
 
 class RuntimePolicyResponse(BaseModel):
@@ -67,73 +73,87 @@ class RuntimePolicyResponse(BaseModel):
     provider_guard_overrides: dict[str, dict]
     recommended_engine: str
 
-# Defined Engines
+# Catálogo de motores. Las descripciones dicen qué modelo es y dónde se
+# procesa el texto: es la base del aviso de privacidad del selector.
 PUBLIC_ENGINES = [
     {
         "id": "webgpu",
-        "name": "Tu Dispositivo",
+        "name": "Tu dispositivo",
         "color": "bg-green-500",
-        "desc": "Privado (WebGPU) - Gratis",
+        "desc": "Llama 3.2 1B en tu navegador. Nada sale de tu equipo (el modelo se descarga una vez).",
         "tier": "local",
         "is_default": True,
+        "processing": "device",
+        "provider": "WebLLM en el navegador",
+        "region": "Tu dispositivo",
     },
     {
         "id": "edumind",
         "name": "EDUmind Cloud Lite",
         "color": "bg-blue-600",
-        "desc": "Modelo gestionado con control de capacidad",
+        "desc": "Modelo abierto (Mistral 7B) en un servidor gestionado por EDUmind, con control de capacidad.",
         "tier": "managed",
+        "processing": "edumind",
+        "provider": "Servidor EDUmind",
+        "region": "Unión Europea",
     },
     {
         "id": "chatgpt",
-        "name": "ChatGPT (BYOK)",
+        "name": "ChatGPT (clave propia)",
         "color": "bg-emerald-600",
-        "desc": "GPT-4o - OpenAI",
+        "desc": "GPT-4o. Tus textos se envían a OpenAI (EE. UU.) con tu clave.",
         "tier": "byok",
         "requires_api_key": True,
-    },
-    {
-        "id": "deepseek",
-        "name": "DeepSeek (BYOK)",
-        "color": "bg-blue-500",
-        "desc": "Rendimiento/Coste óptimo",
-        "tier": "byok",
-        "requires_api_key": True,
+        "processing": "third_party",
+        "provider": "OpenAI",
+        "region": "Estados Unidos",
     },
     {
         "id": "claude",
-        "name": "Claude (BYOK)",
+        "name": "Claude (clave propia)",
         "color": "bg-purple-600",
-        "desc": "Alta capacidad de razonamiento",
+        "desc": "Tus textos se envían a Anthropic (EE. UU.) con tu clave.",
         "tier": "byok",
         "requires_api_key": True,
+        "processing": "third_party",
+        "provider": "Anthropic",
+        "region": "Estados Unidos",
     },
     {
         "id": "gemini",
-        "name": "Gemini (BYOK)",
+        "name": "Gemini (clave propia)",
         "color": "bg-red-500",
-        "desc": "Multimodal y rápido",
+        "desc": "Tus textos se envían a Google (EE. UU.) con tu clave.",
         "tier": "byok",
         "requires_api_key": True,
+        "processing": "third_party",
+        "provider": "Google",
+        "region": "Estados Unidos",
     },
 ]
 
 PRIVATE_ENGINES = [
     {
         "id": "mistral",
-        "name": "Mistral (VPN)",
+        "name": "Mistral (nube, VPN)",
         "color": "bg-orange-500",
-        "desc": "Acceso Restringido (VPN/Admin)",
+        "desc": "Nube de Mistral AI (Francia, UE) con clave del sistema. Solo VPN/Admin.",
         "tier": "restricted",
         "requires_vpn_or_admin": True,
+        "processing": "third_party",
+        "provider": "Mistral AI",
+        "region": "Unión Europea",
     },
     {
         "id": "ollama",
-        "name": "Gemma 4 Local (VPN)",
+        "name": "Gemma 4 en servidor EDUmind (VPN)",
         "color": "bg-slate-500",
-        "desc": "Ollama privado con Gemma 4 E4B (VPN/Admin)",
+        "desc": "Gemma 4 E4B por Ollama en el servidor de EDUmind. No sale a terceros. Solo VPN/Admin.",
         "tier": "restricted",
         "requires_vpn_or_admin": True,
+        "processing": "edumind",
+        "provider": "Servidor EDUmind",
+        "region": "Unión Europea",
     },
 ]
 

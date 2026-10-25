@@ -17,6 +17,7 @@
  */
 
 import { buildApiUrl } from "@/lib/api-base";
+import { isAuthFlowPath, notifySessionExpired } from "@/lib/auth-events";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const CSRF_COOKIE_NAME = "edumind_csrf_token";
@@ -83,16 +84,22 @@ export function buildAuthHeaders(method: string, headers?: HeadersInit): Record<
     return merged;
 }
 
-export function authFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}) {
     const method = (init.method || "GET").toUpperCase();
     const headers = buildAuthHeaders(method, init.headers);
     const resolvedInput = typeof input === "string" ? buildApiUrl(input) : input;
-    return fetch(resolvedInput, {
+    const response = await fetch(resolvedInput, {
         ...init,
         method,
         headers,
         credentials: "include",
     });
+    // Sesión caducada o revocada: se avisa una sola vez al proveedor de sesión.
+    const url = typeof input === "string" ? input : input instanceof URL ? input.pathname : input.url;
+    if (response.status === 401 && !isAuthFlowPath(url)) {
+        notifySessionExpired();
+    }
+    return response;
 }
 
 export function clearLegacyAuthState() {
@@ -111,6 +118,26 @@ export async function fetchCurrentUser(): Promise<SessionUser | null> {
         throw new Error("No se pudo validar la sesión actual.");
     }
     return await response.json() as SessionUser;
+}
+
+// Supresión de cuenta: el servidor exige repetir el nombre de usuario y borra todos los datos personales.
+export async function deleteCurrentAccount(confirmUsername: string): Promise<void> {
+    const response = await authFetch("/auth/me", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm_username: confirmUsername }),
+    });
+    if (!response.ok) {
+        let detail = "No se pudo eliminar la cuenta.";
+        try {
+            const payload = await response.json() as { detail?: string };
+            if (payload?.detail) detail = payload.detail;
+        } catch {
+            // sin cuerpo JSON: se mantiene el mensaje genérico
+        }
+        throw new Error(detail);
+    }
+    clearLegacyAuthState();
 }
 
 export async function fetchAuthConfig(): Promise<AuthConfig> {

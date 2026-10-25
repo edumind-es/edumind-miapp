@@ -22,6 +22,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { toolSections } from "@/lib/tools-registry";
 import { authFetch } from "@/lib/auth-client";
 
 interface NavItem {
@@ -41,37 +42,14 @@ const PRIMARY_LINKS: NavItem[] = [
 ];
 
 // La navegación interna de administración queda fuera del menú público a propósito.
-const TOOL_SECTIONS: NavSection[] = [
-    {
-        section: "Docentes",
-        items: [
-            { path: "/tools/planning", label: "Planificación semanal" },
-            { path: "/tools/situation", label: "Situación de aprendizaje" },
-            { path: "/tools/stem", label: "Proyecto STEM" },
-            { path: "/tools/diversity", label: "Atención a la diversidad" },
-            { path: "/tools/reinforcement_plan", label: "Plan de refuerzo" },
-            { path: "/tools/session", label: "Sesión" },
-        ],
-    },
-    {
-        section: "Opositores",
-        items: [
-            { path: "/tools/topic", label: "Tema" },
-            { path: "/tools/case", label: "Supuesto práctico" },
-            { path: "/tools/defense", label: "Defensa" },
-            { path: "/tools/idea", label: "Consulta rápida" },
-        ],
-    },
-    {
-        section: "Centros",
-        items: [
-            { path: "/tools/minutes", label: "Actas" },
-            { path: "/tools/institution_doc", label: "Documento institucional" },
-            { path: "/tools/inspection_report", label: "Inspección educativa" },
-            { path: "/tools/normativa", label: "Aplicación normativa" },
-        ],
-    },
-];
+// Las herramientas salen del registro único (lib/tools-registry.ts).
+const TOOL_SECTIONS: NavSection[] = toolSections().map((section) => ({
+    section: section.label,
+    items: section.tools.map((tool) => ({ path: tool.path, label: tool.navLabel })),
+}));
+
+// Solo con sesión iniciada: el aula no aparecía en ningún menú aunque estaba operativa.
+const SIGNED_IN_LINKS: NavItem[] = [{ path: "/classroom", label: "Mis clases" }];
 
 const linkBase =
     "font-mono text-[11px] uppercase tracking-[0.14em] px-3 py-2 border border-transparent transition-colors duration-150";
@@ -107,7 +85,7 @@ export default function Navbar() {
 
                     {/* Navegación de escritorio */}
                     <div className="hidden md:flex items-center gap-1">
-                        {PRIMARY_LINKS.map((link) => (
+                        {[...PRIMARY_LINKS, ...(user ? SIGNED_IN_LINKS : [])].map((link) => (
                             <Link key={link.path} to={link.path} className={isActive(link.path) ? linkActive : linkIdle}>
                                 {link.label}
                             </Link>
@@ -177,7 +155,7 @@ export default function Navbar() {
                 <div className="md:hidden bg-paper border-b-2 border-rule">
                     <div className="lam-wrap py-4">
                         <ul className="lam-rules">
-                            {PRIMARY_LINKS.map((link) => (
+                            {[...PRIMARY_LINKS, ...(user ? SIGNED_IN_LINKS : [])].map((link) => (
                                 <li key={link.path}>
                                     <Link
                                         to={link.path}

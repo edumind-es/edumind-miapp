@@ -32,9 +32,18 @@ class Settings(BaseSettings):
     SECRET_KEY: Optional[str] = None
     DEBUG: bool = False
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
+    # Sesión de 12 horas; además el logout revoca el token (ver core/token_denylist.py).
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 12
     ADMIN_PASSWORD: Optional[str] = None
     TRUSTED_PROXIES: List[str] = ["127.0.0.1", "::1"]
+    # Cabeceras de IP de cliente aceptadas cuando el peer es un proxy fiable.
+    # Añadir "CF-Connecting-IP" solo si el origen está cerrado a Cloudflare.
+    TRUSTED_CLIENT_IP_HEADERS: List[str] = ["X-Real-IP"]
+    # Días que se conservan los registros de actividad (IP ya enmascarada); 0 desactiva la purga.
+    ACTIVITY_LOG_RETENTION_DAYS: int = 90
+    # Almacén del limitador de peticiones; por defecto REDIS_URL si existe, si no memoria por proceso.
+    RATE_LIMIT_STORAGE_URI: Optional[str] = None
+    TOKEN_DENYLIST_REDIS_PREFIX: str = "edumind:token-denylist:v1"
     MAX_UPLOAD_SIZE_MB: int = 10
     AUTH_COOKIE_NAME: str = "edumind_access_token"
     CSRF_COOKIE_NAME: str = "edumind_csrf_token"
@@ -80,7 +89,9 @@ class Settings(BaseSettings):
     BACKGROUND_TASK_CIRCUIT_BREAKER_OPEN_SECONDS: int = 120
     BACKGROUND_TASK_REDIS_PREFIX: str = "edumind:background:v1"
     
-    # AI Keys (System Level)
+    # Claves de sistema. DEEPSEEK/CLAUDE/GEMINI ya no se usan en ninguna
+    # petición (los proveedores externos van siempre con clave del usuario);
+    # se conservan solo para que un .env antiguo no rompa el arranque.
     DEEPSEEK_API_KEY: Optional[str] = None
     CLAUDE_API_KEY: Optional[str] = None
     MISTRAL_API_KEY: Optional[str] = None
@@ -92,6 +103,22 @@ class Settings(BaseSettings):
     # Core
     EDUMIND_CORE_URL: Optional[str] = None
     EDUMIND_CORE_TOKEN: Optional[str] = None
+    EDUMIND_CORE_MODEL: str = "/models/mistral-7b-instruct-v0.1.Q4_K_M.gguf"
+    EDUMIND_CORE_READ_TIMEOUT_SECONDS: float = 120.0
+
+    # Modelos por defecto de los proveedores con clave del usuario (se pueden fijar por .env)
+    OPENAI_DEFAULT_MODEL: str = "gpt-4.1"
+    CLAUDE_DEFAULT_MODEL: str = "claude-sonnet-4-5"
+    GEMINI_DEFAULT_MODEL: str = "gemini-2.5-flash"
+    MISTRAL_DEFAULT_MODEL: str = "mistral-small-latest"
+    AI_MAX_OUTPUT_TOKENS: int = 4096
+    OLLAMA_NUM_CTX: int = 8192
+    # Si EDUmind Core falla, servir con Gemma 4 del servidor: off | registered | all
+    MANAGED_FALLBACK_TO_OLLAMA: str = "registered"
+    AI_TRANSIENT_RETRIES: int = 1
+    # Memoria acotada del chat (turnos y caracteres que llegan al modelo)
+    CHAT_MAX_MESSAGES: int = 12
+    CHAT_MAX_CONTEXT_CHARS: int = 16000
 
     # Cache / Redis
     REDIS_URL: Optional[str] = None
@@ -317,4 +344,4 @@ settings.DATASET_DIR.mkdir(parents=True, exist_ok=True)
 settings.UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 settings.TRAINING_DIR.mkdir(parents=True, exist_ok=True)
 
-SUPPORTED_ENGINES = ["chatgpt", "deepseek", "claude", "gemini", "edumind", "ollama", "mistral"]
+SUPPORTED_ENGINES = ["chatgpt", "claude", "gemini", "edumind", "ollama", "mistral"]

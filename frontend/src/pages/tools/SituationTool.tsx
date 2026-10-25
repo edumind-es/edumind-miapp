@@ -27,11 +27,16 @@ import { NEAEDetailedSelector } from "@/components/NEAESelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 import { getModelDisplayName } from "@/lib/pedagogical-models";
 import { formatNEAEForPrompt, type NEAECase } from "@/lib/neae";
+import { getInitialEngine } from "@/lib/engine-preference";
+import { CurriculumMatrixSelector } from "@/components/CurriculumMatrixSelector";
+import { useTeacherProfile } from "@/hooks/useTeacherProfile";
+import type { MatrizCurricularRef } from "@/lib/curriculum-service";
 
 export default function SituationTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
+    const [matriz, setMatriz] = useState<MatrizCurricularRef | null>(null);
 
     const [formData, setFormData] = useState({
         curso: "3º ESO",
@@ -47,6 +52,15 @@ export default function SituationTool() {
         tipo_temporalizacion: "semanas"
     });
 
+    // Perfil docente: el curso habitual prellena el formulario una sola vez si el docente no ha escrito nada
+    // (ajuste de estado durante el render, sin efecto).
+    const teacherProfile = useTeacherProfile();
+    const [cursoPerfilAplicado, setCursoPerfilAplicado] = useState<string | null>(null);
+    if (teacherProfile?.curso && cursoPerfilAplicado !== teacherProfile.curso) {
+        setCursoPerfilAplicado(teacherProfile.curso);
+        if (!formData.curso) setFormData({ ...formData, curso: teacherProfile.curso });
+    }
+
     const [neaeCases, setNeaeCases] = useState<NEAECase[]>([]);
     const [contextualData, setContextualData] = useState<ContextualData>({});
 
@@ -55,6 +69,7 @@ export default function SituationTool() {
         await runGeneration((onChunk, options) =>
             generatorService.generateSituation({
                 ...formData,
+                matriz_curricular: matriz ?? undefined,
                 modelo_pedagogico: getModelDisplayName(formData.modelo_pedagogico, formData.modelo_pedagogico_custom),
                 casos_neae: formatNEAEForPrompt(neaeCases),
                 ...contextualData,
@@ -85,16 +100,18 @@ export default function SituationTool() {
             <form onSubmit={handleSubmit} className="space-y-6">
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
+                <CurriculumMatrixSelector value={matriz} onChange={setMatriz} />
+
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Tempo. (Número)</label>
-                        <input type="number" className="lam-input"
+                        <label className="lam-label" htmlFor="situation-tempo-numero">Tempo. (Número)</label>
+                        <input id="situation-tempo-numero" type="number" className="lam-input"
                             placeholder="Ej: 3"
                             value={formData.temporalizacion} onChange={e => setFormData({ ...formData, temporalizacion: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Unidad</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="situation-unidad">Unidad</label>
+                        <select id="situation-unidad" className="lam-input"
                             value={formData.tipo_temporalizacion} onChange={e => setFormData({ ...formData, tipo_temporalizacion: e.target.value })}>
                             <option value="sesiones">Sesiones</option>
                             <option value="semanas">Semanas</option>
@@ -105,9 +122,10 @@ export default function SituationTool() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Curso</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="situation-curso">Curso</label>
+                        <select id="situation-curso" className="lam-input"
                             value={formData.curso} onChange={e => setFormData({ ...formData, curso: e.target.value })}>
+                            <option value="">Selecciona un curso</option>
                             {EDUCATION_LEVELS.map((level) => (
                                 <optgroup key={level.stage} label={level.stage}>
                                     {level.courses.map((course) => (
@@ -118,8 +136,8 @@ export default function SituationTool() {
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Etapa</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="situation-etapa">Etapa</label>
+                        <select id="situation-etapa" className="lam-input"
                             value={formData.etapa_educativa} onChange={e => setFormData({ ...formData, etapa_educativa: e.target.value })}>
                             {EDUCATION_LEVELS.map((level) => (
                                 <option key={level.stage} value={level.stage}>{level.stage}</option>
@@ -139,8 +157,8 @@ export default function SituationTool() {
                 />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Objetivos y Contenidos Clave</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="situation-objetivos-y-contenidos-clave">Objetivos y Contenidos Clave</label>
+                    <textarea id="situation-objetivos-y-contenidos-clave" className="lam-input h-24 resize-none"
                         placeholder="Describe brevemente los objetivos..."
                         value={formData.objetivos} onChange={e => setFormData({ ...formData, objetivos: e.target.value })} required />
                 </div>

@@ -29,6 +29,7 @@ from urllib.parse import urlparse
 from app.core.config import settings
 from app.core.system_prompts import (
     get_generator_prompt as get_generator_system_prompt,
+    get_prompt_profile,
     get_system_prompt,
     get_temperature,
 )
@@ -36,9 +37,8 @@ from app.services.knowledge_service import KnowledgeService
 
 logger = logging.getLogger(__name__)
 
-# Initialize Clients
-deepseek_client = AsyncOpenAI(api_key=settings.DEEPSEEK_API_KEY, base_url="https://api.deepseek.com/v1") if settings.DEEPSEEK_API_KEY else None
-# Note: For user-provided keys, we will instantiate clients per request or pass the key.
+# Los clientes de proveedores externos se crean por petición con la clave
+# del usuario; no se instancia ninguno con claves del sistema.
 
 
 def inject_system_prompt(
@@ -63,9 +63,9 @@ def inject_system_prompt(
     if has_system:
         return messages
     
-    # Get knowledge context for enrichment
+    # Get knowledge context for enrichment (solo para modelos grandes con clave del usuario)
     knowledge_context = ""
-    if include_knowledge:
+    if include_knowledge and get_prompt_profile(provider) == "full":
         knowledge_context = KnowledgeService.get_context_for_prompt(
             include_lomloe=True,
             include_competencias=True
@@ -117,8 +117,10 @@ class AIService:
         api_key: str,
         model: Optional[str] = None,
         generator_type: Optional[str] = None,
+        json_mode: bool = False,
     ) -> AsyncGenerator[str, None]:
-        
+        """json_mode activa el modo JSON nativo donde el proveedor lo ofrece (OpenAI, Mistral, Gemini, Ollama)."""
+
         provider = provider.lower()
         
         # Inject system prompt with knowledge context for all providers
@@ -130,29 +132,16 @@ class AIService:
         )
         temperature = get_temperature(provider)
         
-        if provider == "deepseek":
-            client = AsyncOpenAI(api_key=api_key, base_url="https://api.deepseek.com/v1")
-            model = model or "deepseek-chat"
-            async for chunk in await client.chat.completions.create(
-                model=model,
-                messages=enriched_messages,
-                stream=True,
-                max_tokens=4096,
-                temperature=temperature
-            ):
-                content = chunk.choices[0].delta.content
-                if content:
-                    yield content
-
-        elif provider == "mistral":
+        if provider == "mistral":
             # Mistral supports OpenAI format
             client = AsyncOpenAI(api_key=api_key, base_url="https://api.mistral.ai/v1")
-            model = model or "mistral-small-latest"
+            model = model or settings.MISTRAL_DEFAULT_MODEL
             async for chunk in await client.chat.completions.create(
                 model=model,
                 messages=enriched_messages,
                 stream=True,
-                temperature=temperature
+                temperature=temperature,
+                **({"response_format": {"type": "json_object"}} if json_mode else {}),
             ):
                 content = chunk.choices[0].delta.content
                 if content:
@@ -161,13 +150,14 @@ class AIService:
         elif provider == "chatgpt":
             # OpenAI ChatGPT - uses official API
             client = AsyncOpenAI(api_key=api_key)
-            model = model or "gpt-4o"
+            model = model or settings.OPENAI_DEFAULT_MODEL
             async for chunk in await client.chat.completions.create(
                 model=model,
                 messages=enriched_messages,
                 stream=True,
-                max_tokens=4096,
-                temperature=temperature
+                max_tokens=settings.AI_MAX_OUTPUT_TOKENS,
+                temperature=temperature,
+                **({"response_format": {"type": "json_object"}} if json_mode else {}),
             ):
                 content = chunk.choices[0].delta.content
                 if content:
@@ -177,7 +167,7 @@ class AIService:
             # Anthropic Claude - requires special message format
             from anthropic import AsyncAnthropic
             client = AsyncAnthropic(api_key=api_key)
-            model = model or "claude-3-5-sonnet-20241022"
+            model = model or settings.CLAUDE_DEFAULT_MODEL
             
             # Claude SDK handles system separately from messages
             system_content = ""
@@ -189,10 +179,11 @@ class AIService:
                     user_messages.append(msg)
             
             async with client.messages.stream(
-                max_tokens=4096,
+                max_tokens=settings.AI_MAX_OUTPUT_TOKENS,
                 system=system_content if system_content else None,
                 messages=user_messages,
                 model=model,
+                temperature=temperature,
             ) as stream:
                 async for text in stream.text_stream:
                     yield text
@@ -209,22 +200,24 @@ class AIService:
                 return
 
             client = genai.Client(api_key=api_key)
-            model_name = model or "gemini-2.0-flash"
+            model_name = model or settings.GEMINI_DEFAULT_MODEL
             
-            # Build full context for Gemini (concatenate system + user messages)
-            full_content = ""
-            for msg in enriched_messages:
-                if msg['role'] == 'system':
-                    full_content += f"[System Instructions]\n{msg['content']}\n\n"
-                else:
-                    full_content += f"{msg['content']}\n"
-            
-            # Use streaming
-            response = client.models.generate_content_stream(
-                model=model_name,
-                contents=full_content
+            # El system prompt va como system_instruction; el resto como contenido del usuario.
+            system_parts = [msg["content"] for msg in enriched_messages if msg["role"] == "system"]
+            user_content = "\n".join(msg["content"] for msg in enriched_messages if msg["role"] != "system")
+            config = types.GenerateContentConfig(
+                system_instruction="\n".join(system_parts) or None,
+                temperature=temperature,
+                max_output_tokens=settings.AI_MAX_OUTPUT_TOKENS,
+                response_mime_type="application/json" if json_mode else None,
             )
-            for chunk in response:
+            # Cliente asíncrono: la versión síncrona bloqueaba el event loop durante todo el stream.
+            response = await client.aio.models.generate_content_stream(
+                model=model_name,
+                contents=user_content,
+                config=config,
+            )
+            async for chunk in response:
                 if chunk.text:
                     yield chunk.text
         
@@ -254,7 +247,7 @@ class AIService:
             }
             
             payload = {
-                "model": model or "/models/mistral-7b-instruct-v0.1.Q4_K_M.gguf",
+                "model": model or settings.EDUMIND_CORE_MODEL,
                 "messages": enriched_messages,
                 "stream": True
             }
@@ -266,7 +259,7 @@ class AIService:
                         f"{core_url}/v1/chat/completions",
                         json=payload,
                         headers=headers,
-                        timeout=httpx.Timeout(connect=8.0, read=35.0, write=10.0, pool=10.0),
+                        timeout=httpx.Timeout(connect=8.0, read=settings.EDUMIND_CORE_READ_TIMEOUT_SECONDS, write=10.0, pool=10.0),
                     ) as response:
                         if response.status_code != 200:
                             logger.warning("EDUmind Core returned status %s", response.status_code)
@@ -306,9 +299,14 @@ class AIService:
                 "messages": enriched_messages,
                 "stream": True,
                 "options": {
-                    "temperature": 0.7
-                }
+                    "temperature": temperature,
+                    # Sin num_ctx Ollama usa 2048 tokens y trunca el marco curricular; num_predict acota la salida.
+                    "num_ctx": settings.OLLAMA_NUM_CTX,
+                    "num_predict": settings.AI_MAX_OUTPUT_TOKENS,
+                },
             }
+            if json_mode:
+                payload["format"] = "json"
             
             try:
                 async with httpx.AsyncClient() as client:

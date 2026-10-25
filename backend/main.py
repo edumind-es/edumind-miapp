@@ -20,25 +20,23 @@ import time
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.core.config import settings
-from app.core.security import get_client_ip
+from app.core.rate_limit import limiter
 from app.core.anonymous_session import ensure_anonymous_cookie
 from app.db import init_db
 from app.services.metrics_service import metrics
 
-# Rate Limiter
-def _limit_key(request):
-    return get_client_ip(request)
-
-
-limiter = Limiter(key_func=_limit_key, default_limits=["200/minute"])
-
 # Create App
+# La documentación interactiva y el esquema OpenAPI solo se sirven en
+# desarrollo: en producción publicarían todas las rutas, incluidas las de admin.
+_expose_api_docs = settings.RUNTIME_ENV == "development"
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json" if _expose_api_docs else None,
+    docs_url="/docs" if _expose_api_docs else None,
+    redoc_url="/redoc" if _expose_api_docs else None,
 )
 
 # Attach limiter to app state
@@ -70,6 +68,23 @@ elif settings.DEBUG:
 @app.on_event("startup")
 def on_startup():
     init_db()
+    _purge_old_activity_logs()
+
+
+def _purge_old_activity_logs():
+    """Aplica la política de retención al arrancar; un fallo aquí no impide servir."""
+    try:
+        from sqlmodel import Session
+
+        from app.db import engine
+        from app.services.retention_service import purge_activity_log
+
+        with Session(engine) as session:
+            purge_activity_log(session)
+    except Exception:  # pragma: no cover - solo registro
+        import logging
+
+        logging.getLogger(__name__).exception("No se pudo aplicar la retención de ActivityLog")
 
 
 @app.middleware("http")
@@ -94,7 +109,7 @@ async def anonymous_session_middleware(request, call_next):
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to EDUMind MiApp API", "docs": "/docs"}
+    return {"message": "Welcome to EDUMind MiApp API", "docs": "/docs" if _expose_api_docs else None}
 
 from app.api.v1.api import api_router
 app.include_router(api_router, prefix=settings.API_V1_STR)

@@ -19,38 +19,19 @@
 // Panel de herramientas en modo EDUmind-Lámina: lista de filete numerada, sin rejilla
 // de tarjetas, sin iconos. El perfil se resuelve igual que antes (sesión o ?role=).
 
-import { Link, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+import { TeacherProfileForm } from "@/components/TeacherProfileForm";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { deleteCurrentAccount } from "@/lib/auth-client";
+import { toolsForProfile, type ToolDefinition, type ToolProfile } from "@/lib/tools-registry";
 
-interface Tool {
-    id: string;
-    title: string;
-    desc: string;
-    link: string;
-}
-
-const TOOLS: Record<"docente" | "opositor" | "centro", Tool[]> = {
-    docente: [
-        { id: "planning", title: "Planificación semanal", desc: "Construye sesiones fechadas con criterios, DUA y recursos reales de aula.", link: "/tools/planning" },
-        { id: "situation", title: "Situación de aprendizaje", desc: "Crea situaciones de aprendizaje LOMLOE.", link: "/tools/situation" },
-        { id: "stem", title: "Proyectos STEM", desc: "Diseña proyectos Maker y Polos Creativos.", link: "/tools/stem" },
-        { id: "diversity", title: "Plan de inclusión", desc: "Intervención para NEAE y diversidad.", link: "/tools/diversity" },
-        { id: "reinforcement_plan", title: "Plan de refuerzo", desc: "Plan de refuerzo anónimo con base curricular oficial.", link: "/tools/reinforcement_plan" },
-        { id: "session", title: "Diseño de sesiones", desc: "Planificación detallada sesión a sesión.", link: "/tools/session" },
-    ],
-    opositor: [
-        { id: "case", title: "Supuestos prácticos", desc: "Entrenamiento y resolución de casos.", link: "/tools/case" },
-        { id: "topic", title: "Desarrollo de temas", desc: "Generación de temas de estudio.", link: "/tools/topic" },
-        { id: "defense", title: "Defensa oral", desc: "Preparación de la defensa y debate.", link: "/tools/defense" },
-        { id: "idea", title: "Mentor y lluvia de ideas", desc: "Consultas creativas para tu oposición.", link: "/tools/idea" },
-    ],
-    centro: [
-        { id: "minutes", title: "Actas de reunión", desc: "Redacción formal de actas (claustro, CCP...).", link: "/tools/minutes" },
-        { id: "institution_doc", title: "Documentación institucional", desc: "PGA, RRI, planes de centro...", link: "/tools/institution_doc" },
-        { id: "inspection_report", title: "Inspección educativa", desc: "Informes, actas y respuestas técnicas para requerimientos de inspección.", link: "/tools/inspection_report" },
-        { id: "reinforcement_plan", title: "Plan de refuerzo", desc: "Plan de refuerzo por área con enfoque privacy-first y seguimiento.", link: "/tools/reinforcement_plan" },
-        { id: "normativa", title: "Aplicación normativa", desc: "Consultas legales sobre convivencia (Galicia).", link: "/tools/normativa" },
-    ],
+// Las herramientas de cada perfil salen del registro único (lib/tools-registry.ts).
+const TOOLS: Record<ToolProfile, ToolDefinition[]> = {
+    docente: toolsForProfile("docente"),
+    opositor: toolsForProfile("opositor"),
+    centro: toolsForProfile("centro"),
 };
 
 const ROLE_TO_TOOLS_KEY: Record<string, keyof typeof TOOLS> = {
@@ -76,8 +57,31 @@ const PROFILE_SWITCH: Array<{ key: keyof typeof TOOLS; label: string }> = [
 ];
 
 export default function Dashboard() {
-    const { user } = useAuthSession();
+    const { user, refreshSession } = useAuthSession();
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    // Supresión de cuenta: el docente escribe su usuario, confirma en el diálogo y el servidor borra todo.
+    const [deleteConfirm, setDeleteConfirm] = useState("");
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+    const canRequestDelete = Boolean(user) && deleteConfirm.trim().toLowerCase() === (user?.username ?? "").toLowerCase();
+
+    async function handleDeleteAccount() {
+        if (!user) return;
+        setDeleting(true);
+        setDeleteError(null);
+        try {
+            await deleteCurrentAccount(deleteConfirm.trim());
+            setDeleteDialogOpen(false);
+            await refreshSession();
+            navigate("/", { replace: true });
+        } catch (error) {
+            setDeleteError(error instanceof Error ? error.message : "No se pudo eliminar la cuenta.");
+        } finally {
+            setDeleting(false);
+        }
+    }
     const sessionRole = user?.role ?? "";
     const requestedRole = searchParams.get("role") ?? "";
     const toolsKey = ROLE_TO_TOOLS_KEY[requestedRole] ?? ROLE_TO_TOOLS_KEY[sessionRole] ?? "docente";
@@ -102,13 +106,13 @@ export default function Dashboard() {
                                 </span>
                                 <div className="flex-1 min-w-0">
                                     <h2 className="m-0 text-[20px] font-bold">
-                                        <Link to={tool.link} className="no-underline hover:underline underline-offset-4">
+                                        <Link to={tool.path} className="no-underline hover:underline underline-offset-4">
                                             {tool.title}
                                         </Link>
                                     </h2>
                                     <p className="m-0 mt-1 text-ink-2 max-w-[60ch]">{tool.desc}</p>
                                 </div>
-                                <Link to={tool.link} className="lam-btn lam-btn-sm lam-btn-ghost self-center shrink-0">
+                                <Link to={tool.path} className="lam-btn lam-btn-sm lam-btn-ghost self-center shrink-0">
                                     Abrir
                                 </Link>
                             </li>
@@ -151,8 +155,57 @@ export default function Dashboard() {
                             <dd>Sin nombre ni identificadores del alumnado</dd>
                         </div>
                     </dl>
+
+                    {user ? (
+                        <section className="mt-8 border-t border-ink pt-5" aria-labelledby="perfil-docente">
+                            <div id="perfil-docente" className="lam-mono mb-3">Mi perfil docente</div>
+                            <TeacherProfileForm />
+                        </section>
+                    ) : null}
+
+                    {user ? (
+                        <section className="mt-8 border-t border-ink pt-5" aria-labelledby="eliminar-cuenta">
+                            <div id="eliminar-cuenta" className="lam-mono mb-2">Tu cuenta</div>
+                            <p className="m-0 text-ink-2 text-[14px] leading-snug">
+                                Puedes eliminar tu cuenta cuando quieras. Se borran tus clases, códigos de alumnado,
+                                recursos, planificador, claves API y registros. No se puede deshacer.
+                            </p>
+                            <label className="block mt-3 text-[12px] font-mono uppercase tracking-[0.12em]" htmlFor="eliminar-cuenta-usuario">
+                                Escribe tu usuario para confirmar
+                            </label>
+                            <input
+                                id="eliminar-cuenta-usuario"
+                                className="lam-input w-full mt-1"
+                                autoComplete="off"
+                                value={deleteConfirm}
+                                onChange={(event) => setDeleteConfirm(event.target.value)}
+                                placeholder={user.username}
+                            />
+                            <button
+                                type="button"
+                                className="lam-btn lam-btn-sm mt-3 !bg-alert !border-alert"
+                                disabled={!canRequestDelete || deleting}
+                                onClick={() => setDeleteDialogOpen(true)}
+                            >
+                                Eliminar mi cuenta
+                            </button>
+                            {deleteError ? <p className="m-0 mt-2 text-alert text-[13px]">{deleteError}</p> : null}
+                        </section>
+                    ) : null}
                 </aside>
             </div>
+
+            <ConfirmationDialog
+                open={deleteDialogOpen}
+                title="Eliminar tu cuenta de EDUmind"
+                description="Se eliminarán de forma definitiva tu usuario y todos tus datos personales. Las aportaciones al dataset ya verificadas quedan sin autor."
+                confirmLabel="Sí, eliminar mi cuenta"
+                cancelLabel="Cancelar"
+                destructive
+                busy={deleting}
+                onConfirm={() => void handleDeleteAccount()}
+                onCancel={() => setDeleteDialogOpen(false)}
+            />
         </main>
     );
 }

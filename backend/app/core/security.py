@@ -20,6 +20,8 @@ from ipaddress import ip_address
 
 from fastapi import Request
 
+from typing import Optional
+
 from app.core.config import settings
 
 
@@ -33,7 +35,11 @@ def _normalize_ip(raw_ip: str) -> str:
 
 
 def _trusted_forwarded_ip(request: Request) -> str:
-    for header_name in ("CF-Connecting-IP", "X-Real-IP"):
+    # Solo se aceptan las cabeceras que el proxy fija de forma explícita.
+    # Por defecto únicamente X-Real-IP: nginx la sobrescribe siempre con
+    # $remote_addr, mientras que CF-Connecting-IP solo es fiable si la pone
+    # Cloudflare y el origen está protegido (se habilita por configuración).
+    for header_name in settings.TRUSTED_CLIENT_IP_HEADERS:
         header_value = _normalize_ip(request.headers.get(header_name, ""))
         if header_value:
             return header_value
@@ -69,3 +75,14 @@ def is_private_or_loopback_ip(raw_ip: str) -> bool:
 
 def is_vpn_or_local_request(request: Request) -> bool:
     return is_private_or_loopback_ip(get_client_ip(request))
+
+
+def get_client_ip_for_log(request) -> Optional[str]:
+    """IP del cliente ya enmascarada (último octeto o mitad IPv6) para registros persistentes.
+
+    La IP completa solo se usa en memoria (límite de peticiones, allowlist de VPN);
+    lo que se escribe en base de datos nunca identifica a la persona por sí solo.
+    """
+    from app.services.metrics_service import mask_ip_address  # import local: evita un ciclo
+
+    return mask_ip_address(get_client_ip(request))

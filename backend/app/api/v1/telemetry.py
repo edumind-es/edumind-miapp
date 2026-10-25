@@ -22,11 +22,11 @@ import json
 
 from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel, Field
-from slowapi import Limiter
 from sqlmodel import Session
 
 from app.api.v1.auth import get_current_user_optional
-from app.core.security import get_client_ip
+from app.core.security import get_client_ip_for_log
+from app.core.rate_limit import limiter
 from app.db import get_session
 from app.models import ActivityLog, User
 from app.services.metrics_service import (
@@ -39,11 +39,6 @@ from app.services.metrics_service import (
 router = APIRouter()
 
 
-def _telemetry_limit_key(request: Request) -> str:
-    return get_client_ip(request)
-
-
-limiter = Limiter(key_func=_telemetry_limit_key)
 
 
 class InvalidNavigationPayload(BaseModel):
@@ -87,7 +82,7 @@ async def track_invalid_navigation(
             action="navigation_invalid",
             resource_type="frontend_route",
             details=json.dumps(details, ensure_ascii=True),
-            ip_address=get_client_ip(request),
+            ip_address=get_client_ip_for_log(request),
         )
         db.add(event)
         db.commit()

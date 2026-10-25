@@ -1,0 +1,15 @@
+{
+  "max_prompt_chars_default": 9000,
+  "max_prompt_chars_by_tool": {
+    "inspection_report": 12000,
+    "reinforcement_plan": 12000,
+    "institution_doc": 11000
+  },
+  "forbidden_phrases": [
+    "EDUmind Robotics",
+    "Liga de Valores",
+    "RESUMEN OPERATIVO",
+    "24-72",
+    "Usa Markdown"
+  ]
+}

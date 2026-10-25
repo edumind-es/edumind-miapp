@@ -28,13 +28,7 @@ import {
     type AuthConfig,
 } from "@/lib/auth-client";
 import { useAuthSession } from "@/hooks/useAuthSession";
-
-function sanitizeNextPath(rawNext: string | null): string {
-    if (!rawNext || !rawNext.startsWith("/") || rawNext.startsWith("//") || rawNext.startsWith("/api/")) {
-        return "/dashboard";
-    }
-    return rawNext;
-}
+import { sanitizeNextPath } from "@/lib/next-path";
 
 async function resolveDefaultRedirect(): Promise<string> {
     const { path } = await fetchDefaultDestination();
@@ -63,6 +57,13 @@ export default function AdminLogin() {
         () => sanitizeNextPath(searchParams.get("next")),
         [searchParams],
     );
+
+    // Llegada desde una ruta protegida tras un 401: se explica por qué se pide identificarse de nuevo.
+    useEffect(() => {
+        if (searchParams.get("reason") === "expired") {
+            setError("Tu sesión ha caducado. Identifícate de nuevo para continuar.");
+        }
+    }, [searchParams]);
     const postLoginHint = useMemo(() => getPostLoginHint(nextPath), [nextPath]);
 
     useEffect(() => {

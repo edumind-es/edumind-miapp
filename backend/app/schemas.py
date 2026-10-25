@@ -208,6 +208,7 @@ class RubricsRequest(BaseModel):
     area: str
     criterios: int
     descripcion: str
+    matriz_curricular: Optional[MatrizCurricularRef] = None
     provider: str = "edumind"
     api_key: Optional[str] = None
 
@@ -247,3 +248,19 @@ class NormativeRequest(BaseModel):
     response_format: str = "json"  # text | json
     provider: str = "edumind"
     api_key: Optional[str] = None
+
+
+# Perfil pedagógico del docente (sin datos personales)
+class TeacherProfileIn(BaseModel):
+    comunidad_key: Optional[str] = None
+    etapa_key: Optional[str] = None
+    area_key: Optional[str] = None
+    curso: Optional[str] = None
+    matriz_id: Optional[str] = None
+    metodologia_slider: Optional[int] = None
+    tipo_agrupamiento: Optional[str] = None
+    contexto_aula: Optional[str] = None
+
+
+class TeacherProfileOut(TeacherProfileIn):
+    updated_at: Optional[str] = None

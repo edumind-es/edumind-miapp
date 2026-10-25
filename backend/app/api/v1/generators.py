@@ -16,6 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -27,7 +28,6 @@ from typing import Any, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from slowapi import Limiter
 from sqlmodel import Session
 
 from app import schemas
@@ -36,11 +36,14 @@ from app.core import config
 from app.core.prompt_registry import (
     PromptBundle,
     PromptValidationError,
+    describe_prompt_contracts_for_client,
     get_generator_prompt,
     list_prompt_contracts,
 )
 from app.core.queue_manager import queue_manager
-from app.core.security import get_client_ip, is_vpn_or_local_request
+from app.core.security import get_client_ip, get_client_ip_for_log, is_vpn_or_local_request
+from app.core.rate_limit import limiter
+from app.services.dataset_privacy import scrub_payload, scrub_personal_data
 from app.db import get_session
 from app.models import ActivityLog, TrainingItem, TrainingItemSource, User, UserRole
 from app.schemas import PlanningRequest, ProjectRequest, SituationRequest
@@ -73,13 +76,8 @@ INTERNAL_OUTPUT_LINE_PATTERNS = (
 )
 
 
-def _generator_limit_key(request: Request) -> str:
-    return get_client_ip(request)
 
-
-limiter = Limiter(key_func=_generator_limit_key)
-
-BYOK_PROVIDERS = {"chatgpt", "deepseek", "claude", "gemini"}
+BYOK_PROVIDERS = {"chatgpt", "claude", "gemini"}
 MANAGED_PROVIDERS = {"edumind"}
 RESTRICTED_PROVIDERS = {"ollama", "mistral"}
 ALLOWED_PROVIDERS = BYOK_PROVIDERS | MANAGED_PROVIDERS | RESTRICTED_PROVIDERS
@@ -101,6 +99,8 @@ class DatasetContributionRequest(BaseModel):
     output: str
     tool: Optional[str] = None
     provider: Optional[str] = None
+    # Consentimiento explícito marcado en la UI antes de enviar.
+    consent: bool = False
 
 
 def _has_network_resolution_issue(error_text: str) -> bool:
@@ -332,18 +332,14 @@ def _normalize_provider(provider: str) -> str:
 
 
 def _resolve_api_key(provider: str, api_key: Optional[str], is_admin: bool) -> Optional[str]:
+    """Clave para proveedores externos: solo la que aporta el usuario.
+
+    No existe fallback a claves del sistema, tampoco para admin: EDUmind no
+    envía textos de usuarios a terceros por cuenta propia.
+    """
+    del provider, is_admin
     if api_key and api_key.strip():
         return api_key.strip()
-    if not is_admin:
-        return None
-    if provider == "deepseek":
-        return settings.DEEPSEEK_API_KEY
-    if provider == "claude":
-        return settings.CLAUDE_API_KEY
-    if provider == "gemini":
-        return settings.GEMINI_API_KEY
-    if provider == "chatgpt":
-        return None
     return None
 
 
@@ -451,6 +447,123 @@ def _persist_generation_trace(
         db.rollback()
 
 
+def _fallback_to_ollama_allowed(current_user: Optional[User]) -> bool:
+    modo = (config.settings.MANAGED_FALLBACK_TO_OLLAMA or "off").strip().lower()
+    if modo == "all":
+        return True
+    if modo == "registered":
+        return current_user is not None
+    return False
+
+
+async def _provider_stream(
+    provider: str,
+    messages: list[dict[str, str]],
+    api_key: Optional[str],
+    tool_name: str,
+    current_user: Optional[User],
+    served_by: dict[str, str],
+    json_mode: bool = False,
+):
+    """Stream del proveedor con reintento ante fallos transitorios y degradación real.
+
+    Cadena: EDUmind Core → Gemma 4 en el servidor EDUmind (si la política lo permite)
+    → el cliente decide WebGPU. El primer trozo se inspecciona: un "Error:" inicial
+    del motor gestionado dispara el reintento o el salto de proveedor sin que el
+    usuario vea el error intermedio.
+    """
+    candidatos = [provider]
+    if provider == "edumind" and _fallback_to_ollama_allowed(current_user):
+        candidatos.append("ollama")
+
+    # Último fallo visto: ("empty", None) | ("error_chunk", texto) | ("exception", exc).
+    # Si no queda a quién saltar, se reproduce tal cual para conservar los diagnósticos
+    # y métricas de siempre (vacío, DNS, timeout...).
+    ultimo: tuple[str, object] = ("empty", None)
+    for indice, candidato in enumerate(candidatos):
+        reintentos = config.settings.AI_TRANSIENT_RETRIES if candidato in MANAGED_PROVIDERS | {"ollama"} else 0
+        intento = 0
+        while True:
+            try:
+                stream = AIService.stream_chat(candidato, messages, api_key, generator_type=tool_name, json_mode=json_mode)
+                primero = None
+                async for chunk in stream:
+                    if chunk and chunk.strip():
+                        primero = chunk
+                        break
+                if primero is None:
+                    ultimo = ("empty", None)
+                    break
+                if primero.lstrip().lower().startswith("error:"):
+                    ultimo = ("error_chunk", primero)
+                    break
+                served_by["provider"] = candidato
+                if indice > 0:
+                    yield "[Sistema]: EDUmind Core no está disponible; esta respuesta la genera Gemma 4 en el servidor EDUmind.\n"
+                yield primero
+                async for chunk in stream:
+                    yield chunk
+                return
+            except Exception as exc:  # fallo transitorio (timeout, conexión): se reintenta con espera
+                ultimo = ("exception", exc)
+                logger.warning("Proveedor %s falló (intento %s/%s): %s", candidato, intento + 1, reintentos + 1, exc)
+                if intento >= reintentos:
+                    break
+                intento += 1
+                await asyncio.sleep(1.5 * intento)
+    tipo, dato = ultimo
+    if tipo == "error_chunk":
+        yield str(dato)
+    elif tipo == "exception":
+        raise dato  # type: ignore[misc]
+    # "empty": no se emite nada y el llamador lo reporta como salida vacía
+
+
+async def _repair_structured_output(
+    provider: str,
+    api_key: Optional[str],
+    tool_name: str,
+    prompt_bundle: PromptBundle,
+    raw_response: str,
+    errores: str,
+) -> str:
+    """Segunda llamada acotada: el modelo recibe su JSON y los errores y debe devolver solo JSON válido."""
+    mensajes = [
+        {"role": "user", "content": prompt_bundle.prompt_text},
+        {"role": "assistant", "content": raw_response[:20000]},
+        {
+            "role": "user",
+            "content": (
+                "Tu respuesta anterior no cumple el esquema. Errores: "
+                f"{errores}. Devuelve EXCLUSIVAMENTE el JSON corregido, completo y válido, "
+                "sin comentarios ni texto fuera del JSON, con exactamente estas claves:\n"
+                + json.dumps(prompt_bundle.output_schema or {}, ensure_ascii=False)
+            ),
+        },
+    ]
+    partes: list[str] = []
+    async for chunk in AIService.stream_chat(provider, mensajes, api_key, generator_type=tool_name, json_mode=True):
+        limpio = _strip_provider_artifacts(chunk)
+        if limpio:
+            partes.append(limpio)
+    return "".join(partes)
+
+
+def _curriculum_review(prompt_bundle: PromptBundle, text: str) -> Optional[dict[str, Any]]:
+    """Si la generación partía de una matriz oficial, comprueba los códigos citados en la salida."""
+    matriz_id = (prompt_bundle.sanitized_payload or {}).get("matriz_id")
+    if not isinstance(matriz_id, str) or not matriz_id:
+        return None
+    resultado = CurriculumMatrixService.validate_cited_codes(matriz_id, text)
+    if not resultado["desconocidos"]:
+        return None
+    return {
+        "matriz": matriz_id,
+        "codigos_no_encontrados": resultado["desconocidos"],
+        "aviso": "La salida cita códigos que no existen en la matriz oficial seleccionada. Revísala antes de usarla.",
+    }
+
+
 async def _stream_generator(
     provider: str,
     api_key: Optional[str],
@@ -470,15 +583,19 @@ async def _stream_generator(
     failed = False
     outcome = "success"
     has_substantive_output = False
+    served_by = {"provider": provider}
     started_at = time.monotonic()
     try:
         if prompt_bundle.response_format == "json":
             raw_response = ""
-            async for chunk in AIService.stream_chat(
+            async for chunk in _provider_stream(
                 provider,
                 messages,
                 api_key,
-                generator_type=tool_name,
+                tool_name,
+                current_user,
+                served_by,
+                json_mode=True,
             ):
                 cleaned_chunk = _strip_provider_artifacts(chunk)
                 if not cleaned_chunk:
@@ -512,7 +629,22 @@ async def _stream_generator(
                 yield stripped_response
             else:
                 try:
-                    full_response = _normalize_structured_output(raw_response, prompt_bundle)
+                    try:
+                        full_response = _normalize_structured_output(raw_response, prompt_bundle)
+                    except Exception as primer_error:
+                        # Pase de reparación: se devuelve al modelo su salida con los errores del esquema.
+                        logger.info("Salida JSON no válida (%s); se intenta reparar con %s", primer_error, served_by["provider"])
+                        reparada = await _repair_structured_output(
+                            served_by["provider"], api_key, tool_name, prompt_bundle, raw_response, str(primer_error)
+                        )
+                        full_response = _normalize_structured_output(reparada, prompt_bundle)
+                        outcome = "repaired"
+                    revision = _curriculum_review(prompt_bundle, full_response)
+                    if revision:
+                        documento = json.loads(full_response)
+                        if isinstance(documento, dict):
+                            documento["_revision_curricular"] = revision
+                            full_response = json.dumps(documento, ensure_ascii=False)
                     yield full_response
                 except Exception:
                     failed = True
@@ -523,11 +655,13 @@ async def _stream_generator(
                         "Revisa los datos de entrada o prueba otro motor."
                     )
         else:
-            async for chunk in AIService.stream_chat(
+            async for chunk in _provider_stream(
                 provider,
                 messages,
                 api_key,
-                generator_type=tool_name,
+                tool_name,
+                current_user,
+                served_by,
             ):
                 cleaned_chunk = clean_text_chunk(chunk)
                 if not cleaned_chunk:
@@ -538,6 +672,16 @@ async def _stream_generator(
                 full_response += cleaned_chunk
 
             stripped_response = full_response.lstrip()
+            if has_substantive_output and not stripped_response.lower().startswith("error:"):
+                revision = _curriculum_review(prompt_bundle, full_response)
+                if revision:
+                    aviso = (
+                        "\n\n[Revisión curricular]: códigos citados que no existen en la matriz "
+                        f"{revision['matriz']}: {', '.join(revision['codigos_no_encontrados'])}. "
+                        "Revísalos antes de usar el documento.\n"
+                    )
+                    yield aviso
+                    full_response += aviso
             if not has_substantive_output:
                 failed = True
                 outcome = "empty"
@@ -569,7 +713,7 @@ async def _stream_generator(
         duration_ms = (time.monotonic() - started_at) * 1000
         metrics.record_generation(
             tool_name=tool_name,
-            provider=provider,
+            provider=served_by["provider"],
             outcome=outcome,
             duration_ms=duration_ms,
         )
@@ -578,7 +722,7 @@ async def _stream_generator(
             current_user=current_user,
             request_ip=request_ip,
             tool_name=tool_name,
-            provider=provider,
+            provider=served_by["provider"],
             prompt_bundle=prompt_bundle,
             response_chars=len(full_response),
             failed=failed,
@@ -650,7 +794,7 @@ async def _generate_with_bundle(
             api_key=resolved_api_key,
             prompt_bundle=prompt_bundle,
             tool_name=tool_name,
-            request_ip=get_client_ip(request),
+            request_ip=get_client_ip_for_log(request),
             db=db,
             current_user=current_user,
         ),
@@ -669,6 +813,10 @@ async def _generate_tool(
     current_user: Optional[User],
 ):
     api_key = await _resolve_request_api_key(request, api_key)
+
+    # Minimización: correos, teléfonos y documentos de identidad no viajan a ningún motor,
+    # tampoco al gestionado. Los nombres no se detectan: la UI pide no incluirlos.
+    payload_data = scrub_payload(payload_data)
 
     # Si el payload referencia una matriz curricular oficial, se inyectan sus elementos
     payload_data = CurriculumMatrixService.enrich_generator_payload(payload_data)
@@ -696,6 +844,13 @@ async def get_prompt_contracts(_guard: User | None = Depends(require_admin_or_vp
     return {"contracts": list_prompt_contracts()}
 
 
+@router.get("/local-contracts")
+@limiter.limit("60/minute")
+async def get_local_prompt_contracts(request: Request):
+    """Reglas públicas del modo local: el navegador sanea, valida y compone el prompt sin enviar el formulario."""
+    return describe_prompt_contracts_for_client()
+
+
 @router.post("/render/{tool}", response_model=PromptRenderResponse)
 @limiter.limit("30/minute")
 async def render_prompt(
@@ -703,6 +858,7 @@ async def render_prompt(
     tool: str,
     payload: dict[str, Any] = Body(default_factory=dict),
 ):
+    """Compatibilidad: el frontend ya no envía el formulario aquí en modo local (usa /contracts)."""
     try:
         bundle = get_generator_prompt(tool, CurriculumMatrixService.enrich_generator_payload(payload))
     except KeyError as exc:
@@ -733,13 +889,18 @@ async def contribute_generation_output(
     """
     Save a generation to dataset only when user explicitly opts in from UI.
     """
-    clean_output = (payload.output or "").strip()
+    if not payload.consent:
+        raise HTTPException(
+            status_code=422,
+            detail="Para contribuir al dataset hace falta tu consentimiento explícito.",
+        )
+    clean_output, _ = scrub_personal_data((payload.output or "").strip())
     if len(clean_output) < 80:
         raise HTTPException(status_code=422, detail="El contenido a contribuir es demasiado corto.")
     if len(clean_output) > 64000:
         raise HTTPException(status_code=413, detail="El contenido a contribuir excede el límite permitido.")
 
-    clean_instruction = (payload.instruction or "").strip()
+    clean_instruction, _ = scrub_personal_data((payload.instruction or "").strip())
     clean_tool = (payload.tool or "").strip().lower() or "generador"
     clean_provider = (payload.provider or "").strip().lower() or "unknown"
 
@@ -774,7 +935,7 @@ async def contribute_generation_output(
                 resource_type="training_item",
                 resource_id=item.id,
                 details=json.dumps(details, ensure_ascii=True),
-                ip_address=get_client_ip(request),
+                ip_address=get_client_ip_for_log(request),
             )
         )
         db.commit()

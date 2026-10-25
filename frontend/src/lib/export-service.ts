@@ -86,6 +86,25 @@ export const exportService = {
         await downloadBlob(response, `${safeFilename(options.filename)}.pdf`);
     },
 
+    // Word lo genera el servidor (python-docx); es el formato que piden los centros.
+    async toDocx(options: ExportOptions): Promise<void> {
+        const response = await fetch(`${API_BASE}/docx`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                content: options.content,
+                filename: safeFilename(options.filename),
+                title: options.title
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('No se pudo exportar a Word.');
+        }
+
+        await downloadBlob(response, `${safeFilename(options.filename)}.docx`);
+    },
+
     async toTxt(options: ExportOptions): Promise<void> {
         const textBlob = new Blob([options.content], { type: "text/plain;charset=utf-8" });
         downloadLocalBlob(textBlob, `${safeFilename(options.filename)}.txt`);

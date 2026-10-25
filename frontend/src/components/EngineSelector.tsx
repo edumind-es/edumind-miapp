@@ -20,6 +20,8 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/auth-client";
 import { detectDeviceCapability, type DeviceCapability } from "@/lib/device-capability";
+import { acknowledgeEngine, hasAcknowledgedEngine, rememberEngine } from "@/lib/engine-preference";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 
 interface Engine {
     id: string;
@@ -32,6 +34,9 @@ interface Engine {
     enabled?: boolean;
     reason_disabled?: string | null;
     is_default?: boolean;
+    processing?: "device" | "edumind" | "third_party";
+    provider?: string | null;
+    region?: string | null;
 }
 
 const FALLBACK_ENGINES: Engine[] = [
@@ -39,12 +44,15 @@ const FALLBACK_ENGINES: Engine[] = [
         id: "webgpu",
         name: "Tu Dispositivo",
         color: "bg-ok",
-        desc: "Privado (WebGPU) - Gratis",
+        desc: "Llama 3.2 1B en tu navegador. Nada sale de tu equipo.",
         tier: "local",
         requires_api_key: false,
         enabled: true,
         reason_disabled: null,
         is_default: true,
+        processing: "device",
+        provider: "WebLLM en el navegador",
+        region: "Tu dispositivo",
     },
 ];
 
@@ -101,6 +109,27 @@ function getWebGpuDisableReason(capability: DeviceCapability): string | null {
 }
 
 export function EngineSelector({ currentEngine, onSelect, apiKey, onApiKeyChange }: EngineSelectorProps) {
+    // Motor elegido por el usuario pendiente de aceptar el aviso de procesamiento
+    const [pendingEngine, setPendingEngine] = useState<Engine | null>(null);
+
+    const chooseEngine = (engine: Engine) => {
+        const leavesDevice = engine.processing !== undefined && engine.processing !== "device";
+        if (leavesDevice && !hasAcknowledgedEngine(engine.id)) {
+            setPendingEngine(engine);
+            return;
+        }
+        rememberEngine(engine.id);
+        onSelect(engine.id);
+    };
+
+    const confirmPendingEngine = () => {
+        if (!pendingEngine) return;
+        acknowledgeEngine(pendingEngine.id);
+        rememberEngine(pendingEngine.id);
+        onSelect(pendingEngine.id);
+        setPendingEngine(null);
+    };
+
     const [isOpen, setIsOpen] = useState(false);
     const [engines, setEngines] = useState<Engine[]>([]);
     const [runtimePolicy, setRuntimePolicy] = useState<RuntimePolicy | null>(null);
@@ -249,7 +278,7 @@ export function EngineSelector({ currentEngine, onSelect, apiKey, onApiKeyChange
                     Recomendado ahora: {recommendedEngine.name}
                     <button
                         type="button"
-                        onClick={() => onSelect(recommendedEngine.id)}
+                        onClick={() => chooseEngine(recommendedEngine)}
                         className="lam-btn lam-btn-sm lam-btn-ghost !px-2 !py-1 !text-[10px] !border-vigencia !text-vigencia hover:!bg-vigencia hover:!text-paper"
                     >
                         Aplicar
@@ -308,7 +337,7 @@ export function EngineSelector({ currentEngine, onSelect, apiKey, onApiKeyChange
                                 disabled={engine.enabled === false}
                                 onClick={() => {
                                     if (engine.enabled === false) return;
-                                    onSelect(engine.id);
+                                    chooseEngine(engine);
                                 }}
                                 className={cn(
                                     "w-full flex items-center gap-3 px-3 py-2 transition-colors text-left border border-transparent",
@@ -369,6 +398,35 @@ export function EngineSelector({ currentEngine, onSelect, apiKey, onApiKeyChange
                     </div>
                 </div>
             )}
+            <ConfirmationDialog
+                open={pendingEngine !== null}
+                title="Este motor procesa tus textos fuera de tu dispositivo"
+                confirmLabel="Entendido, usar este motor"
+                cancelLabel="Seguir en local"
+                onConfirm={confirmPendingEngine}
+                onCancel={() => setPendingEngine(null)}
+                description={
+                    pendingEngine ? (
+                        <div className="space-y-2 text-left">
+                            <p>
+                                <strong>{pendingEngine.name}</strong>: {pendingEngine.desc}
+                            </p>
+                            <p>
+                                Procesado por <strong>{pendingEngine.provider ?? "un proveedor externo"}</strong>
+                                {pendingEngine.region ? <> en <strong>{pendingEngine.region}</strong></> : null}.
+                                {pendingEngine.processing === "third_party"
+                                    ? " Lo que escribas sale del servidor de EDUmind hacia ese proveedor y queda sujeto a sus condiciones."
+                                    : " Lo que escribas se procesa en infraestructura de EDUmind y no se envía a terceros."}
+                            </p>
+                            <p>
+                                No incluyas nombres, apellidos, iniciales reconocibles, diagnósticos individuales ni
+                                ningún dato que permita identificar a un alumno o a una familia. Describe el grupo,
+                                no a la persona.
+                            </p>
+                        </div>
+                    ) : null
+                }
+            />
         </div>
     );
 }

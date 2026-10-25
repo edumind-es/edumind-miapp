@@ -26,6 +26,10 @@ import {
     normativeService,
     type CurriculumAreaItem,
 } from "@/lib/normative-retrieval";
+import { getInitialEngine } from "@/lib/engine-preference";
+import { CurriculumMatrixSelector } from "@/components/CurriculumMatrixSelector";
+import { useTeacherProfile } from "@/hooks/useTeacherProfile";
+import type { MatrizCurricularRef } from "@/lib/curriculum-service";
 
 const PRIMARY_COURSES = [
     "1o Primaria",
@@ -45,8 +49,9 @@ function splitManualContents(raw: string): string[] {
 
 export default function ReinforcementPlanTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
+    const [matriz, setMatriz] = useState<MatrizCurricularRef | null>(null);
 
     const [curriculumAreas, setCurriculumAreas] = useState<CurriculumAreaItem[]>([]);
     const [curriculumLoading, setCurriculumLoading] = useState(true);
@@ -68,6 +73,15 @@ export default function ReinforcementPlanTool() {
         normativa_aplicable:
             "Orden del 8 de septiembre de 2021 y Decreto 229/2011, de 7 de diciembre (Galicia).",
     });
+
+    // Perfil docente: el curso habitual prellena el formulario una sola vez si el docente no ha escrito nada
+    // (ajuste de estado durante el render, sin efecto).
+    const teacherProfile = useTeacherProfile();
+    const [cursoPerfilAplicado, setCursoPerfilAplicado] = useState<string | null>(null);
+    if (teacherProfile?.curso && cursoPerfilAplicado !== teacherProfile.curso) {
+        setCursoPerfilAplicado(teacherProfile.curso);
+        if (!formData.curso) setFormData({ ...formData, curso: teacherProfile.curso });
+    }
     const [selectedContents, setSelectedContents] = useState<string[]>([]);
     const [localValidationError, setLocalValidationError] = useState<string | null>(null);
 
@@ -143,6 +157,7 @@ export default function ReinforcementPlanTool() {
                     recursos_empleados: formData.recursos_empleados,
                     desarrollo_aplicado: formData.desarrollo_aplicado,
                     normativa_aplicable: formData.normativa_aplicable,
+                    matriz_curricular: matriz ?? undefined,
                     provider: engine,
                     api_key: apiKey,
                 },
@@ -179,6 +194,8 @@ export default function ReinforcementPlanTool() {
                     onApiKeyChange={setApiKey}
                 />
 
+                <CurriculumMatrixSelector value={matriz} onChange={setMatriz} />
+
                 <div className="lam-note vigencia">
                     <span className="tag">Proteccion de datos activa</span>
                     <p className="m-0 text-sm">
@@ -189,8 +206,8 @@ export default function ReinforcementPlanTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Area educativa</label>
-                        <select
+                        <label className="lam-label" htmlFor="reinforcementplan-area-educativa">Area educativa</label>
+                        <select id="reinforcementplan-area-educativa"
                             required
                             value={formData.area_educativa}
                             onChange={(event) =>
@@ -208,8 +225,8 @@ export default function ReinforcementPlanTool() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="lam-label">Curso</label>
-                        <select
+                        <label className="lam-label" htmlFor="reinforcementplan-curso">Curso</label>
+                        <select id="reinforcementplan-curso"
                             required
                             value={formData.curso}
                             onChange={(event) =>
@@ -217,6 +234,7 @@ export default function ReinforcementPlanTool() {
                             }
                             className="lam-input"
                         >
+                            <option value="">Selecciona un curso</option>
                             {PRIMARY_COURSES.map((course) => (
                                 <option key={course} value={course}>
                                     {course}
@@ -228,8 +246,8 @@ export default function ReinforcementPlanTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Etapa educativa</label>
-                        <input
+                        <label className="lam-label" htmlFor="reinforcementplan-etapa-educativa">Etapa educativa</label>
+                        <input id="reinforcementplan-etapa-educativa"
                             required
                             value={formData.etapa_educativa}
                             onChange={(event) =>
@@ -239,8 +257,8 @@ export default function ReinforcementPlanTool() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Inicio del refuerzo</label>
-                        <input
+                        <label className="lam-label" htmlFor="reinforcementplan-inicio-del-refuerzo">Inicio del refuerzo</label>
+                        <input id="reinforcementplan-inicio-del-refuerzo"
                             required
                             type="date"
                             value={formData.fecha_inicio_refuerzo}
@@ -251,8 +269,8 @@ export default function ReinforcementPlanTool() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Fin estimado</label>
-                        <input
+                        <label className="lam-label" htmlFor="reinforcementplan-fin-estimado">Fin estimado</label>
+                        <input id="reinforcementplan-fin-estimado"
                             required
                             type="date"
                             value={formData.fecha_fin_estimada}
@@ -306,8 +324,8 @@ export default function ReinforcementPlanTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Criterios de evaluacion asociados</label>
-                    <textarea
+                    <label className="lam-label" htmlFor="reinforcementplan-criterios-de-evaluacion-asociados">Criterios de evaluacion asociados</label>
+                    <textarea id="reinforcementplan-criterios-de-evaluacion-asociados"
                         required
                         value={formData.criterios_evaluacion}
                         onChange={(event) =>
@@ -353,8 +371,8 @@ export default function ReinforcementPlanTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Forma de trabajo aplicada</label>
-                        <textarea
+                        <label className="lam-label" htmlFor="reinforcementplan-forma-de-trabajo-aplicada">Forma de trabajo aplicada</label>
+                        <textarea id="reinforcementplan-forma-de-trabajo-aplicada"
                             required
                             value={formData.forma_trabajo_aplicada}
                             onChange={(event) =>
@@ -364,8 +382,8 @@ export default function ReinforcementPlanTool() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Recursos empleados</label>
-                        <textarea
+                        <label className="lam-label" htmlFor="reinforcementplan-recursos-empleados">Recursos empleados</label>
+                        <textarea id="reinforcementplan-recursos-empleados"
                             required
                             value={formData.recursos_empleados}
                             onChange={(event) =>
@@ -375,8 +393,8 @@ export default function ReinforcementPlanTool() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Desarrollo aplicado</label>
-                        <textarea
+                        <label className="lam-label" htmlFor="reinforcementplan-desarrollo-aplicado">Desarrollo aplicado</label>
+                        <textarea id="reinforcementplan-desarrollo-aplicado"
                             required
                             value={formData.desarrollo_aplicado}
                             onChange={(event) =>
@@ -388,8 +406,8 @@ export default function ReinforcementPlanTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Normativa aplicable</label>
-                    <input
+                    <label className="lam-label" htmlFor="reinforcementplan-normativa-aplicable">Normativa aplicable</label>
+                    <input id="reinforcementplan-normativa-aplicable"
                         required
                         value={formData.normativa_aplicable}
                         onChange={(event) =>

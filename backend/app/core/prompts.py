@@ -21,26 +21,14 @@ from typing import Dict, Any
 # Contexto del Ecosistema EDUmind
 ECOSYSTEM_CONTEXT = """
 REGLAS ESTRICTAS DE RESPUESTA:
-1. NO INVENTES INFORMACIÓN: Usa exclusivamente los datos proporcionados.
-2. ESTRUCTURA ACADÉMICA RIGUROSA: Usa un tono formal, técnico-pedagógico y adecuado para el sistema educativo español (LOMLOE).
-3. LIMPIEZA VISUAL: NO USES ASTERISCOS (**), almohadillas (##) ni guiones bajos (__) para formato. Salida en texto plano limpio.
+1. NO INVENTES INFORMACIÓN: usa exclusivamente los datos proporcionados; si falta algo crítico, dilo en una línea.
+2. RIGOR: tono técnico-pedagógico propio del sistema educativo español (LOMLOE); terminología curricular oficial.
+3. FORMATO: texto plano. Títulos en MAYÚSCULAS, listas con guiones. Sin asteriscos (**), almohadillas (##) ni guiones bajos (__).
+4. MIRADA EDUmind: cuando encaje de forma natural, considera Los Cinco Mundos del alumnado (físico, mental, emocional, social e interior) y el Diseño Universal para el Aprendizaje; no los fuerces ni los nombres si no aportan.
 
-RECURSOS Y HERRAMIENTAS EDUMIND DISPONIBLES:
-Cuando sea pertinente, sugiere la integración con estas plataformas propias:
-1. EDUmind Robotics: Programación y robótica educativa.
-2. EDUmind Motion: Análisis de video y corrección técnica de movimiento (E.F., Física).
-3. EDUmind Quiz: Gamificación tipo trivial/concurso y evaluación.
-4. EDUmind Pasos: Gestión de proyectos (Kanban) con pictogramas ARASAAC.
-5. EDUmind Geobreath: Regulación emocional y respiración consciente.
-6. Liga de Valores: Gestión de convivencia y gamificación deportiva.
-7. Moodle (moodle.losmundosedufis.com): Aula virtual y entrega de tareas.
-
-RECURSOS EXTERNOS RECOMENDADOS:
-Si la consulta lo requiere, sugiere consultar fuentes oficiales y fiables como:
-- CEDEC (Proyecto EDIA) para REA.
-- INTEF para recursos digitales.
-- Portales educativos autonómicos oficiales.
-- Organismos internacionales (UNESCO, OCDE) para marcos teóricos.
+FUENTES EXTERNAS (solo si la consulta lo requiere, nunca como relleno):
+- Normativa autonómica y estatal vigente, citada con su denominación oficial.
+- CEDEC (Proyecto EDIA) e INTEF para recursos educativos abiertos.
 """
 
 def build_enriched_context(data: Dict[str, Any]) -> str:
@@ -207,6 +195,8 @@ def build_stem_prompt(data: Dict[str, Any]) -> str:
 def build_diversity_prompt(data: Dict[str, Any]) -> str:
     return f"""
     Actúa como orientador escolar senior.
+    PROTECCIÓN DE DATOS: el caso llega anonimizado; refiérete siempre a "el/la alumno/a" o "el grupo",
+    nunca inventes ni reproduzcas nombres, centros o datos identificativos, y no pidas más datos personales.
     Caso: {data.get('caso') or 'No especificado'}
     Intervención actual: {data.get('intervencion_actual') or 'No especificado'}
     Resultados actuales: {data.get('resultados') or 'No especificado'}
@@ -223,6 +213,7 @@ def build_session_prompt(data: Dict[str, Any]) -> str:
     Curso: {data.get('curso') or 'No especificado'}
     Descripción: {data.get('descripcion') or 'No especificado'}
     
+    {build_enriched_context(data)}
     Estructura: CONTEXTO, OBJETIVOS OPERATIVOS, CRONOGRAMA DETALLADO (Fases), EVALUACIÓN FORMATIVA, INCLUSIÓN, RECURSOS DIGITALES.
     SIN FORMATO MARKDOWN.
     {ECOSYSTEM_CONTEXT}
@@ -415,10 +406,17 @@ def build_reinforcement_plan_prompt(data: Dict[str, Any]) -> str:
         cleaned_contents = [str(contenidos).strip()] if str(contenidos).strip() else []
     contenidos_text = "; ".join(cleaned_contents) if cleaned_contents else "No especificados"
 
-    normativa_aplicable = (
-        data.get("normativa_aplicable")
-        or "Orden del 8 de septiembre de 2021 y Decreto 229/2011, de 7 de diciembre (Galicia)."
-    )
+    comunidad = str(data.get("comunidad") or "Galicia").strip() or "Galicia"
+    if data.get("normativa_aplicable"):
+        normativa_aplicable = str(data["normativa_aplicable"])
+    elif comunidad.lower() == "galicia":
+        normativa_aplicable = "Orden del 8 de septiembre de 2021 y Decreto 229/2011, de 7 de diciembre (Galicia)."
+    else:
+        # Sin referencia concreta no se inventa: se pide citar solo normativa oficial verificable.
+        normativa_aplicable = (
+            f"Normativa autonómica vigente de {comunidad} sobre atención a la diversidad y refuerzo "
+            "(cita únicamente referencias oficiales que conozcas con certeza; si no, indícalo)."
+        )
 
     return f"""
     Elaboracion de PLAN DE REFUERZO EDUCATIVO individualizado con enfoque privacy-first.
@@ -452,10 +450,9 @@ def build_reinforcement_plan_prompt(data: Dict[str, Any]) -> str:
     6. PLAN DE EVALUACION Y SEGUIMIENTO (instrumentos, frecuencia, umbrales de progreso)
     7. REAJUSTE DEL PLAN SEGUN EVIDENCIAS (decision rules claras)
     8. COORDINACION DOCENTE-FAMILIA-CENTRO (sin exponer datos personales)
-    9. ENCAJE NORMATIVO (Galicia) con referencias explicitas a:
-       - Orden del 8 de septiembre de 2021
-       - Decreto 229/2011, de 7 de diciembre
-    10. PLAN DE APLICACION INMEDIATA (24-72h) y cronograma hasta cierre
+    9. ENCAJE NORMATIVO ({comunidad}) con referencias explicitas a:
+       - {normativa_aplicable}
+    10. CRONOGRAMA DE APLICACION desde la fecha de inicio hasta la fecha de cierre
 
     REQUISITOS CRITICOS:
     - No inventes normativa ni articulos; si no hay evidencia suficiente, declaralo.
@@ -471,9 +468,14 @@ def build_rubric_prompt(data: Dict[str, Any]) -> str:
     Área/Materia: {data.get('area')}
     Número de criterios: {data.get('criterios')}
     Descripción del proyecto/tarea: {data.get('descripcion')}
-    
-    Genera una tabla CSV válida con las columnas: Criterio, Nivel 1 (Insuficiente), Nivel 2 (Suficiente), Nivel 3 (Notable), Nivel 4 (Sobresaliente).
-    El formato debe ser estrictamente CSV separado por comas, sin texto adicional antes o después.
+    {build_marco_curricular_block(data)}
+    Si hay marco curricular oficial, cada criterio de la rúbrica cita en "codigo_curricular" el código del criterio de evaluación que desarrolla; si no lo hay, omite esa clave.
+
+    Construye la rúbrica con exactamente {data.get('criterios')} criterios y cuatro niveles de desempeño
+    ("Insuficiente", "Suficiente", "Notable", "Sobresaliente"), en ese orden en "niveles".
+    Cada criterio lleva en "descriptores" cuatro descriptores observables y graduados, uno por nivel y en el mismo orden,
+    redactados en positivo, sin ambigüedad y evaluables en el aula. Los pesos, si los indicas, suman 100.
+    Marca "requiere_revision_humana" en true si has tenido que asumir datos que no se te han dado.
     """
 
 def build_worksheet_prompt(data: Dict[str, Any]) -> str:
@@ -483,7 +485,7 @@ def build_worksheet_prompt(data: Dict[str, Any]) -> str:
     Objetivo: {data.get('objetivo')}
     Tipo de material: {data.get('tipo')}
     Edad/Nivel: {data.get('edad')}
-    
+    {build_enriched_context(data)}
     Estructura: TÍTULO, OBJETIVOS, INSTRUCCIONES, ACTIVIDADES (Secuenciadas), RECURSOS EXTRA.
     SIN FORMATO MARKDOWN EN EL CUERPO (Usa texto plano limpio).
     {ECOSYSTEM_CONTEXT}

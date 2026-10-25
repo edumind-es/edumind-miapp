@@ -35,7 +35,7 @@ from app.api.v1 import (
     telemetry,
     training,
 )
-from app.api.v1 import classroom, planner, resources
+from app.api.v1 import classroom, planner, profile, resources
 
 api_router = APIRouter()
 
@@ -55,6 +55,7 @@ api_router.include_router(config.router, prefix="/config", tags=["config"])
 api_router.include_router(knowledge.router, prefix="/knowledge", tags=["knowledge"])
 api_router.include_router(normative.router, prefix="/normative", tags=["normative"])
 api_router.include_router(curriculum.router, prefix="/curriculum", tags=["curriculum"])
+api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
 api_router.include_router(telemetry.router, prefix="/telemetry", tags=["telemetry"])
 
 # Teacher Premium - Gestión de Clases

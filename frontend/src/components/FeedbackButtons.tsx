@@ -20,22 +20,32 @@
 // estado seleccionado por inversión de tinta. Sin iconos ni animaciones.
 
 import { useState } from "react";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { authFetch } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 interface FeedbackButtonsProps {
     instruction: string;
     output: string;
-    source: string; // "deepseek", "edumind", "webgpu", etc.
+    source: string; // "chatgpt", "edumind", "webgpu", etc.
     onFeedbackSubmitted?: () => void;
 }
 
 export function FeedbackButtons({ instruction, output, source, onFeedbackSubmitted }: FeedbackButtonsProps) {
     const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
     const [feedbackType, setFeedbackType] = useState<"positive" | "negative" | null>(null);
+    // Guardar una valoración envía la conversación al dataset: se pide consentimiento antes.
+    const [pending, setPending] = useState<{ score: number; type: "positive" | "negative" } | null>(null);
 
-    const handleFeedback = async (score: number, type: "positive" | "negative") => {
+    const handleFeedback = (score: number, type: "positive" | "negative") => {
         if (status === "saving" || status === "success") return;
+        setPending({ score, type });
+    };
+
+    const confirmFeedback = async () => {
+        if (!pending) return;
+        const { score, type } = pending;
+        setPending(null);
 
         setStatus("saving");
         setFeedbackType(type);
@@ -50,11 +60,12 @@ export function FeedbackButtons({ instruction, output, source, onFeedbackSubmitt
                     instruction,
                     output,
                     source,
-                    quality_score: score
+                    quality_score: score,
+                    consent: true,
                 })
             });
 
-            if (!response.ok) throw new Error("Failed to save feedback");
+            if (!response.ok) throw new Error("No se pudo guardar la valoración.");
 
             setStatus("success");
             if (onFeedbackSubmitted) onFeedbackSubmitted();
@@ -77,6 +88,16 @@ export function FeedbackButtons({ instruction, output, source, onFeedbackSubmitt
 
     return (
         <div className="flex items-center gap-2 mt-2">
+            <ConfirmationDialog
+                open={pending !== null}
+                title="Guardar esta respuesta para entrenamiento"
+                description="La pregunta y la respuesta se guardarán en el dataset de EDUmind y las revisará una persona antes de usarse. Al confirmar aceptas ese uso y declaras que el texto no contiene nombres ni datos de alumnado. Correos, teléfonos y documentos de identidad detectados se eliminan automáticamente."
+                confirmLabel="Doy mi consentimiento y guardo"
+                cancelLabel="No guardar"
+                busy={status === "saving"}
+                onConfirm={() => void confirmFeedback()}
+                onCancel={() => setPending(null)}
+            />
             {status === "success" ? (
                 <span className="lam-mono !text-ok border border-ok px-2 py-1.5">Guardado para entrenamiento</span>
             ) : status === "error" ? (

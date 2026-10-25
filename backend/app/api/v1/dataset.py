@@ -30,6 +30,7 @@ from pydantic import BaseModel
 from sqlmodel import Session, func, select
 
 from app.api.v1.auth import get_current_user, require_admin_from_vpn
+from app.services.dataset_privacy import scrub_personal_data
 from app.core.config import settings
 from app.db import get_session
 from app.models import Document, TrainingItem, TrainingItemSource, User, UserRole
@@ -99,6 +100,35 @@ def _normalize_filename(filename: str) -> str:
         raise HTTPException(status_code=400, detail="Invalid filename.")
     sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", base)
     return sanitized[:180]
+
+
+# Firmas de los formatos admitidos: la extensión no basta para decidir qué parser se ejecuta.
+_MAGIC_BY_TYPE = {
+    "pdf": (b"%PDF",),
+    "docx": (b"PK\x03\x04",),
+    "xlsx": (b"PK\x03\x04",),
+    "pptx": (b"PK\x03\x04",),
+    "image": (b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff"),
+}
+
+
+def _matches_declared_type(file_type: str, head: bytes) -> bool:
+    """Comprueba que los primeros bytes corresponden al tipo declarado por la extensión."""
+    firmas = _MAGIC_BY_TYPE.get(file_type)
+    if firmas:
+        return any(head.startswith(firma) for firma in firmas)
+    # Formatos de texto: UTF-8 válido y sin bytes nulos.
+    if b"\x00" in head:
+        return False
+    try:
+        head.decode("utf-8")
+    except UnicodeDecodeError:
+        # Un corte en mitad de un carácter multibyte es aceptable al final del bloque
+        try:
+            head[:-3].decode("utf-8")
+        except UnicodeDecodeError:
+            return False
+    return True
 
 
 def _build_secure_upload_path(original_filename: str) -> Path:
@@ -204,9 +234,11 @@ async def create_item(
     except ValueError:
         source = TrainingItemSource.MANUAL
 
+    instruction, _ = scrub_personal_data(item.instruction)
+    output, _ = scrub_personal_data(item.output)
     db_item = TrainingItem(
-        instruction=item.instruction,
-        output=item.output,
+        instruction=instruction,
+        output=output,
         source=source,
         creator_id=current_user.id,
     )
@@ -314,6 +346,8 @@ async def verify_item(
 
     item.is_verified = True
     item.verified_by_id = current_user.id
+    # Al pasar al fondo común el ítem deja de estar vinculado a quien lo aportó.
+    item.creator_id = None
     session.add(item)
     session.commit()
 
@@ -333,6 +367,7 @@ async def bulk_verify(
         if item and not item.is_verified:
             item.is_verified = True
             item.verified_by_id = current_user.id
+            item.creator_id = None
             session.add(item)
             count += 1
 
@@ -346,10 +381,10 @@ async def bulk_verify(
 async def upload_file(
     file: UploadFile = File(...),
     auto_parse: bool = True,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin_from_vpn),
     session: Session = Depends(get_session),
 ):
-    """Upload a file (PDF, DOCX, XLSX, PPTX, MD, JSON, PNG)."""
+    """Upload a file (PDF, DOCX, XLSX, PPTX, MD, JSON, PNG). Solo administración: alimenta el dataset común."""
     normalized_filename = _normalize_filename(file.filename)
     file_type = get_file_type(normalized_filename)
     if file_type == "unknown":
@@ -361,10 +396,18 @@ async def upload_file(
 
     try:
         with open(file_location, "wb") as file_object:
+            primero = True
             while True:
                 chunk = await file.read(1024 * 1024)
                 if not chunk:
                     break
+                if primero:
+                    primero = False
+                    if not _matches_declared_type(file_type, chunk[:4096]):
+                        raise HTTPException(
+                            status_code=400,
+                            detail="El contenido del fichero no corresponde a su extensión.",
+                        )
                 written += len(chunk)
                 if written > max_upload_bytes:
                     raise HTTPException(

@@ -105,7 +105,7 @@ export default function Home() {
                     </h1>
                     <p className="lam-lede mb-8">
                         Genera recursos didácticos, prepara oposiciones y gestiona la documentación de centro
-                        sobre el currículo oficial de todas las comunidades.
+                        sobre el currículo oficial de tu comunidad.
                     </p>
                     <div className="flex flex-wrap items-center gap-4">
                         <Link to="/chat" className="lam-btn">Abrir el chat IA</Link>
@@ -113,7 +113,7 @@ export default function Home() {
                     </div>
 
                     <div className="flex flex-wrap border-t border-hair mt-9">
-                        {["Sin rastreadores", "Modelos propios o BYOK", "Currículo LOMLOE de 17 territorios"].map((item) => (
+                        {["Sin rastreadores", "IA local, servidor EDUmind o clave propia", "Currículo LOMLOE autonómico"].map((item) => (
                             <span
                                 key={item}
                                 className="font-mono text-[13px] text-ink-2 py-3.5 pr-5 mr-5 border-r border-hair last:border-r-0"
@@ -160,11 +160,11 @@ export default function Home() {
                         </div>
                         <div>
                             <dt>Modelos</dt>
-                            <dd>EDUmind en la nube, local (WebGPU) o clave propia</dd>
+                            <dd>Local en tu navegador, servidor EDUmind o clave propia (con aviso de dónde se procesa)</dd>
                         </div>
                         <div>
                             <dt>Privacidad</dt>
-                            <dd>Sin rastreadores ni datos personales del alumnado</dd>
+                            <dd>Sin rastreadores. El alumnado se gestiona solo con códigos, nunca con nombres</dd>
                         </div>
                         <div>
                             <dt>Autoría</dt>

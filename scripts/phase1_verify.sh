@@ -52,6 +52,9 @@ assert_http_code 403 "$LOCAL_BASE_URL/api/v1/knowledge/search?query=lomloe" -H "
 assert_http_code 403 "$LOCAL_BASE_URL/api/v1/knowledge/document/legislacion/lomloe" -H "X-Real-IP: 8.8.8.8"
 assert_http_code 403 "$LOCAL_BASE_URL/api/v1/normative/status" -H "X-Real-IP: 8.8.8.8"
 assert_http_code 403 "$LOCAL_BASE_URL/api/v1/generators/prompt-contracts" -H "X-Real-IP: 8.8.8.8"
+# La cabecera CF-Connecting-IP declarada por el cliente no debe dar acceso VPN
+assert_http_code 403 "$LOCAL_BASE_URL/api/v1/config/runtime-policy" -H "X-Real-IP: 8.8.8.8" -H "CF-Connecting-IP: 10.8.0.1"
+assert_http_code 403 "$LOCAL_BASE_URL/api/v1/health/providers" -H "X-Real-IP: 8.8.8.8" -H "CF-Connecting-IP: 10.8.0.1"
 
 echo ""
 echo "[3/3] Validando exposicion publica"

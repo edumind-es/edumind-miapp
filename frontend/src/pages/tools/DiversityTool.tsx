@@ -21,10 +21,11 @@ import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
+import { getInitialEngine } from "@/lib/engine-preference";
 
 export default function DiversityTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
 
     const [formData, setFormData] = useState({
@@ -63,22 +64,27 @@ export default function DiversityTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Descripción del Caso</label>
-                    <textarea className="lam-input h-32 resize-none"
-                        placeholder="Describe la situación del alumno o grupo, NEAE, dificultades..."
+                    <label className="lam-label" htmlFor="diversity-descripcion-del-caso">Descripción del Caso</label>
+                    <textarea id="diversity-descripcion-del-caso" className="lam-input h-32 resize-none"
+                        placeholder="Describe la situación sin datos identificativos: curso, barreras observadas, NEAE, contexto del grupo..."
                         value={formData.caso} onChange={e => setFormData({ ...formData, caso: e.target.value })} required />
+                    <p className="m-0 text-[12px] text-ink-2 leading-snug">
+                        Privacidad: no escribas nombres, iniciales reconocibles, centro ni fechas de nacimiento. Habla de
+                        &quot;el alumno&quot; o &quot;el grupo&quot;. Correos, teléfonos y DNI se eliminan automáticamente antes de
+                        enviar el texto al motor.
+                    </p>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Intervención Realizada (Opcional)</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="diversity-intervencion-realizada-opcional">Intervención Realizada (Opcional)</label>
+                    <textarea id="diversity-intervencion-realizada-opcional" className="lam-input h-24 resize-none"
                         placeholder="¿Qué se ha hecho hasta ahora?"
                         value={formData.intervencion_actual} onChange={e => setFormData({ ...formData, intervencion_actual: e.target.value })} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Resultados Obtenidos (Opcional)</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="diversity-resultados-obtenidos-opcional">Resultados Obtenidos (Opcional)</label>
+                    <textarea id="diversity-resultados-obtenidos-opcional" className="lam-input h-24 resize-none"
                         placeholder="¿Qué ha funcionado y qué no?"
                         value={formData.resultados} onChange={e => setFormData({ ...formData, resultados: e.target.value })} />
                 </div>

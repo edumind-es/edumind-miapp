@@ -5,7 +5,7 @@
  * WeeklyPlanner - Weekly planning workspace for Teacher Premium
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { NoticeBanner } from "@/components/NoticeBanner";
@@ -213,16 +213,26 @@ export default function WeeklyPlanner() {
         void loadCurriculum();
     }, []);
 
+    // F-01: antes este efecto dependía del objeto `selectedClass`, que cambia de referencia cada vez
+    // que se recargan las clases (p. ej. al cambiar de semana) y borraba criterios, contenidos y plan.
+    // Ahora depende solo del id: los datos de la clase se leen de una ref actualizada.
+    const classesRef = useRef(classes);
     useEffect(() => {
-        if (!selectedClass) {
+        classesRef.current = classes;
+    }, [classes]);
+
+    useEffect(() => {
+        const currentClass = classesRef.current.find((teacherClass) => teacherClass.id === selectedClassId) ?? null;
+        if (!currentClass) {
             setClassSchedule([]);
             setClassResources([]);
             return;
         }
 
+        let active = true;
         setClassContextLoading(true);
-        const suggestedArea = selectedClass.subject;
-        const suggestedStage = inferStageFromCourse(selectedClass.course);
+        const suggestedArea = currentClass.subject;
+        const suggestedStage = inferStageFromCourse(currentClass.course);
         setArea(suggestedArea);
         setStage(suggestedStage);
         setSelectedCriteria([]);
@@ -231,15 +241,17 @@ export default function WeeklyPlanner() {
         setLastPayload(null);
 
         Promise.all([
-            classroomService.getSchedule(selectedClass.id),
-            resourceService.getResourcesByClass(selectedClass.id),
+            classroomService.getSchedule(currentClass.id),
+            resourceService.getResourcesByClass(currentClass.id),
         ])
             .then(([scheduleData, resourcesData]) => {
+                if (!active) return;
                 setClassSchedule(scheduleData);
                 setClassResources(resourcesData);
                 setSelectedLinkedResourceIds([]);
             })
             .catch((error) => {
+                if (!active) return;
                 console.error(error);
                 setNotice({
                     variant: "error",
@@ -247,9 +259,13 @@ export default function WeeklyPlanner() {
                 });
             })
             .finally(() => {
-                setClassContextLoading(false);
+                if (active) setClassContextLoading(false);
             });
-    }, [selectedClass]);
+
+        return () => {
+            active = false;
+        };
+    }, [selectedClassId]);
 
     useEffect(() => {
         if (!curriculumArea) {

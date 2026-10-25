@@ -19,7 +19,7 @@
 // Diálogo de confirmación en modo EDUmind-Lámina: recuadro de papel con filete de
 // tinta, botones mono. Sin animación de rebote ni sombra.
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface ConfirmationDialogProps {
@@ -45,6 +45,26 @@ export function ConfirmationDialog({
     onConfirm,
     onCancel,
 }: ConfirmationDialogProps) {
+    const cancelRef = useRef<HTMLButtonElement>(null);
+
+    // Accesibilidad: Escape cancela, el foco entra en el diálogo al abrirse y vuelve a donde estaba al cerrarse.
+    useEffect(() => {
+        if (!open) return;
+        const previous = document.activeElement as HTMLElement | null;
+        cancelRef.current?.focus();
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape" && !busy) {
+                event.preventDefault();
+                onCancel();
+            }
+        };
+        document.addEventListener("keydown", onKeyDown);
+        return () => {
+            document.removeEventListener("keydown", onKeyDown);
+            previous?.focus?.();
+        };
+    }, [open, busy, onCancel]);
+
     if (!open) return null;
 
     return (
@@ -65,7 +85,7 @@ export function ConfirmationDialog({
                 <div className="mt-3 text-[15px] leading-6 text-ink-2">{description}</div>
 
                 <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                    <button type="button" onClick={onCancel} disabled={busy} className="lam-btn lam-btn-sm lam-btn-ghost">
+                    <button ref={cancelRef} type="button" onClick={onCancel} disabled={busy} className="lam-btn lam-btn-sm lam-btn-ghost">
                         {cancelLabel}
                     </button>
                     <button

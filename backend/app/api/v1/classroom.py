@@ -252,11 +252,11 @@ def delete_class(
     user: User = Depends(require_teacher_premium),
     db: Session = Depends(get_session)
 ):
-    """Desactivar clase (soft delete)"""
+    """Eliminar la clase y sus datos (horario, códigos de alumnado, vínculos y planificador)."""
+    from app.services.account_service import delete_class_data
+
     teacher_class = _get_owned_class_or_404(db, class_id, user.id)
-    teacher_class.is_active = False
-    db.add(teacher_class)
-    db.commit()
+    delete_class_data(db, teacher_class)
 
 
 # ============================================

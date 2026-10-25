@@ -25,7 +25,7 @@ import { FormattedContent } from "@/components/FormattedContent";
 import { NoticeBanner } from "@/components/NoticeBanner";
 import { WebLLMLoader } from "@/components/WebLLMLoader";
 import { ServerLoadingIndicator } from "@/components/ServerLoadingIndicator";
-import { cleanGeneratedText } from "@/lib/content-format";
+import { cleanGeneratedText, detectReviewFlags } from "@/lib/content-format";
 
 interface GeneratorLayoutProps {
     title: string;
@@ -100,7 +100,6 @@ export function GeneratorLayout({
     isLoading = false,
     onCancel
 }: GeneratorLayoutProps) {
-    const [usage] = useState(() => parseInt(localStorage.getItem("edumind_usage") || "0"));
     const previewText = useMemo(() => extractTextFromChildren(preview), [preview]);
     const cleanedPreviewText = useMemo(() => cleanGeneratedText(previewText), [previewText]);
     const [editableOutput, setEditableOutput] = useState(cleanedPreviewText);
@@ -110,7 +109,6 @@ export function GeneratorLayout({
     const [isContributing, setIsContributing] = useState(false);
     const [showContributeConfirm, setShowContributeConfirm] = useState(false);
     const [notice, setNotice] = useState<NoticeState>(null);
-    const LIMIT = 1000;
 
     useEffect(() => {
         setEditableOutput(cleanedPreviewText);
@@ -124,6 +122,8 @@ export function GeneratorLayout({
         }
         return candidate;
     }, [cleanedPreviewText, editableOutput]);
+    // Avisos previos al uso: revisión humana (JSON) y códigos curriculares no encontrados.
+    const reviewFlags = useMemo(() => detectReviewFlags(effectiveOutput), [effectiveOutput]);
     const editorKey = `${previewText.length}-${previewText.slice(0, 64)}`;
     const systemProgress = useMemo(() => {
         const progressLines = previewText
@@ -160,6 +160,8 @@ export function GeneratorLayout({
                 output: effectiveOutput,
                 tool: window.location.pathname.replace(/^\/+/, "") || "generador",
                 provider: "unknown",
+                // El diálogo previo es el consentimiento: sin él el servidor rechaza la contribución.
+                consent: true,
             };
             const response = await authFetch("/generators/contribute", {
                 method: "POST",
@@ -187,7 +189,7 @@ export function GeneratorLayout({
         }
     };
 
-    const handleExport = async (format: 'pdf' | 'txt' | 'html') => {
+    const handleExport = async (format: 'pdf' | 'docx' | 'txt' | 'html') => {
         if (!effectiveOutput) return;
         try {
             const options = {
@@ -197,6 +199,7 @@ export function GeneratorLayout({
             };
 
             if (format === 'pdf') await exportService.toPdf(options);
+            else if (format === 'docx') await exportService.toDocx(options);
             else if (format === 'txt') await exportService.toTxt(options);
             else if (format === 'html') await exportService.toHtml(options);
             setNotice({
@@ -212,9 +215,9 @@ export function GeneratorLayout({
         }
     };
 
-    const usagePercent = Math.min((usage / LIMIT) * 100, 100);
-    const exportButtons: Array<{ format: "pdf" | "html" | "txt"; label: string }> = [
+    const exportButtons: Array<{ format: "pdf" | "docx" | "html" | "txt"; label: string }> = [
         { format: "pdf", label: "PDF" },
+        { format: "docx", label: "Word" },
         { format: "html", label: "HTML" },
         { format: "txt", label: "TXT" },
     ];
@@ -247,21 +250,6 @@ export function GeneratorLayout({
                         <p className="lam-eyebrow mb-3">EDUmind · Generador</p>
                         <h1 className="m-0 text-[26px] sm:text-[30px] font-bold leading-[1.05] tracking-[-0.02em]">{title}</h1>
                         <p className="mt-3 text-[15px] leading-6 text-ink-2 max-w-[48ch]">{description}</p>
-
-                        <div className="mt-5 pt-4 border-t border-hair">
-                            <div className="flex justify-between lam-mono mb-2">
-                                <span>Uso demo en la nube</span>
-                                <span className="lam-mono-ink">{usage} / {LIMIT}</span>
-                            </div>
-                            <div className="lam-progress" role="progressbar" aria-valuenow={usage} aria-valuemin={0} aria-valuemax={LIMIT}>
-                                <i style={{ width: `${usagePercent}%` }} />
-                            </div>
-                            {usage >= LIMIT && (
-                                <p className="mt-3 text-[13px] text-alert">
-                                    Límite alcanzado. <a href="#" className="underline underline-offset-4 font-semibold">Instala EDUmind Local</a> para uso ilimitado.
-                                </p>
-                            )}
-                        </div>
                     </div>
                     <div className="flex-1 overflow-y-auto p-5 sm:p-7">
                         {children}
@@ -310,6 +298,20 @@ export function GeneratorLayout({
                                 message={notice.message}
                                 className="mb-5"
                                 onClose={() => setNotice(null)}
+                            />
+                        ) : null}
+                        {reviewFlags.humanReview ? (
+                            <NoticeBanner
+                                variant="warning"
+                                className="mb-5"
+                                message="El modelo ha marcado esta salida como pendiente de revisión humana: contrástala antes de usarla."
+                            />
+                        ) : null}
+                        {reviewFlags.unknownCurriculumCodes.length ? (
+                            <NoticeBanner
+                                variant="warning"
+                                className="mb-5"
+                                message={`Revisión curricular: la salida cita códigos que no existen en la matriz oficial elegida (${reviewFlags.unknownCurriculumCodes.join(", ")}).`}
                             />
                         ) : null}
 
@@ -375,8 +377,8 @@ export function GeneratorLayout({
             <ConfirmationDialog
                 open={showContributeConfirm}
                 title="Aportar esta salida al dataset"
-                description="Se guardará para revisión manual en admin. Asegúrate de que el contenido esté limpio, útil y sin datos sensibles antes de enviarlo."
-                confirmLabel="Enviar contribución"
+                description="Esta salida se guardará en el dataset de entrenamiento de EDUmind y la revisará una persona antes de usarse. Al enviarla confirmas que no contiene nombres, datos de alumnado ni información personal. Los correos, teléfonos y documentos de identidad que se detecten se eliminan automáticamente."
+                confirmLabel="Doy mi consentimiento y envío"
                 cancelLabel="Revisar antes"
                 busy={isContributing}
                 onConfirm={confirmContribute}

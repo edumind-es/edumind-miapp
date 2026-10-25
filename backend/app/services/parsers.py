@@ -29,6 +29,11 @@ def parse_text_file(file_path: Path) -> str:
         return f.read()
 
 
+# Límites de parseo (los ficheros ya están acotados en tamaño por MAX_UPLOAD_SIZE_MB)
+MAX_PDF_PAGES = 300
+MAX_IMAGE_PIXELS = 40_000_000
+
+
 def parse_json_file(file_path: Path) -> List[Dict[str, Any]]:
     """Parse JSON file - expects array of objects or single object."""
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -45,7 +50,11 @@ def parse_pdf(file_path: Path) -> str:
         import fitz  # PyMuPDF
         doc = fitz.open(str(file_path))
         text = ""
-        for page in doc:
+        # Tope de páginas: evita que un PDF enorme bloquee el worker.
+        for index, page in enumerate(doc):
+            if index >= MAX_PDF_PAGES:
+                text += f"\n[Aviso: PDF truncado a {MAX_PDF_PAGES} páginas]\n"
+                break
             text += page.get_text() + "\n"
         doc.close()
         return text.strip()
@@ -115,6 +124,8 @@ def parse_image(file_path: Path) -> str:
         from PIL import Image
         import pytesseract
         img = Image.open(str(file_path))
+        if img.width * img.height > MAX_IMAGE_PIXELS:
+            return f"[Error: imagen demasiado grande para OCR (máximo {MAX_IMAGE_PIXELS // 1_000_000} Mpx)]"
         text = pytesseract.image_to_string(img, lang='spa+eng')
         return text.strip()
     except ImportError:

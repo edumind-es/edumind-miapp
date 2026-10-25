@@ -8,10 +8,11 @@ import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
+import { getInitialEngine } from "@/lib/engine-preference";
 
 export default function QuestionTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
     const [copied, setCopied] = useState(false);
 
@@ -71,16 +72,16 @@ export default function QuestionTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Texto Fuente / Tema</label>
-                    <textarea className="lam-input h-32 resize-none"
+                    <label className="lam-label" htmlFor="question-texto-fuente-tema">Texto Fuente / Tema</label>
+                    <textarea id="question-texto-fuente-tema" className="lam-input h-32 resize-none"
                         placeholder="Pega aquí el texto sobre el que quieres generar preguntas..."
                         value={formData.texto_fuente} onChange={e => setFormData({ ...formData, texto_fuente: e.target.value })} required />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Tipo de Pregunta</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="question-tipo-de-pregunta">Tipo de Pregunta</label>
+                        <select id="question-tipo-de-pregunta" className="lam-input"
                             value={formData.tipo_pregunta} onChange={e => setFormData({ ...formData, tipo_pregunta: e.target.value })}>
                             <option value="multiple_choice">Opción Múltiple</option>
                             <option value="true_false">Verdadero / Falso</option>
@@ -89,8 +90,8 @@ export default function QuestionTool() {
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Dificultad</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="question-dificultad">Dificultad</label>
+                        <select id="question-dificultad" className="lam-input"
                             value={formData.dificultad} onChange={e => setFormData({ ...formData, dificultad: e.target.value })}>
                             <option value="Fácil">Fácil (Identificación)</option>
                             <option value="Media">Media (Comprensión)</option>
@@ -100,8 +101,8 @@ export default function QuestionTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Cantidad</label>
-                    <input type="number" className="lam-input"
+                    <label className="lam-label" htmlFor="question-cantidad">Cantidad</label>
+                    <input id="question-cantidad" type="number" className="lam-input"
                         min="1" max="20"
                         value={formData.cantidad} onChange={e => setFormData({ ...formData, cantidad: parseInt(e.target.value) })} required />
                 </div>

@@ -27,6 +27,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from app.core import prompts
+from app.core.tool_specs import get_tool_spec
 
 PromptBuilder = Callable[[dict[str, Any]], str]
 
@@ -158,6 +159,34 @@ INSPECTION_REPORT_JSON_SCHEMA = {
         },
         "normativa_relevante": {"type": "array", "items": {"type": "string"}},
         "alertas": {"type": "array", "items": {"type": "string"}},
+        "requiere_revision_humana": {"type": "boolean"},
+    },
+}
+
+# Rúbrica estructurada: la tabla se compone en el cliente (HTML, CSV para iDoceo/Additio, Word).
+RUBRIC_JSON_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["titulo", "niveles", "criterios", "requiere_revision_humana"],
+    "properties": {
+        "titulo": {"type": "string"},
+        "area": {"type": "string"},
+        "niveles": {"type": "array", "items": {"type": "string"}},
+        "criterios": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["criterio", "descriptores"],
+                "properties": {
+                    "criterio": {"type": "string"},
+                    "codigo_curricular": {"type": "string"},
+                    "descriptores": {"type": "array", "items": {"type": "string"}},
+                    "peso": {"type": "number", "minimum": 0, "maximum": 100},
+                },
+            },
+        },
+        "observaciones": {"type": "string"},
         "requiere_revision_humana": {"type": "boolean"},
     },
 }
@@ -392,12 +421,7 @@ CONTRATO DE CALIDAD DE RESPUESTA (OBLIGATORIO):
 - Basa la propuesta en los datos recibidos; si falta un dato crítico, indícalo en una sola línea en el bloque de límites.
 - No inventes normativa, evidencias, fechas, responsables ni decisiones no apoyadas en los datos recibidos.
 - Asegura coherencia entre objetivos, acciones, recursos, evaluación y atención a la diversidad.
-
-CIERRE DE CALIDAD (añádelo al final de la respuesta con estos títulos exactos):
-1. RESUMEN OPERATIVO
-2. PLAN DE APLICACIÓN INMEDIATA (24-72h)
-3. INDICADORES DE CALIDAD Y SEGUIMIENTO
-4. SUPUESTOS Y LÍMITES
+- Termina con un bloque breve "LÍMITES Y SUPUESTOS" (3 líneas como máximo) solo si hubo datos ausentes o decisiones asumidas.
 """
 
 
@@ -450,7 +474,15 @@ PROMPT_CONTRACTS: dict[str, PromptContract] = {
         output_schema=REINFORCEMENT_PLAN_JSON_SCHEMA,
         default_response_format="json",
     ),
-    "rubrics": PromptContract("rubrics", "assessment.rubric", "2.0.0", "medium", prompts.build_rubric_prompt),
+    "rubrics": PromptContract(
+        "rubrics",
+        "assessment.rubric",
+        "3.0.0",
+        "medium",
+        prompts.build_rubric_prompt,
+        output_schema=RUBRIC_JSON_SCHEMA,
+        default_response_format="json",
+    ),
     "worksheets": PromptContract("worksheets", "worksheet.generator", "2.0.0", "medium", prompts.build_worksheet_prompt),
     "methodology": PromptContract(
         "methodology", "methodology.advisor", "2.0.0", "medium", prompts.build_methodology_prompt
@@ -589,6 +621,34 @@ SALIDA ESTRUCTURADA OBLIGATORIA:
 - Cumple este JSON Schema exactamente:
 {schema_json}
 """
+
+
+def describe_prompt_contracts_for_client() -> dict[str, Any]:
+    """Todo lo que el navegador necesita para sanear, validar y componer el prompt sin enviar el formulario.
+
+    Es la base del modo local honesto (P-02): las plantillas viven en el cliente y el
+    servidor solo publica reglas, no recibe datos.
+    """
+    return {
+        "local_prompt_mode": "client_template_v2",
+        "placeholder_values": sorted(PLACEHOLDER_VALUES),
+        "contracts": [
+            {
+                "tool": contract.tool,
+                "prompt_id": contract.prompt_id,
+                "version": contract.version,
+                "risk_level": contract.risk_level,
+                "supports_json": bool(contract.output_schema),
+                "default_response_format": contract.default_response_format,
+                "output_schema": contract.output_schema,
+                "required_fields": REQUIRED_FIELDS_BY_TOOL.get(contract.tool, {}),
+                "positive_fields": POSITIVE_FIELDS_BY_TOOL.get(contract.tool, {}),
+                "spec": get_tool_spec(contract.tool),
+                "text_quality": contract.tool in TEXT_QUALITY_ENABLED_TOOLS,
+            }
+            for contract in PROMPT_CONTRACTS.values()
+        ],
+    }
 
 
 def list_prompt_contracts() -> list[dict[str, Any]]:

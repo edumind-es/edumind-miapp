@@ -18,25 +18,20 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from slowapi import Limiter
 from app.schemas import ChatRequest
 from app.services.ai_service import AIService
+from app.services.chat_memory import trim_chat_history
 from app.services.admission_control_service import admission_control
 from app.core.config import settings
 from app.core.queue_manager import queue_manager
 from app.core.security import get_client_ip, is_vpn_or_local_request
 from app.models import User, UserRole
 from app.api.v1.auth import get_current_user_optional
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
-# Rate limiter for chat (stricter limit)
-def _chat_limit_key(request: Request) -> str:
-    return get_client_ip(request)
-
-
-limiter = Limiter(key_func=_chat_limit_key)
-BYOK_PROVIDERS = {"chatgpt", "deepseek", "claude", "gemini"}
+BYOK_PROVIDERS = {"chatgpt", "claude", "gemini"}
 MANAGED_PROVIDERS = {"edumind"}
 RESTRICTED_PROVIDERS = {"ollama", "mistral"}
 ALLOWED_PROVIDERS = BYOK_PROVIDERS | MANAGED_PROVIDERS | RESTRICTED_PROVIDERS
@@ -89,22 +84,14 @@ async def chat_completions(
             detail="Access denied. This model is restricted to administrators or VPN/local network.",
         )
 
-    # BYOK models: users must provide their own key, except admin fallback.
-    if not api_key:
-        if is_admin:
-            # Fallback to system keys for Admin
-            if provider == "deepseek":
-                api_key = settings.DEEPSEEK_API_KEY
-            elif provider == "claude":
-                api_key = settings.CLAUDE_API_KEY
-            elif provider == "gemini":
-                api_key = settings.GEMINI_API_KEY
-
-        if provider in BYOK_PROVIDERS and not api_key:
-            raise HTTPException(
-                status_code=402,
-                detail=f"Sustainability Mode: You must provide your own {provider} API Key to use this model.",
-            )
+    # Proveedores externos: siempre con la clave del propio usuario. No hay
+    # fallback a claves del sistema (ni para admin): EDUmind no envía textos de
+    # usuarios a terceros por cuenta propia.
+    if provider in BYOK_PROVIDERS and not api_key:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Sustainability Mode: You must provide your own {provider} API Key to use this model.",
+        )
 
     # Queue / concurrency protection
     identity = f"user_{current_user.id}" if current_user else f"ip_{client_ip}"
@@ -116,10 +103,16 @@ async def chat_completions(
             headers={"Retry-After": str(queue_status.estimated_wait_seconds)},
         )
 
+    historial = trim_chat_history(
+        [m.dict() for m in chat_request.messages],
+        max_messages=settings.CHAT_MAX_MESSAGES,
+        max_chars=settings.CHAT_MAX_CONTEXT_CHARS,
+    )
+
     return StreamingResponse(
         AIService.stream_chat(
             provider=provider,
-            messages=[m.dict() for m in chat_request.messages],
+            messages=historial,
             api_key=api_key,
             model=chat_request.model
         ),

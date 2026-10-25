@@ -22,6 +22,7 @@ from app.db import get_session
 from app.models import TrainingItem, TrainingItemSource, User
 from pydantic import BaseModel, Field
 from app.api.v1.auth import get_current_user
+from app.services.dataset_privacy import scrub_personal_data
 
 router = APIRouter()
 
@@ -30,6 +31,8 @@ class FeedbackRequest(BaseModel):
     output: str = Field(min_length=3, max_length=80000)
     source: str = Field(default="chat", min_length=2, max_length=50)
     quality_score: int = Field(ge=1, le=5)
+    # Consentimiento explícito: el texto pasa a un dataset de entrenamiento revisado por humanos.
+    consent: bool = False
 
 @router.post("")
 async def save_feedback(
@@ -37,6 +40,15 @@ async def save_feedback(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
+    if not feedback.consent:
+        raise HTTPException(
+            status_code=422,
+            detail="Para guardar esta respuesta en el dataset hace falta tu consentimiento explícito.",
+        )
+
+    instruction, _ = scrub_personal_data(feedback.instruction)
+    output, _ = scrub_personal_data(feedback.output)
+
     try:
         source_map = {
             "chat": TrainingItemSource.CHAT,
@@ -47,8 +59,8 @@ async def save_feedback(
         source_enum = source_map.get(feedback.source.lower(), TrainingItemSource.CHAT)
 
         item = TrainingItem(
-            instruction=feedback.instruction,
-            output=feedback.output,
+            instruction=instruction,
+            output=output,
             source=source_enum,
             quality_score=feedback.quality_score,
             is_verified=False,

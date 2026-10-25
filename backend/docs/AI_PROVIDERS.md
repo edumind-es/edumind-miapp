@@ -3,15 +3,25 @@
 ## Overview
 All external AI provider connections are implemented in `ai_service.py`. Each provider accepts user-provided API keys and streams responses back through the backend.
 
+## Privacidad y datos (política vigente desde 24-10-2026)
+
+### Motor local (WebLLM) y fuentes
+
+- Las fuentes tipográficas se sirven desde la propia app (`frontend/src/assets/fonts`), no desde Google Fonts.
+- El modelo local (Llama 3.2 1B) se descarga por defecto de Hugging Face y GitHub. Para servirlo desde EDUmind:
+  1. `./scripts/mirror_webllm_model.sh` (≈1 GB en `/var/www/edumind_models/webllm`, con `SHA256SUMS`).
+  2. Compilar el frontend con `VITE_WEBLLM_MODEL_URL` y `VITE_WEBLLM_MODEL_LIB_URL` apuntando a `/models/`.
+  3. Entonces la CSP puede dejar de permitir `connect-src https:` y limitarse a los dominios propios.
+
+- Los proveedores externos (OpenAI, Anthropic, Google, Mistral) reciben el prompt completo del usuario. Solo se usan con la **clave del propio usuario**: no existe fallback a claves del sistema, tampoco para administradores.
+- El catálogo (`api/v1/config.py`) declara para cada motor `processing` (device | edumind | third_party), `provider` y `region`; el selector muestra un aviso antes de la primera petición a cualquier motor que no sea el dispositivo.
+- **DeepSeek se retiró** del catálogo y del servicio: transferencia a China sin mecanismo válido para datos de alumnado.
+- El motor por defecto es WebGPU (modelo en el navegador).
+
 ## Implemented Providers
 
 ### 1. DeepSeek
-- **Status**: ✅ Implemented
-- **Protocol**: OpenAI-compatible API
-- **Endpoint**: `https://api.deepseek.com/v1`
-- **Model**: `deepseek-chat`
-- **Implementation**: Uses `AsyncOpenAI` client
-- **API Key Format**: Standard DeepSeek API key
+- **Status**: ❌ Retirado (24-10-2026). Ver "Privacidad y datos".
 
 ### 2. Mistral
 - **Status**: ✅ Implemented  

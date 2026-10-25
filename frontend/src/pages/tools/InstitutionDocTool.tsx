@@ -21,6 +21,7 @@ import { GeneratorLayout } from "@/layouts/GeneratorLayout";
 import { generatorService } from "@/lib/generator-service";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
+import { getInitialEngine } from "@/lib/engine-preference";
 
 // Data from legacy documentos.html
 const DOCUMENT_TYPES = {
@@ -51,7 +52,7 @@ const SECTIONS = {
 
 export default function InstitutionDocTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
 
     const [formData, setFormData] = useState({
@@ -102,8 +103,8 @@ export default function InstitutionDocTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Documento</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="institutiondoc-documento">Documento</label>
+                        <select id="institutiondoc-documento" className="lam-input"
                             value={formData.tipo} onChange={e => setFormData({ ...formData, tipo: e.target.value, seccion: "" })}>
                             {Object.entries(DOCUMENT_TYPES).map(([key, label]) => (
                                 <option key={key} value={key}>{label}</option>
@@ -111,8 +112,8 @@ export default function InstitutionDocTool() {
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Sección a Generar</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="institutiondoc-seccion-a-generar">Sección a Generar</label>
+                        <select id="institutiondoc-seccion-a-generar" className="lam-input"
                             value={formData.seccion || availableSections[0]} onChange={e => setFormData({ ...formData, seccion: e.target.value })}>
                             {availableSections.map(sec => (
                                 <option key={sec} value={sec}>{sec}</option>
@@ -122,8 +123,8 @@ export default function InstitutionDocTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Contexto del Centro</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="institutiondoc-contexto-del-centro">Contexto del Centro</label>
+                    <textarea id="institutiondoc-contexto-del-centro" className="lam-input h-24 resize-none"
                         placeholder="Características, entorno, tipología de alumnado..."
                         value={formData.contexto} onChange={e => setFormData({ ...formData, contexto: e.target.value })} required />
                 </div>

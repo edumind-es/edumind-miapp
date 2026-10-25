@@ -8,6 +8,7 @@
 # (at your option) any later version.
 #
 
+from app.core.config import settings
 from app.core.queue_manager import QueueStatus
 
 
@@ -17,7 +18,23 @@ def test_root_exposes_docs_link(client):
     assert response.status_code == 200
     payload = response.json()
     assert payload["message"] == "Welcome to EDUMind MiApp API"
-    assert payload["docs"] == "/docs"
+    assert payload["docs"] == ("/docs" if settings.RUNTIME_ENV == "development" else None)
+
+
+def test_openapi_oculto_fuera_de_desarrollo(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from app.core.config import settings as cfg
+    import importlib
+
+    monkeypatch.setattr(cfg, "RUNTIME_ENV", "production")
+    import main as main_module
+    prod_app = importlib.reload(main_module).app
+    with TestClient(prod_app) as prod_client:
+        assert prod_client.get("/docs").status_code == 404
+        assert prod_client.get("/api/v1/openapi.json").status_code == 404
+    monkeypatch.setattr(cfg, "RUNTIME_ENV", "development")
+    importlib.reload(main_module)
 
 
 def test_health_endpoint_returns_public_minimal_payload(client, api_v1_prefix):

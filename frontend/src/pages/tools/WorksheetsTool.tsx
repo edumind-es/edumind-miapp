@@ -10,6 +10,9 @@ import { EngineSelector } from "@/components/EngineSelector";
 import { ContextualFields, type ContextualData } from "@/components/ContextualFields";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
 import { cleanGeneratedText } from "@/lib/content-format";
+import { getInitialEngine } from "@/lib/engine-preference";
+import { CurriculumMatrixSelector } from "@/components/CurriculumMatrixSelector";
+import type { MatrizCurricularRef } from "@/lib/curriculum-service";
 
 function escapeHtml(value: string): string {
     return value
@@ -22,8 +25,9 @@ function escapeHtml(value: string): string {
 
 export default function WorksheetsTool() {
     const { output, loading, error, runGeneration, retryLast, cancelGeneration } = useGeneratorRequest();
-    const [engine, setEngine] = useState("edumind");
+    const [engine, setEngine] = useState(getInitialEngine);
     const [apiKey, setApiKey] = useState("");
+    const [matriz, setMatriz] = useState<MatrizCurricularRef | null>(null);
 
     const [formData, setFormData] = useState({
         tema: "",
@@ -39,6 +43,7 @@ export default function WorksheetsTool() {
         await runGeneration((onChunk, options) =>
             generatorService.generateWorksheets({
                 ...formData,
+                matriz_curricular: matriz ?? undefined,
                 ...contextualData,
                 provider: engine,
                 api_key: apiKey
@@ -101,17 +106,19 @@ export default function WorksheetsTool() {
             <form onSubmit={handleSubmit} className="space-y-6">
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
+                <CurriculumMatrixSelector value={matriz} onChange={setMatriz} />
+
                 <div className="space-y-2">
-                    <label className="lam-label">Tema Principal</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="worksheets-tema-principal">Tema Principal</label>
+                    <input id="worksheets-tema-principal" type="text" className="lam-input"
                         placeholder="Ej: El Ciclo del Agua"
                         value={formData.tema} onChange={e => setFormData({ ...formData, tema: e.target.value })} required />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Tipo de Recurso</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="worksheets-tipo-de-recurso">Tipo de Recurso</label>
+                        <select id="worksheets-tipo-de-recurso" className="lam-input"
                             value={formData.tipo} onChange={e => setFormData({ ...formData, tipo: e.target.value })}>
                             <option>Ficha de repaso</option>
                             <option>Ficha de ampliación</option>
@@ -121,16 +128,16 @@ export default function WorksheetsTool() {
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Edad / Nivel</label>
-                        <input type="text" className="lam-input"
+                        <label className="lam-label" htmlFor="worksheets-edad-nivel">Edad / Nivel</label>
+                        <input id="worksheets-edad-nivel" type="text" className="lam-input"
                             placeholder="Ej: 3º Primaria (8-9 años)"
                             value={formData.edad} onChange={e => setFormData({ ...formData, edad: e.target.value })} required />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Objetivo de Aprendizaje</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="worksheets-objetivo-de-aprendizaje">Objetivo de Aprendizaje</label>
+                    <textarea id="worksheets-objetivo-de-aprendizaje" className="lam-input h-24 resize-none"
                         placeholder="¿Qué deben aprender o practicar?"
                         value={formData.objetivo} onChange={e => setFormData({ ...formData, objetivo: e.target.value })} required />
                 </div>

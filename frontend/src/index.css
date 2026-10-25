@@ -23,6 +23,7 @@
    ===================================================================== */
 
 @import "tailwindcss";
+@import "./fonts.css";
 
 @theme {
   /* Papel y tinta */
