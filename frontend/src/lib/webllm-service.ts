@@ -16,9 +16,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { CreateMLCEngine, MLCEngine } from "@mlc-ai/web-llm";
+import { CreateMLCEngine, MLCEngine, prebuiltAppConfig } from "@mlc-ai/web-llm";
+import type { AppConfig } from "@mlc-ai/web-llm";
 
 const SELECTED_MODEL = "Llama-3.2-1B-Instruct-q4f32_1-MLC";
+
+// Cadena de suministro del modelo local. Por defecto WebLLM descarga pesos y wasm de
+// Hugging Face y GitHub (rama mutable, sin integridad). Si el despliegue define un
+// espejo propio (scripts/mirror_webllm_model.sh + VITE_WEBLLM_MODEL_URL y
+// VITE_WEBLLM_MODEL_LIB_URL), todo se sirve desde EDUmind y la CSP puede cerrarse.
+const MIRROR_MODEL_URL = (import.meta.env.VITE_WEBLLM_MODEL_URL || "").trim();
+const MIRROR_MODEL_LIB_URL = (import.meta.env.VITE_WEBLLM_MODEL_LIB_URL || "").trim();
+
+function buildAppConfig(): AppConfig | undefined {
+    if (!MIRROR_MODEL_URL || !MIRROR_MODEL_LIB_URL) return undefined;
+    const base = prebuiltAppConfig.model_list.find((record) => record.model_id === SELECTED_MODEL);
+    return {
+        ...prebuiltAppConfig,
+        useIndexedDBCache: true,
+        model_list: [
+            {
+                ...(base ?? { model_id: SELECTED_MODEL }),
+                model: MIRROR_MODEL_URL,
+                model_id: SELECTED_MODEL,
+                model_lib: MIRROR_MODEL_LIB_URL,
+            },
+        ],
+    };
+}
+
+export function getWebLlmSupplyChain(): "edumind" | "third_party_cdn" {
+    return MIRROR_MODEL_URL && MIRROR_MODEL_LIB_URL ? "edumind" : "third_party_cdn";
+}
 
 let engine: MLCEngine | null = null;
 
@@ -40,6 +69,7 @@ export const webLlmService = {
         if (!engine) {
             onProgress("Iniciando motor WebGPU (primera carga puede tardar unos minutos)...");
             engine = await CreateMLCEngine(SELECTED_MODEL, {
+                appConfig: buildAppConfig(),
                 initProgressCallback: (report) => {
                     onProgress(report.text);
                 },
