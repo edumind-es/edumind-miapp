@@ -30,6 +30,7 @@ from pydantic import BaseModel
 from sqlmodel import Session, func, select
 
 from app.api.v1.auth import get_current_user, require_admin_from_vpn
+from app.services.dataset_privacy import scrub_personal_data
 from app.core.config import settings
 from app.db import get_session
 from app.models import Document, TrainingItem, TrainingItemSource, User, UserRole
@@ -204,9 +205,11 @@ async def create_item(
     except ValueError:
         source = TrainingItemSource.MANUAL
 
+    instruction, _ = scrub_personal_data(item.instruction)
+    output, _ = scrub_personal_data(item.output)
     db_item = TrainingItem(
-        instruction=item.instruction,
-        output=item.output,
+        instruction=instruction,
+        output=output,
         source=source,
         creator_id=current_user.id,
     )
@@ -314,6 +317,8 @@ async def verify_item(
 
     item.is_verified = True
     item.verified_by_id = current_user.id
+    # Al pasar al fondo común el ítem deja de estar vinculado a quien lo aportó.
+    item.creator_id = None
     session.add(item)
     session.commit()
 
@@ -333,6 +338,7 @@ async def bulk_verify(
         if item and not item.is_verified:
             item.is_verified = True
             item.verified_by_id = current_user.id
+            item.creator_id = None
             session.add(item)
             count += 1
 
@@ -346,10 +352,10 @@ async def bulk_verify(
 async def upload_file(
     file: UploadFile = File(...),
     auto_parse: bool = True,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin_from_vpn),
     session: Session = Depends(get_session),
 ):
-    """Upload a file (PDF, DOCX, XLSX, PPTX, MD, JSON, PNG)."""
+    """Upload a file (PDF, DOCX, XLSX, PPTX, MD, JSON, PNG). Solo administración: alimenta el dataset común."""
     normalized_filename = _normalize_filename(file.filename)
     file_type = get_file_type(normalized_filename)
     if file_type == "unknown":

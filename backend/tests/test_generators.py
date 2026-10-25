@@ -549,6 +549,7 @@ def test_generators_contribution_endpoint_saves_opt_in_item(client, api_v1_prefi
             "output": "Contenido pedagógico extenso válido para revisión manual en dataset." * 4,
             "tool": "planning",
             "provider": "edumind",
+            "consent": True,
         },
     )
 

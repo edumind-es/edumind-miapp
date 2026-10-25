@@ -160,6 +160,8 @@ export function GeneratorLayout({
                 output: effectiveOutput,
                 tool: window.location.pathname.replace(/^\/+/, "") || "generador",
                 provider: "unknown",
+                // El diálogo previo es el consentimiento: sin él el servidor rechaza la contribución.
+                consent: true,
             };
             const response = await authFetch("/generators/contribute", {
                 method: "POST",
@@ -375,8 +377,8 @@ export function GeneratorLayout({
             <ConfirmationDialog
                 open={showContributeConfirm}
                 title="Aportar esta salida al dataset"
-                description="Se guardará para revisión manual en admin. Asegúrate de que el contenido esté limpio, útil y sin datos sensibles antes de enviarlo."
-                confirmLabel="Enviar contribución"
+                description="Esta salida se guardará en el dataset de entrenamiento de EDUmind y la revisará una persona antes de usarse. Al enviarla confirmas que no contiene nombres, datos de alumnado ni información personal. Los correos, teléfonos y documentos de identidad que se detecten se eliminan automáticamente."
+                confirmLabel="Doy mi consentimiento y envío"
                 cancelLabel="Revisar antes"
                 busy={isContributing}
                 onConfirm={confirmContribute}

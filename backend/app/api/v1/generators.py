@@ -41,6 +41,7 @@ from app.core.prompt_registry import (
 )
 from app.core.queue_manager import queue_manager
 from app.core.security import get_client_ip, get_client_ip_for_log, is_vpn_or_local_request
+from app.services.dataset_privacy import scrub_personal_data
 from app.db import get_session
 from app.models import ActivityLog, TrainingItem, TrainingItemSource, User, UserRole
 from app.schemas import PlanningRequest, ProjectRequest, SituationRequest
@@ -101,6 +102,8 @@ class DatasetContributionRequest(BaseModel):
     output: str
     tool: Optional[str] = None
     provider: Optional[str] = None
+    # Consentimiento explícito marcado en la UI antes de enviar.
+    consent: bool = False
 
 
 def _has_network_resolution_issue(error_text: str) -> bool:
@@ -729,13 +732,18 @@ async def contribute_generation_output(
     """
     Save a generation to dataset only when user explicitly opts in from UI.
     """
-    clean_output = (payload.output or "").strip()
+    if not payload.consent:
+        raise HTTPException(
+            status_code=422,
+            detail="Para contribuir al dataset hace falta tu consentimiento explícito.",
+        )
+    clean_output, _ = scrub_personal_data((payload.output or "").strip())
     if len(clean_output) < 80:
         raise HTTPException(status_code=422, detail="El contenido a contribuir es demasiado corto.")
     if len(clean_output) > 64000:
         raise HTTPException(status_code=413, detail="El contenido a contribuir excede el límite permitido.")
 
-    clean_instruction = (payload.instruction or "").strip()
+    clean_instruction, _ = scrub_personal_data((payload.instruction or "").strip())
     clean_tool = (payload.tool or "").strip().lower() or "generador"
     clean_provider = (payload.provider or "").strip().lower() or "unknown"
 
