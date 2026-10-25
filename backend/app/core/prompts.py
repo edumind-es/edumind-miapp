@@ -195,6 +195,8 @@ def build_stem_prompt(data: Dict[str, Any]) -> str:
 def build_diversity_prompt(data: Dict[str, Any]) -> str:
     return f"""
     Actúa como orientador escolar senior.
+    PROTECCIÓN DE DATOS: el caso llega anonimizado; refiérete siempre a "el/la alumno/a" o "el grupo",
+    nunca inventes ni reproduzcas nombres, centros o datos identificativos, y no pidas más datos personales.
     Caso: {data.get('caso') or 'No especificado'}
     Intervención actual: {data.get('intervencion_actual') or 'No especificado'}
     Resultados actuales: {data.get('resultados') or 'No especificado'}
@@ -211,6 +213,7 @@ def build_session_prompt(data: Dict[str, Any]) -> str:
     Curso: {data.get('curso') or 'No especificado'}
     Descripción: {data.get('descripcion') or 'No especificado'}
     
+    {build_enriched_context(data)}
     Estructura: CONTEXTO, OBJETIVOS OPERATIVOS, CRONOGRAMA DETALLADO (Fases), EVALUACIÓN FORMATIVA, INCLUSIÓN, RECURSOS DIGITALES.
     SIN FORMATO MARKDOWN.
     {ECOSYSTEM_CONTEXT}
@@ -449,7 +452,7 @@ def build_reinforcement_plan_prompt(data: Dict[str, Any]) -> str:
     8. COORDINACION DOCENTE-FAMILIA-CENTRO (sin exponer datos personales)
     9. ENCAJE NORMATIVO ({comunidad}) con referencias explicitas a:
        - {normativa_aplicable}
-    10. PLAN DE APLICACION INMEDIATA (24-72h) y cronograma hasta cierre
+    10. CRONOGRAMA DE APLICACION desde la fecha de inicio hasta la fecha de cierre
 
     REQUISITOS CRITICOS:
     - No inventes normativa ni articulos; si no hay evidencia suficiente, declaralo.
@@ -465,7 +468,8 @@ def build_rubric_prompt(data: Dict[str, Any]) -> str:
     Área/Materia: {data.get('area')}
     Número de criterios: {data.get('criterios')}
     Descripción del proyecto/tarea: {data.get('descripcion')}
-    
+    {build_marco_curricular_block(data)}
+    Si hay marco curricular oficial, cada criterio de la rúbrica debe citar el código del criterio de evaluación que desarrolla.
     Genera una tabla CSV válida con las columnas: Criterio, Nivel 1 (Insuficiente), Nivel 2 (Suficiente), Nivel 3 (Notable), Nivel 4 (Sobresaliente).
     El formato debe ser estrictamente CSV separado por comas, sin texto adicional antes o después.
     """
@@ -477,7 +481,7 @@ def build_worksheet_prompt(data: Dict[str, Any]) -> str:
     Objetivo: {data.get('objetivo')}
     Tipo de material: {data.get('tipo')}
     Edad/Nivel: {data.get('edad')}
-    
+    {build_enriched_context(data)}
     Estructura: TÍTULO, OBJETIVOS, INSTRUCCIONES, ACTIVIDADES (Secuenciadas), RECURSOS EXTRA.
     SIN FORMATO MARKDOWN EN EL CUERPO (Usa texto plano limpio).
     {ECOSYSTEM_CONTEXT}

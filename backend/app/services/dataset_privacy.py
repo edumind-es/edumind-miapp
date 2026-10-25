@@ -38,3 +38,14 @@ def scrub_personal_data(text: str) -> Tuple[str, int]:
         limpio, n = patron.subn(etiqueta, limpio)
         total += n
     return limpio, total
+
+
+def scrub_payload(value):
+    """Aplica scrub_personal_data a todas las cadenas de un payload (dict/list anidados)."""
+    if isinstance(value, str):
+        return scrub_personal_data(value)[0]
+    if isinstance(value, list):
+        return [scrub_payload(item) for item in value]
+    if isinstance(value, dict):
+        return {key: scrub_payload(item) for key, item in value.items()}
+    return value

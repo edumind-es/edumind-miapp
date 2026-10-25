@@ -43,7 +43,7 @@ from app.core.prompt_registry import (
 from app.core.queue_manager import queue_manager
 from app.core.security import get_client_ip, get_client_ip_for_log, is_vpn_or_local_request
 from app.core.rate_limit import limiter
-from app.services.dataset_privacy import scrub_personal_data
+from app.services.dataset_privacy import scrub_payload, scrub_personal_data
 from app.db import get_session
 from app.models import ActivityLog, TrainingItem, TrainingItemSource, User, UserRole
 from app.schemas import PlanningRequest, ProjectRequest, SituationRequest
@@ -813,6 +813,10 @@ async def _generate_tool(
     current_user: Optional[User],
 ):
     api_key = await _resolve_request_api_key(request, api_key)
+
+    # Minimización: correos, teléfonos y documentos de identidad no viajan a ningún motor,
+    # tampoco al gestionado. Los nombres no se detectan: la UI pide no incluirlos.
+    payload_data = scrub_payload(payload_data)
 
     # Si el payload referencia una matriz curricular oficial, se inyectan sus elementos
     payload_data = CurriculumMatrixService.enrich_generator_payload(payload_data)

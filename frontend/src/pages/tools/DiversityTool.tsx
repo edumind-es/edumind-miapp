@@ -66,8 +66,13 @@ export default function DiversityTool() {
                 <div className="space-y-2">
                     <label className="lam-label" htmlFor="diversity-descripcion-del-caso">Descripción del Caso</label>
                     <textarea id="diversity-descripcion-del-caso" className="lam-input h-32 resize-none"
-                        placeholder="Describe la situación del alumno o grupo, NEAE, dificultades..."
+                        placeholder="Describe la situación sin datos identificativos: curso, barreras observadas, NEAE, contexto del grupo..."
                         value={formData.caso} onChange={e => setFormData({ ...formData, caso: e.target.value })} required />
+                    <p className="m-0 text-[12px] text-ink-2 leading-snug">
+                        Privacidad: no escribas nombres, iniciales reconocibles, centro ni fechas de nacimiento. Habla de
+                        &quot;el alumno&quot; o &quot;el grupo&quot;. Correos, teléfonos y DNI se eliminan automáticamente antes de
+                        enviar el texto al motor.
+                    </p>
                 </div>
 
                 <div className="space-y-2">
