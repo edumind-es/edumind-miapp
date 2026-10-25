@@ -38,7 +38,7 @@ from slowapi import Limiter
 from sqlmodel import Session, select
 
 from app.core.config import settings
-from app.core.security import get_client_ip, is_vpn_or_local_request
+from app.core.security import get_client_ip, get_client_ip_for_log, is_vpn_or_local_request
 from app.db import get_session
 from app.models import ActivityLog, User, UserRole
 
@@ -666,7 +666,7 @@ async def login(
         user_id=user.id,
         action="login",
         details=f"User {user.username} logged in",
-        ip_address=get_client_ip(request),
+        ip_address=get_client_ip_for_log(request),
     )
     session.add(log)
     session.commit()
@@ -769,7 +769,7 @@ async def sso_callback(
             user_id=user.id,
             action="login_sso",
             details=f"User {user.username} logged in via Authentik",
-            ip_address=get_client_ip(request),
+            ip_address=get_client_ip_for_log(request),
         )
     )
     session.commit()

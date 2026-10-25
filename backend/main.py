@@ -75,6 +75,23 @@ elif settings.DEBUG:
 @app.on_event("startup")
 def on_startup():
     init_db()
+    _purge_old_activity_logs()
+
+
+def _purge_old_activity_logs():
+    """Aplica la política de retención al arrancar; un fallo aquí no impide servir."""
+    try:
+        from sqlmodel import Session
+
+        from app.db import engine
+        from app.services.retention_service import purge_activity_log
+
+        with Session(engine) as session:
+            purge_activity_log(session)
+    except Exception:  # pragma: no cover - solo registro
+        import logging
+
+        logging.getLogger(__name__).exception("No se pudo aplicar la retención de ActivityLog")
 
 
 @app.middleware("http")

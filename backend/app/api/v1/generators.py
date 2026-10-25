@@ -40,7 +40,7 @@ from app.core.prompt_registry import (
     list_prompt_contracts,
 )
 from app.core.queue_manager import queue_manager
-from app.core.security import get_client_ip, is_vpn_or_local_request
+from app.core.security import get_client_ip, get_client_ip_for_log, is_vpn_or_local_request
 from app.db import get_session
 from app.models import ActivityLog, TrainingItem, TrainingItemSource, User, UserRole
 from app.schemas import PlanningRequest, ProjectRequest, SituationRequest
@@ -646,7 +646,7 @@ async def _generate_with_bundle(
             api_key=resolved_api_key,
             prompt_bundle=prompt_bundle,
             tool_name=tool_name,
-            request_ip=get_client_ip(request),
+            request_ip=get_client_ip_for_log(request),
             db=db,
             current_user=current_user,
         ),
@@ -770,7 +770,7 @@ async def contribute_generation_output(
                 resource_type="training_item",
                 resource_id=item.id,
                 details=json.dumps(details, ensure_ascii=True),
-                ip_address=get_client_ip(request),
+                ip_address=get_client_ip_for_log(request),
             )
         )
         db.commit()

@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     # Cabeceras de IP de cliente aceptadas cuando el peer es un proxy fiable.
     # Añadir "CF-Connecting-IP" solo si el origen está cerrado a Cloudflare.
     TRUSTED_CLIENT_IP_HEADERS: List[str] = ["X-Real-IP"]
+    # Días que se conservan los registros de actividad (IP ya enmascarada); 0 desactiva la purga.
+    ACTIVITY_LOG_RETENTION_DAYS: int = 90
     MAX_UPLOAD_SIZE_MB: int = 10
     AUTH_COOKIE_NAME: str = "edumind_access_token"
     CSRF_COOKIE_NAME: str = "edumind_csrf_token"
