@@ -16,7 +16,7 @@
 
 import { buildApiUrl } from "./api-base";
 import { curriculumService, type MatrizCurricularRef } from "./curriculum-service";
-import type { LocalPromptContract } from "./local-prompt-builder";
+import type { LocalPromptContract, ToolPromptSpec } from "./local-prompt-builder";
 
 export interface LocalToolContract {
     tool: string;
@@ -28,6 +28,8 @@ export interface LocalToolContract {
     output_schema: Record<string, unknown> | null;
     required_fields: Record<string, string>;
     positive_fields: Record<string, string>;
+    spec?: ToolPromptSpec | null;
+    text_quality?: boolean;
 }
 
 interface LocalContractsResponse {
@@ -259,5 +261,7 @@ export async function prepareLocalPromptContract(
         output_schema: contract.output_schema,
         sanitized_payload: publicPayload as LocalPromptContract["sanitized_payload"],
         local_prompt_mode: rules.local_prompt_mode,
+        spec: contract.spec ?? null,
+        text_quality: contract.text_quality ?? false,
     };
 }

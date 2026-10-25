@@ -27,6 +27,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from app.core import prompts
+from app.core.tool_specs import get_tool_spec
 
 PromptBuilder = Callable[[dict[str, Any]], str]
 
@@ -642,6 +643,8 @@ def describe_prompt_contracts_for_client() -> dict[str, Any]:
                 "output_schema": contract.output_schema,
                 "required_fields": REQUIRED_FIELDS_BY_TOOL.get(contract.tool, {}),
                 "positive_fields": POSITIVE_FIELDS_BY_TOOL.get(contract.tool, {}),
+                "spec": get_tool_spec(contract.tool),
+                "text_quality": contract.tool in TEXT_QUALITY_ENABLED_TOOLS,
             }
             for contract in PROMPT_CONTRACTS.values()
         ],
