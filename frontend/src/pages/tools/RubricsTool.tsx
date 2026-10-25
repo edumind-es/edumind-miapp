@@ -76,30 +76,30 @@ export default function RubricsTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Título de la Rúbrica</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="rubrics-titulo-de-la-rubrica">Título de la Rúbrica</label>
+                    <input id="rubrics-titulo-de-la-rubrica" type="text" className="lam-input"
                         placeholder="Ej: Debate sobre Cambio Climático"
                         value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} required />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Área / Materia</label>
-                        <input type="text" className="lam-input"
+                        <label className="lam-label" htmlFor="rubrics-area-materia">Área / Materia</label>
+                        <input id="rubrics-area-materia" type="text" className="lam-input"
                             placeholder="Ej: Biología"
                             value={formData.area} onChange={e => setFormData({ ...formData, area: e.target.value })} required />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Nº Criterios</label>
-                        <input type="number" className="lam-input"
+                        <label className="lam-label" htmlFor="rubrics-no-criterios">Nº Criterios</label>
+                        <input id="rubrics-no-criterios" type="number" className="lam-input"
                             min="1" max="15"
                             value={formData.criterios} onChange={e => setFormData({ ...formData, criterios: parseInt(e.target.value) })} required />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Descripción del Proyecto/Tarea</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="rubrics-descripcion-del-proyecto-tarea">Descripción del Proyecto/Tarea</label>
+                    <textarea id="rubrics-descripcion-del-proyecto-tarea" className="lam-input h-24 resize-none"
                         placeholder="Describe brevemente qué se evalúa..."
                         value={formData.descripcion} onChange={e => setFormData({ ...formData, descripcion: e.target.value })} required />
                 </div>

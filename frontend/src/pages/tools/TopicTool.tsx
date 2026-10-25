@@ -67,36 +67,36 @@ export default function TopicTool() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Nº Tema</label>
-                        <input type="text" className="lam-input"
+                        <label className="lam-label" htmlFor="topic-no-tema">Nº Tema</label>
+                        <input id="topic-no-tema" type="text" className="lam-input"
                             placeholder="Ej. 14"
                             value={formData.numero} onChange={e => setFormData({ ...formData, numero: e.target.value })} required />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Cuerpo</label>
-                        <input type="text" className="lam-input"
+                        <label className="lam-label" htmlFor="topic-cuerpo">Cuerpo</label>
+                        <input id="topic-cuerpo" type="text" className="lam-input"
                             placeholder="Ej. Secundaria"
                             value={formData.cuerpo} onChange={e => setFormData({ ...formData, cuerpo: e.target.value })} required />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Título del Tema</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="topic-titulo-del-tema">Título del Tema</label>
+                    <input id="topic-titulo-del-tema" type="text" className="lam-input"
                         placeholder="Ej. El desarrollo evolutivo..."
                         value={formData.titulo} onChange={e => setFormData({ ...formData, titulo: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Especialidad</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="topic-especialidad">Especialidad</label>
+                    <input id="topic-especialidad" type="text" className="lam-input"
                         placeholder="Ej. Orientación Educativa, Matemáticas..."
                         value={formData.especialidad} onChange={e => setFormData({ ...formData, especialidad: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Parte a Desarrollar</label>
-                    <textarea className="lam-input h-32 resize-none"
+                    <label className="lam-label" htmlFor="topic-parte-a-desarrollar">Parte a Desarrollar</label>
+                    <textarea id="topic-parte-a-desarrollar" className="lam-input h-32 resize-none"
                         placeholder="Ej. Introducción y Epígrafe 1..."
                         value={formData.parte} onChange={e => setFormData({ ...formData, parte: e.target.value })} required />
                 </div>

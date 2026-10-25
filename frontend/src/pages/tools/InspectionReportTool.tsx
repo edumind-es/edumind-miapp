@@ -105,8 +105,8 @@ export default function InspectionReportTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Tipo de Documento</label>
-                        <select
+                        <label className="lam-label" htmlFor="inspectionreport-tipo-de-documento">Tipo de Documento</label>
+                        <select id="inspectionreport-tipo-de-documento"
                             value={formData.tipo_documento}
                             onChange={(e) =>
                                 setFormData((prev) => ({
@@ -129,8 +129,8 @@ export default function InspectionReportTool() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="lam-label">Subplantilla Operativa</label>
-                        <select
+                        <label className="lam-label" htmlFor="inspectionreport-subplantilla-operativa">Subplantilla Operativa</label>
+                        <select id="inspectionreport-subplantilla-operativa"
                             value={formData.subplantilla}
                             onChange={(e) => setFormData((prev) => ({ ...prev, subplantilla: e.target.value }))}
                             className="lam-input"
@@ -144,8 +144,8 @@ export default function InspectionReportTool() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="lam-label">Ámbito de la Demanda</label>
-                        <select
+                        <label className="lam-label" htmlFor="inspectionreport-ambito-de-la-demanda">Ámbito de la Demanda</label>
+                        <select id="inspectionreport-ambito-de-la-demanda"
                             value={formData.ambito}
                             onChange={(e) => setFormData((prev) => ({ ...prev, ambito: e.target.value }))}
                             className="lam-input"
@@ -160,8 +160,8 @@ export default function InspectionReportTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Demanda de Inspección</label>
-                    <textarea
+                    <label className="lam-label" htmlFor="inspectionreport-demanda-de-inspeccion">Demanda de Inspección</label>
+                    <textarea id="inspectionreport-demanda-de-inspeccion"
                         required
                         value={formData.demanda_inspeccion}
                         onChange={(e) => setFormData((prev) => ({ ...prev, demanda_inspeccion: e.target.value }))}
@@ -171,8 +171,8 @@ export default function InspectionReportTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Hallazgos / Situación Actual del Centro</label>
-                    <textarea
+                    <label className="lam-label" htmlFor="inspectionreport-hallazgos-situacion-actual-del-centro">Hallazgos / Situación Actual del Centro</label>
+                    <textarea id="inspectionreport-hallazgos-situacion-actual-del-centro"
                         required
                         value={formData.hallazgos}
                         onChange={(e) => setFormData((prev) => ({ ...prev, hallazgos: e.target.value }))}
@@ -182,8 +182,8 @@ export default function InspectionReportTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Actuaciones Previas</label>
-                    <textarea
+                    <label className="lam-label" htmlFor="inspectionreport-actuaciones-previas">Actuaciones Previas</label>
+                    <textarea id="inspectionreport-actuaciones-previas"
                         value={formData.actuaciones_previas}
                         onChange={(e) => setFormData((prev) => ({ ...prev, actuaciones_previas: e.target.value }))}
                         className="lam-input h-20 resize-none"
@@ -192,8 +192,8 @@ export default function InspectionReportTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Evidencias Disponibles</label>
-                    <textarea
+                    <label className="lam-label" htmlFor="inspectionreport-evidencias-disponibles">Evidencias Disponibles</label>
+                    <textarea id="inspectionreport-evidencias-disponibles"
                         required
                         value={formData.evidencias}
                         onChange={(e) => setFormData((prev) => ({ ...prev, evidencias: e.target.value }))}
@@ -204,8 +204,8 @@ export default function InspectionReportTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Plazo de Respuesta</label>
-                        <input
+                        <label className="lam-label" htmlFor="inspectionreport-plazo-de-respuesta">Plazo de Respuesta</label>
+                        <input id="inspectionreport-plazo-de-respuesta"
                             value={formData.plazo_respuesta}
                             onChange={(e) => setFormData((prev) => ({ ...prev, plazo_respuesta: e.target.value }))}
                             className="lam-input"
@@ -213,8 +213,8 @@ export default function InspectionReportTool() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Normativa Aplicable</label>
-                        <input
+                        <label className="lam-label" htmlFor="inspectionreport-normativa-aplicable">Normativa Aplicable</label>
+                        <input id="inspectionreport-normativa-aplicable"
                             value={formData.normativa_aplicable}
                             onChange={(e) => setFormData((prev) => ({ ...prev, normativa_aplicable: e.target.value }))}
                             className="lam-input"

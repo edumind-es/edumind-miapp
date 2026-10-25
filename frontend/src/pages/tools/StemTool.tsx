@@ -66,15 +66,15 @@ export default function StemTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Producto Final Deseado</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="stem-producto-final-deseado">Producto Final Deseado</label>
+                    <input id="stem-producto-final-deseado" type="text" className="lam-input"
                         placeholder="Ej. Cohete de agua, Robot sigue-líneas..."
                         value={formData.producto} onChange={e => setFormData({ ...formData, producto: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Nivel o Curso</label>
-                    <select className="lam-input"
+                    <label className="lam-label" htmlFor="stem-nivel-o-curso">Nivel o Curso</label>
+                    <select id="stem-nivel-o-curso" className="lam-input"
                         value={formData.curso} onChange={e => setFormData({ ...formData, curso: e.target.value })} required>
                         <option value="">Selecciona un curso</option>
                         {EDUCATION_LEVELS.map((level) => (
@@ -88,15 +88,15 @@ export default function StemTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Materiales Disponibles</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="stem-materiales-disponibles">Materiales Disponibles</label>
+                    <textarea id="stem-materiales-disponibles" className="lam-input h-24 resize-none"
                         placeholder="Ej. Cartón, motores DC, Arduino..."
                         value={formData.materiales} onChange={e => setFormData({ ...formData, materiales: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Casuísticas NEAE</label>
-                    <textarea className="lam-input h-20 resize-none"
+                    <label className="lam-label" htmlFor="stem-casuisticas-neae">Casuísticas NEAE</label>
+                    <textarea id="stem-casuisticas-neae" className="lam-input h-20 resize-none"
                         placeholder="Adaptaciones necesarias..."
                         value={formData.neae} onChange={e => setFormData({ ...formData, neae: e.target.value })} />
                 </div>

@@ -71,8 +71,8 @@ export default function PlanningTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Curso</label>
-                    <select
+                    <label className="lam-label" htmlFor="planning-curso">Curso</label>
+                    <select id="planning-curso"
                         className="lam-input"
                         value={formData.curso}
                         onChange={e => setFormData({ ...formData, curso: e.target.value })}
@@ -100,8 +100,8 @@ export default function PlanningTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Objetivo Principal</label>
-                    <textarea
+                    <label className="lam-label" htmlFor="planning-objetivo-principal">Objetivo Principal</label>
+                    <textarea id="planning-objetivo-principal"
                         className="lam-input h-32 resize-none"
                         placeholder="Ej: Conocer los fundamentos del voleibol..."
                         value={formData.objetivo}

@@ -88,14 +88,14 @@ export default function SituationTool() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Tempo. (Número)</label>
-                        <input type="number" className="lam-input"
+                        <label className="lam-label" htmlFor="situation-tempo-numero">Tempo. (Número)</label>
+                        <input id="situation-tempo-numero" type="number" className="lam-input"
                             placeholder="Ej: 3"
                             value={formData.temporalizacion} onChange={e => setFormData({ ...formData, temporalizacion: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Unidad</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="situation-unidad">Unidad</label>
+                        <select id="situation-unidad" className="lam-input"
                             value={formData.tipo_temporalizacion} onChange={e => setFormData({ ...formData, tipo_temporalizacion: e.target.value })}>
                             <option value="sesiones">Sesiones</option>
                             <option value="semanas">Semanas</option>
@@ -106,8 +106,8 @@ export default function SituationTool() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Curso</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="situation-curso">Curso</label>
+                        <select id="situation-curso" className="lam-input"
                             value={formData.curso} onChange={e => setFormData({ ...formData, curso: e.target.value })}>
                             <option value="">Selecciona un curso</option>
                             {EDUCATION_LEVELS.map((level) => (
@@ -120,8 +120,8 @@ export default function SituationTool() {
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Etapa</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="situation-etapa">Etapa</label>
+                        <select id="situation-etapa" className="lam-input"
                             value={formData.etapa_educativa} onChange={e => setFormData({ ...formData, etapa_educativa: e.target.value })}>
                             {EDUCATION_LEVELS.map((level) => (
                                 <option key={level.stage} value={level.stage}>{level.stage}</option>
@@ -141,8 +141,8 @@ export default function SituationTool() {
                 />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Objetivos y Contenidos Clave</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="situation-objetivos-y-contenidos-clave">Objetivos y Contenidos Clave</label>
+                    <textarea id="situation-objetivos-y-contenidos-clave" className="lam-input h-24 resize-none"
                         placeholder="Describe brevemente los objetivos..."
                         value={formData.objetivos} onChange={e => setFormData({ ...formData, objetivos: e.target.value })} required />
                 </div>

@@ -66,8 +66,8 @@ export default function DefenseTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Modo</label>
-                    <select className="lam-input"
+                    <label className="lam-label" htmlFor="defense-modo">Modo</label>
+                    <select id="defense-modo" className="lam-input"
                         value={formData.modo} onChange={e => setFormData({ ...formData, modo: e.target.value })}>
                         <option value="modelo">Generar Respuesta Modelo</option>
                         <option value="evaluar">Evaluar mi Respuesta</option>
@@ -75,23 +75,23 @@ export default function DefenseTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Especialidad</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="defense-especialidad">Especialidad</label>
+                    <input id="defense-especialidad" type="text" className="lam-input"
                         placeholder="Ej. Primaria Inglés"
                         value={formData.especialidad} onChange={e => setFormData({ ...formData, especialidad: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Enunciado del Supuesto / Pregunta</label>
-                    <textarea className="lam-input h-32 resize-none"
+                    <label className="lam-label" htmlFor="defense-enunciado-del-supuesto-pregunta">Enunciado del Supuesto / Pregunta</label>
+                    <textarea id="defense-enunciado-del-supuesto-pregunta" className="lam-input h-32 resize-none"
                         placeholder="Pega aquí el enunciado..."
                         value={formData.enunciado} onChange={e => setFormData({ ...formData, enunciado: e.target.value })} required />
                 </div>
 
                 {formData.modo === "evaluar" && (
                     <div className="space-y-2">
-                        <label className="lam-label">Tu Respuesta</label>
-                        <textarea className="lam-input h-48 resize-none"
+                        <label className="lam-label" htmlFor="defense-tu-respuesta">Tu Respuesta</label>
+                        <textarea id="defense-tu-respuesta" className="lam-input h-48 resize-none"
                             placeholder="Escribe aquí tu defensa o respuesta..."
                             value={formData.respuesta_usuario} onChange={e => setFormData({ ...formData, respuesta_usuario: e.target.value })} required />
                     </div>

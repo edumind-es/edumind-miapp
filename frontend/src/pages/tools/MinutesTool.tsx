@@ -67,8 +67,8 @@ export default function MinutesTool() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Tipo de Reunión</label>
-                        <select className="lam-input"
+                        <label className="lam-label" htmlFor="minutes-tipo-de-reunion">Tipo de Reunión</label>
+                        <select id="minutes-tipo-de-reunion" className="lam-input"
                             value={formData.tipo} onChange={e => setFormData({ ...formData, tipo: e.target.value })}>
                             <option>Claustro Ordinario</option>
                             <option>Claustro Extraordinario</option>
@@ -78,29 +78,29 @@ export default function MinutesTool() {
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Fecha</label>
-                        <input type="date" className="lam-input"
+                        <label className="lam-label" htmlFor="minutes-fecha">Fecha</label>
+                        <input id="minutes-fecha" type="date" className="lam-input"
                             value={formData.fecha} onChange={e => setFormData({ ...formData, fecha: e.target.value })} />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Asistentes / Ausentes</label>
-                    <textarea className="lam-input h-20 resize-none"
+                    <label className="lam-label" htmlFor="minutes-asistentes-ausentes">Asistentes / Ausentes</label>
+                    <textarea id="minutes-asistentes-ausentes" className="lam-input h-20 resize-none"
                         placeholder="Lista de asistentes..."
                         value={formData.presentes} onChange={e => setFormData({ ...formData, presentes: e.target.value })} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Temas Tratados</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="minutes-temas-tratados">Temas Tratados</label>
+                    <textarea id="minutes-temas-tratados" className="lam-input h-24 resize-none"
                         placeholder="Puntos del orden del día..."
                         value={formData.temas} onChange={e => setFormData({ ...formData, temas: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Acuerdos Adoptados</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="minutes-acuerdos-adoptados">Acuerdos Adoptados</label>
+                    <textarea id="minutes-acuerdos-adoptados" className="lam-input h-24 resize-none"
                         placeholder="Decisiones finales..."
                         value={formData.acuerdos} onChange={e => setFormData({ ...formData, acuerdos: e.target.value })} />
                 </div>

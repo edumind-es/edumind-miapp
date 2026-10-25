@@ -210,8 +210,8 @@ export default function NormativaTool() {
                 />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Consulta sobre Convivencia</label>
-                    <textarea
+                    <label className="lam-label" htmlFor="normativa-consulta-sobre-convivencia">Consulta sobre Convivencia</label>
+                    <textarea id="normativa-consulta-sobre-convivencia"
                         className="lam-input h-32 resize-none"
                         placeholder="Ej: ¿Cuáles son los pasos ante un caso de acoso escolar? ¿Qué medidas correctivas se aplican a faltas graves?"
                         value={query}

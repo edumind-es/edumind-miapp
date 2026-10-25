@@ -65,15 +65,15 @@ export default function SessionTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Tema o Contenido</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="session-tema-o-contenido">Tema o Contenido</label>
+                    <input id="session-tema-o-contenido" type="text" className="lam-input"
                         placeholder="Ej. Ecuaciones de primer grado, La Célula..."
                         value={formData.tema} onChange={e => setFormData({ ...formData, tema: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Curso y Grupo</label>
-                    <select className="lam-input"
+                    <label className="lam-label" htmlFor="session-curso-y-grupo">Curso y Grupo</label>
+                    <select id="session-curso-y-grupo" className="lam-input"
                         value={formData.curso} onChange={e => setFormData({ ...formData, curso: e.target.value })} required>
                         <option value="">Selecciona un curso</option>
                         {EDUCATION_LEVELS.map((level) => (
@@ -87,8 +87,8 @@ export default function SessionTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Enfoque Metodológico (Opcional)</label>
-                    <textarea className="lam-input h-32 resize-none"
+                    <label className="lam-label" htmlFor="session-enfoque-metodologico-opcional">Enfoque Metodológico (Opcional)</label>
+                    <textarea id="session-enfoque-metodologico-opcional" className="lam-input h-32 resize-none"
                         placeholder="Ej. Aprendizaje Cooperativo, Gamificación, Flipped Classroom..."
                         value={formData.descripcion} onChange={e => setFormData({ ...formData, descripcion: e.target.value })} />
                 </div>

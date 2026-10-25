@@ -190,8 +190,8 @@ export default function ReinforcementPlanTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Area educativa</label>
-                        <select
+                        <label className="lam-label" htmlFor="reinforcementplan-area-educativa">Area educativa</label>
+                        <select id="reinforcementplan-area-educativa"
                             required
                             value={formData.area_educativa}
                             onChange={(event) =>
@@ -209,8 +209,8 @@ export default function ReinforcementPlanTool() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="lam-label">Curso</label>
-                        <select
+                        <label className="lam-label" htmlFor="reinforcementplan-curso">Curso</label>
+                        <select id="reinforcementplan-curso"
                             required
                             value={formData.curso}
                             onChange={(event) =>
@@ -230,8 +230,8 @@ export default function ReinforcementPlanTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Etapa educativa</label>
-                        <input
+                        <label className="lam-label" htmlFor="reinforcementplan-etapa-educativa">Etapa educativa</label>
+                        <input id="reinforcementplan-etapa-educativa"
                             required
                             value={formData.etapa_educativa}
                             onChange={(event) =>
@@ -241,8 +241,8 @@ export default function ReinforcementPlanTool() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Inicio del refuerzo</label>
-                        <input
+                        <label className="lam-label" htmlFor="reinforcementplan-inicio-del-refuerzo">Inicio del refuerzo</label>
+                        <input id="reinforcementplan-inicio-del-refuerzo"
                             required
                             type="date"
                             value={formData.fecha_inicio_refuerzo}
@@ -253,8 +253,8 @@ export default function ReinforcementPlanTool() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Fin estimado</label>
-                        <input
+                        <label className="lam-label" htmlFor="reinforcementplan-fin-estimado">Fin estimado</label>
+                        <input id="reinforcementplan-fin-estimado"
                             required
                             type="date"
                             value={formData.fecha_fin_estimada}
@@ -308,8 +308,8 @@ export default function ReinforcementPlanTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Criterios de evaluacion asociados</label>
-                    <textarea
+                    <label className="lam-label" htmlFor="reinforcementplan-criterios-de-evaluacion-asociados">Criterios de evaluacion asociados</label>
+                    <textarea id="reinforcementplan-criterios-de-evaluacion-asociados"
                         required
                         value={formData.criterios_evaluacion}
                         onChange={(event) =>
@@ -355,8 +355,8 @@ export default function ReinforcementPlanTool() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                        <label className="lam-label">Forma de trabajo aplicada</label>
-                        <textarea
+                        <label className="lam-label" htmlFor="reinforcementplan-forma-de-trabajo-aplicada">Forma de trabajo aplicada</label>
+                        <textarea id="reinforcementplan-forma-de-trabajo-aplicada"
                             required
                             value={formData.forma_trabajo_aplicada}
                             onChange={(event) =>
@@ -366,8 +366,8 @@ export default function ReinforcementPlanTool() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Recursos empleados</label>
-                        <textarea
+                        <label className="lam-label" htmlFor="reinforcementplan-recursos-empleados">Recursos empleados</label>
+                        <textarea id="reinforcementplan-recursos-empleados"
                             required
                             value={formData.recursos_empleados}
                             onChange={(event) =>
@@ -377,8 +377,8 @@ export default function ReinforcementPlanTool() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="lam-label">Desarrollo aplicado</label>
-                        <textarea
+                        <label className="lam-label" htmlFor="reinforcementplan-desarrollo-aplicado">Desarrollo aplicado</label>
+                        <textarea id="reinforcementplan-desarrollo-aplicado"
                             required
                             value={formData.desarrollo_aplicado}
                             onChange={(event) =>
@@ -390,8 +390,8 @@ export default function ReinforcementPlanTool() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Normativa aplicable</label>
-                    <input
+                    <label className="lam-label" htmlFor="reinforcementplan-normativa-aplicable">Normativa aplicable</label>
+                    <input id="reinforcementplan-normativa-aplicable"
                         required
                         value={formData.normativa_aplicable}
                         onChange={(event) =>

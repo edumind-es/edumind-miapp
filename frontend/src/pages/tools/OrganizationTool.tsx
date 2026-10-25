@@ -59,29 +59,29 @@ export default function OrganizationTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Enfoque Metodológico</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="organization-enfoque-metodologico">Enfoque Metodológico</label>
+                    <input id="organization-enfoque-metodologico" type="text" className="lam-input"
                         placeholder="Ej: Trabajo por Rincones, Aprendizaje Cooperativo..."
                         value={formData.metodologia} onChange={e => setFormData({ ...formData, metodologia: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Características del Espacio</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="organization-caracteristicas-del-espacio">Características del Espacio</label>
+                    <input id="organization-caracteristicas-del-espacio" type="text" className="lam-input"
                         placeholder="Ej: Aula pequeña, luz natural, mesas móviles..."
                         value={formData.espacio} onChange={e => setFormData({ ...formData, espacio: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Recursos Disponibles</label>
-                    <textarea className="lam-input h-20 resize-none"
+                    <label className="lam-label" htmlFor="organization-recursos-disponibles">Recursos Disponibles</label>
+                    <textarea id="organization-recursos-disponibles" className="lam-input h-20 resize-none"
                         placeholder="PDI, Tablets, Material manipulativo..."
                         value={formData.recursos} onChange={e => setFormData({ ...formData, recursos: e.target.value })} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Casuística Alumnado (DUA)</label>
-                    <textarea className="lam-input h-20 resize-none"
+                    <label className="lam-label" htmlFor="organization-casuistica-alumnado-dua">Casuística Alumnado (DUA)</label>
+                    <textarea id="organization-casuistica-alumnado-dua" className="lam-input h-20 resize-none"
                         placeholder="Alumnado con movilidad reducida, TDAH..."
                         value={formData.casuistica} onChange={e => setFormData({ ...formData, casuistica: e.target.value })} />
                 </div>

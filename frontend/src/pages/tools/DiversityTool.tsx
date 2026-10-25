@@ -64,22 +64,22 @@ export default function DiversityTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Descripción del Caso</label>
-                    <textarea className="lam-input h-32 resize-none"
+                    <label className="lam-label" htmlFor="diversity-descripcion-del-caso">Descripción del Caso</label>
+                    <textarea id="diversity-descripcion-del-caso" className="lam-input h-32 resize-none"
                         placeholder="Describe la situación del alumno o grupo, NEAE, dificultades..."
                         value={formData.caso} onChange={e => setFormData({ ...formData, caso: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Intervención Realizada (Opcional)</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="diversity-intervencion-realizada-opcional">Intervención Realizada (Opcional)</label>
+                    <textarea id="diversity-intervencion-realizada-opcional" className="lam-input h-24 resize-none"
                         placeholder="¿Qué se ha hecho hasta ahora?"
                         value={formData.intervencion_actual} onChange={e => setFormData({ ...formData, intervencion_actual: e.target.value })} />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Resultados Obtenidos (Opcional)</label>
-                    <textarea className="lam-input h-24 resize-none"
+                    <label className="lam-label" htmlFor="diversity-resultados-obtenidos-opcional">Resultados Obtenidos (Opcional)</label>
+                    <textarea id="diversity-resultados-obtenidos-opcional" className="lam-input h-24 resize-none"
                         placeholder="¿Qué ha funcionado y qué no?"
                         value={formData.resultados} onChange={e => setFormData({ ...formData, resultados: e.target.value })} />
                 </div>

@@ -57,15 +57,15 @@ export default function MethodologyTool() {
                 <EngineSelector currentEngine={engine} onSelect={setEngine} apiKey={apiKey} onApiKeyChange={setApiKey} />
 
                 <div className="space-y-2">
-                    <label className="lam-label">Contenido a Enseñar</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="methodology-contenido-a-ensenar">Contenido a Enseñar</label>
+                    <input id="methodology-contenido-a-ensenar" type="text" className="lam-input"
                         placeholder="Ej: Las fracciones, El Siglo de Oro, Voleibol..."
                         value={formData.contenido} onChange={e => setFormData({ ...formData, contenido: e.target.value })} required />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="lam-label">Grupo / Nivel</label>
-                    <input type="text" className="lam-input"
+                    <label className="lam-label" htmlFor="methodology-grupo-nivel">Grupo / Nivel</label>
+                    <input id="methodology-grupo-nivel" type="text" className="lam-input"
                         placeholder="Ej: 2º ESO, Grupo heterogéneo"
                         value={formData.grupo} onChange={e => setFormData({ ...formData, grupo: e.target.value })} required />
                 </div>
