@@ -469,9 +469,13 @@ def build_rubric_prompt(data: Dict[str, Any]) -> str:
     Número de criterios: {data.get('criterios')}
     Descripción del proyecto/tarea: {data.get('descripcion')}
     {build_marco_curricular_block(data)}
-    Si hay marco curricular oficial, cada criterio de la rúbrica debe citar el código del criterio de evaluación que desarrolla.
-    Genera una tabla CSV válida con las columnas: Criterio, Nivel 1 (Insuficiente), Nivel 2 (Suficiente), Nivel 3 (Notable), Nivel 4 (Sobresaliente).
-    El formato debe ser estrictamente CSV separado por comas, sin texto adicional antes o después.
+    Si hay marco curricular oficial, cada criterio de la rúbrica cita en "codigo_curricular" el código del criterio de evaluación que desarrolla; si no lo hay, omite esa clave.
+
+    Construye la rúbrica con exactamente {data.get('criterios')} criterios y cuatro niveles de desempeño
+    ("Insuficiente", "Suficiente", "Notable", "Sobresaliente"), en ese orden en "niveles".
+    Cada criterio lleva en "descriptores" cuatro descriptores observables y graduados, uno por nivel y en el mismo orden,
+    redactados en positivo, sin ambigüedad y evaluables en el aula. Los pesos, si los indicas, suman 100.
+    Marca "requiere_revision_humana" en true si has tenido que asumir datos que no se te han dado.
     """
 
 def build_worksheet_prompt(data: Dict[str, Any]) -> str:

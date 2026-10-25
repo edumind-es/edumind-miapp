@@ -160,7 +160,8 @@ def test_prompt_registry_raises_for_unknown_tool():
     assert raised
 
 
-def test_prompt_registry_does_not_inject_quality_block_for_strict_csv_tool():
+def test_prompt_registry_rubricas_sin_bloque_de_calidad_textual():
+    # Antes la rúbrica era CSV estricto; ahora es JSON con esquema y sigue sin el contrato de calidad textual.
     bundle = get_generator_prompt(
         "rubrics",
         {
@@ -172,6 +173,17 @@ def test_prompt_registry_does_not_inject_quality_block_for_strict_csv_tool():
         },
     )
 
-    assert bundle.response_format == "text"
-    assert "estrictamente csv" in bundle.prompt_text.lower()
+    assert bundle.response_format == "json"
+    assert "json schema" in bundle.prompt_text.lower()
     assert "contrato de calidad de respuesta" not in bundle.prompt_text.lower()
+
+
+def test_rubricas_son_salida_estructurada_con_esquema():
+    bundle = get_generator_prompt(
+        "rubrics",
+        {"nombre": "Debate", "area": "Lengua", "criterios": 4, "descripcion": "Debate en gran grupo sobre el consumo responsable"},
+    )
+    assert bundle.response_format == "json"
+    assert bundle.output_schema["required"] == ["titulo", "niveles", "criterios", "requiere_revision_humana"]
+    assert "exactamente 4 criterios" in bundle.prompt_text
+    assert "CSV" not in bundle.prompt_text

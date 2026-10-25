@@ -3,8 +3,10 @@
  * Author: Luis Vilela Acuña
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { GeneratorLayout } from "@/layouts/GeneratorLayout";
+import { exportService } from "@/lib/export-service";
+import { parseRubric, rubricToCsv, rubricToPlainText } from "@/lib/rubric-format";
 import { generatorService } from "@/lib/generator-service";
 import { EngineSelector } from "@/components/EngineSelector";
 import { useGeneratorRequest } from "@/hooks/useGeneratorRequest";
@@ -37,22 +39,36 @@ export default function RubricsTool() {
         );
     };
 
-    const handleDownload = () => {
-        const blob = new Blob([output], { type: 'text/csv' });
+    // La salida es JSON con esquema: la tabla, el CSV y el Word se componen a partir de los datos.
+    const rubric = useMemo(() => (loading ? null : parseRubric(output)), [output, loading]);
+    const baseFilename = `rubrica_${(formData.nombre || "sin_titulo").trim().replace(/\s+/g, "_")}`;
+
+    const handleDownloadCsv = () => {
+        if (!rubric) return;
+        const blob = new Blob([rubricToCsv(rubric)], { type: "text/csv;charset=utf-8" });
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `rubrica_${formData.nombre.replace(/\s+/g, '_')}.csv`;
+        a.download = `${baseFilename}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
     };
 
+    const handleDownloadDocx = async () => {
+        if (!rubric) return;
+        try {
+            await exportService.toDocx({ content: rubricToPlainText(rubric), filename: baseFilename, title: rubric.titulo });
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     return (
         <GeneratorLayout
             title="Generador de Rúbricas"
-            description="Crea rúbricas de evaluación precisas y expórtalas a CSV para iDoceo/Additio."
+            description="Rúbricas de cuatro niveles con descriptores observables, ligadas al currículo oficial y exportables a CSV (iDoceo/Additio) y Word."
             isServerLoading={loading && engine === "edumind"}
             serverEstimatedTime={60}
             serverModelType="fast"
@@ -63,16 +79,55 @@ export default function RubricsTool() {
             preview={
                 <div className="lam-prose">
                     {!output && !loading && <span className="text-ink-3">Esperando generación...</span>}
-                    {output && (
+                    {output && rubric && (
                         <div className="space-y-4">
-                            <div className="flex justify-end">
-                                <button onClick={handleDownload} className="flex items-center gap-2 lam-btn lam-btn-sm">
-                                    Descargar CSV
-                                </button>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                    <h2 className="m-0 text-[20px] font-bold">{rubric.titulo}</h2>
+                                    {rubric.area ? <p className="m-0 text-ink-2 text-[13px]">{rubric.area}</p> : null}
+                                </div>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={handleDownloadCsv} className="lam-btn lam-btn-sm">
+                                        CSV iDoceo/Additio
+                                    </button>
+                                    <button type="button" onClick={() => void handleDownloadDocx()} className="lam-btn lam-btn-sm lam-btn-ghost">
+                                        Word
+                                    </button>
+                                </div>
                             </div>
-                            <pre className="whitespace-pre-wrap bg-paper-2 p-4 text-xs font-mono">{output}</pre>
+                            <div className="overflow-x-auto">
+                                <table className="w-full border-collapse text-[13px]">
+                                    <thead>
+                                        <tr className="border-b-2 border-ink text-left">
+                                            <th className="py-2 pr-3 align-bottom">Criterio</th>
+                                            {rubric.niveles.map((nivel) => (
+                                                <th key={nivel} className="py-2 px-3 align-bottom lam-mono">{nivel}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {rubric.criterios.map((c, index) => (
+                                            <tr key={`${c.criterio}-${index}`} className="border-b border-hair align-top">
+                                                <td className="py-2 pr-3 font-semibold">
+                                                    {c.criterio}
+                                                    {c.codigo_curricular ? <span className="block lam-mono text-ink-2">{c.codigo_curricular}</span> : null}
+                                                    {c.peso !== undefined ? <span className="block text-ink-2 font-normal">{c.peso} %</span> : null}
+                                                </td>
+                                                {rubric.niveles.map((nivel, i) => (
+                                                    <td key={nivel} className="py-2 px-3 text-ink-2">{c.descriptores[i] ?? ""}</td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {rubric.observaciones ? <p className="m-0 text-[13px] text-ink-2">{rubric.observaciones}</p> : null}
                         </div>
                     )}
+                    {output && !rubric && !loading && (
+                        <pre className="whitespace-pre-wrap bg-paper-2 p-4 text-xs font-mono">{output}</pre>
+                    )}
+                    {output && loading && <span className="lam-mono animate-pulse">Generando rúbrica</span>}
                 </div>
             }
         >

@@ -162,6 +162,34 @@ INSPECTION_REPORT_JSON_SCHEMA = {
     },
 }
 
+# Rúbrica estructurada: la tabla se compone en el cliente (HTML, CSV para iDoceo/Additio, Word).
+RUBRIC_JSON_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["titulo", "niveles", "criterios", "requiere_revision_humana"],
+    "properties": {
+        "titulo": {"type": "string"},
+        "area": {"type": "string"},
+        "niveles": {"type": "array", "items": {"type": "string"}},
+        "criterios": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["criterio", "descriptores"],
+                "properties": {
+                    "criterio": {"type": "string"},
+                    "codigo_curricular": {"type": "string"},
+                    "descriptores": {"type": "array", "items": {"type": "string"}},
+                    "peso": {"type": "number", "minimum": 0, "maximum": 100},
+                },
+            },
+        },
+        "observaciones": {"type": "string"},
+        "requiere_revision_humana": {"type": "boolean"},
+    },
+}
+
 REINFORCEMENT_PLAN_JSON_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
@@ -445,7 +473,15 @@ PROMPT_CONTRACTS: dict[str, PromptContract] = {
         output_schema=REINFORCEMENT_PLAN_JSON_SCHEMA,
         default_response_format="json",
     ),
-    "rubrics": PromptContract("rubrics", "assessment.rubric", "2.0.0", "medium", prompts.build_rubric_prompt),
+    "rubrics": PromptContract(
+        "rubrics",
+        "assessment.rubric",
+        "3.0.0",
+        "medium",
+        prompts.build_rubric_prompt,
+        output_schema=RUBRIC_JSON_SCHEMA,
+        default_response_format="json",
+    ),
     "worksheets": PromptContract("worksheets", "worksheet.generator", "2.0.0", "medium", prompts.build_worksheet_prompt),
     "methodology": PromptContract(
         "methodology", "methodology.advisor", "2.0.0", "medium", prompts.build_methodology_prompt
