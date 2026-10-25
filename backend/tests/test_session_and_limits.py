@@ -32,7 +32,7 @@ def _usuario(role: UserRole = UserRole.DOCENTE) -> tuple[int, str]:
 
 # --- Sesiones -----------------------------------------------------------------
 
-def test_token_lleva_jti_y_caduca_en_horas():
+def test_token_lleva_jti_y_caduca_en_horas(client):
     _, username = _usuario()
     token = auth_module.create_access_token({"sub": username})
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])

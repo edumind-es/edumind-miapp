@@ -32,6 +32,8 @@ from app.models import (
 from app.services.account_service import delete_user_account
 from main import app
 
+# Nota: los tests reciben `client` aunque no lo usen porque arrancar la app crea las tablas (en CI la BD empieza vacía).
+
 
 def _crear_usuario_con_datos(session: Session, *, role: UserRole = UserRole.TEACHER_PREMIUM) -> User:
     tag = uuid4().hex[:8]
@@ -81,7 +83,7 @@ def _contar_rastros(session: Session, user_id: int) -> dict:
     }
 
 
-def test_servicio_borra_la_cuenta_y_todos_sus_datos():
+def test_servicio_borra_la_cuenta_y_todos_sus_datos(client):
     with Session(engine) as session:
         user = _crear_usuario_con_datos(session)
         user_id = user.id
@@ -99,7 +101,7 @@ def test_servicio_borra_la_cuenta_y_todos_sus_datos():
         assert session.exec(select(StudentCode).where(StudentCode.class_id == clase_id)).first() is None
 
 
-def test_delete_me_exige_confirmacion_y_cierra_sesion(api_v1_prefix):
+def test_delete_me_exige_confirmacion_y_cierra_sesion(client, api_v1_prefix):
     with Session(engine) as session:
         user = _crear_usuario_con_datos(session)
         username, user_id = user.username, user.id
@@ -122,7 +124,7 @@ def test_delete_me_exige_confirmacion_y_cierra_sesion(api_v1_prefix):
         assert session.get(User, user_id) is None
 
 
-def test_delete_me_protege_la_unica_cuenta_admin(api_v1_prefix):
+def test_delete_me_protege_la_unica_cuenta_admin(client, api_v1_prefix):
     with Session(engine) as session:
         # Desactivamos temporalmente a los demás admins para simular que este es el único
         otros = session.exec(select(User).where(User.role == UserRole.ADMIN, User.is_active == True)).all()  # noqa: E712
