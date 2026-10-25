@@ -685,3 +685,18 @@ def test_deepseek_retirado_del_catalogo(client, api_v1_prefix):
         json={"consulta": "Juegos cooperativos para 3º de Primaria", "provider": "deepseek"},
     )
     assert response.status_code == 400
+
+
+def test_contracts_publica_reglas_para_el_modo_local(client, api_v1_prefix):
+    response = client.get(f"{api_v1_prefix}/generators/local-contracts")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["local_prompt_mode"] == "client_template_v2"
+    assert "no especificado" in payload["placeholder_values"]
+    planning = next(c for c in payload["contracts"] if c["tool"] == "planning")
+    assert planning["required_fields"]["horas"] == "horas"
+    assert planning["positive_fields"] == {"horas": "horas"}
+    normativa = next(c for c in payload["contracts"] if c["tool"] == "normativa")
+    assert normativa["default_response_format"] == "json"
+    assert normativa["output_schema"]["type"] == "object"

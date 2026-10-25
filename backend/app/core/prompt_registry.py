@@ -591,6 +591,32 @@ SALIDA ESTRUCTURADA OBLIGATORIA:
 """
 
 
+def describe_prompt_contracts_for_client() -> dict[str, Any]:
+    """Todo lo que el navegador necesita para sanear, validar y componer el prompt sin enviar el formulario.
+
+    Es la base del modo local honesto (P-02): las plantillas viven en el cliente y el
+    servidor solo publica reglas, no recibe datos.
+    """
+    return {
+        "local_prompt_mode": "client_template_v2",
+        "placeholder_values": sorted(PLACEHOLDER_VALUES),
+        "contracts": [
+            {
+                "tool": contract.tool,
+                "prompt_id": contract.prompt_id,
+                "version": contract.version,
+                "risk_level": contract.risk_level,
+                "supports_json": bool(contract.output_schema),
+                "default_response_format": contract.default_response_format,
+                "output_schema": contract.output_schema,
+                "required_fields": REQUIRED_FIELDS_BY_TOOL.get(contract.tool, {}),
+                "positive_fields": POSITIVE_FIELDS_BY_TOOL.get(contract.tool, {}),
+            }
+            for contract in PROMPT_CONTRACTS.values()
+        ],
+    }
+
+
 def list_prompt_contracts() -> list[dict[str, Any]]:
     return [
         {

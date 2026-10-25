@@ -35,6 +35,7 @@ from app.core import config
 from app.core.prompt_registry import (
     PromptBundle,
     PromptValidationError,
+    describe_prompt_contracts_for_client,
     get_generator_prompt,
     list_prompt_contracts,
 )
@@ -690,6 +691,13 @@ async def get_prompt_contracts(_guard: User | None = Depends(require_admin_or_vp
     return {"contracts": list_prompt_contracts()}
 
 
+@router.get("/local-contracts")
+@limiter.limit("60/minute")
+async def get_local_prompt_contracts(request: Request):
+    """Reglas públicas del modo local: el navegador sanea, valida y compone el prompt sin enviar el formulario."""
+    return describe_prompt_contracts_for_client()
+
+
 @router.post("/render/{tool}", response_model=PromptRenderResponse)
 @limiter.limit("30/minute")
 async def render_prompt(
@@ -697,6 +705,7 @@ async def render_prompt(
     tool: str,
     payload: dict[str, Any] = Body(default_factory=dict),
 ):
+    """Compatibilidad: el frontend ya no envía el formulario aquí en modo local (usa /contracts)."""
     try:
         bundle = get_generator_prompt(tool, CurriculumMatrixService.enrich_generator_payload(payload))
     except KeyError as exc:
