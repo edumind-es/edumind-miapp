@@ -65,7 +65,7 @@ export function FeedbackButtons({ instruction, output, source, onFeedbackSubmitt
                 })
             });
 
-            if (!response.ok) throw new Error("Failed to save feedback");
+            if (!response.ok) throw new Error("No se pudo guardar la valoración.");
 
             setStatus("success");
             if (onFeedbackSubmitted) onFeedbackSubmitted();

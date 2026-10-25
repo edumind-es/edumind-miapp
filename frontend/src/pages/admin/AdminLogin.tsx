@@ -63,6 +63,13 @@ export default function AdminLogin() {
         () => sanitizeNextPath(searchParams.get("next")),
         [searchParams],
     );
+
+    // Llegada desde una ruta protegida tras un 401: se explica por qué se pide identificarse de nuevo.
+    useEffect(() => {
+        if (searchParams.get("reason") === "expired") {
+            setError("Tu sesión ha caducado. Identifícate de nuevo para continuar.");
+        }
+    }, [searchParams]);
     const postLoginHint = useMemo(() => getPostLoginHint(nextPath), [nextPath]);
 
     useEffect(() => {

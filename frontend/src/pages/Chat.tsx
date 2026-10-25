@@ -204,7 +204,7 @@ export default function Chat() {
                     const errorBody = await response.text();
                     throw new Error(parseBackendError(errorBody || `HTTP ${response.status}`));
                 }
-                if (!response.body) throw new Error("No response body");
+                if (!response.body) throw new Error("El servidor no devolvió contenido.");
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();

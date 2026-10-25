@@ -24,36 +24,13 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { deleteCurrentAccount } from "@/lib/auth-client";
+import { toolsForProfile, type ToolDefinition, type ToolProfile } from "@/lib/tools-registry";
 
-interface Tool {
-    id: string;
-    title: string;
-    desc: string;
-    link: string;
-}
-
-const TOOLS: Record<"docente" | "opositor" | "centro", Tool[]> = {
-    docente: [
-        { id: "planning", title: "Planificación semanal", desc: "Construye sesiones fechadas con criterios, DUA y recursos reales de aula.", link: "/tools/planning" },
-        { id: "situation", title: "Situación de aprendizaje", desc: "Crea situaciones de aprendizaje LOMLOE.", link: "/tools/situation" },
-        { id: "stem", title: "Proyectos STEM", desc: "Diseña proyectos Maker y Polos Creativos.", link: "/tools/stem" },
-        { id: "diversity", title: "Plan de inclusión", desc: "Intervención para NEAE y diversidad.", link: "/tools/diversity" },
-        { id: "reinforcement_plan", title: "Plan de refuerzo", desc: "Plan de refuerzo anónimo con base curricular oficial.", link: "/tools/reinforcement_plan" },
-        { id: "session", title: "Diseño de sesiones", desc: "Planificación detallada sesión a sesión.", link: "/tools/session" },
-    ],
-    opositor: [
-        { id: "case", title: "Supuestos prácticos", desc: "Entrenamiento y resolución de casos.", link: "/tools/case" },
-        { id: "topic", title: "Desarrollo de temas", desc: "Generación de temas de estudio.", link: "/tools/topic" },
-        { id: "defense", title: "Defensa oral", desc: "Preparación de la defensa y debate.", link: "/tools/defense" },
-        { id: "idea", title: "Mentor y lluvia de ideas", desc: "Consultas creativas para tu oposición.", link: "/tools/idea" },
-    ],
-    centro: [
-        { id: "minutes", title: "Actas de reunión", desc: "Redacción formal de actas (claustro, CCP...).", link: "/tools/minutes" },
-        { id: "institution_doc", title: "Documentación institucional", desc: "PGA, RRI, planes de centro...", link: "/tools/institution_doc" },
-        { id: "inspection_report", title: "Inspección educativa", desc: "Informes, actas y respuestas técnicas para requerimientos de inspección.", link: "/tools/inspection_report" },
-        { id: "reinforcement_plan", title: "Plan de refuerzo", desc: "Plan de refuerzo por área con enfoque privacy-first y seguimiento.", link: "/tools/reinforcement_plan" },
-        { id: "normativa", title: "Aplicación normativa", desc: "Consultas legales sobre convivencia (Galicia).", link: "/tools/normativa" },
-    ],
+// Las herramientas de cada perfil salen del registro único (lib/tools-registry.ts).
+const TOOLS: Record<ToolProfile, ToolDefinition[]> = {
+    docente: toolsForProfile("docente"),
+    opositor: toolsForProfile("opositor"),
+    centro: toolsForProfile("centro"),
 };
 
 const ROLE_TO_TOOLS_KEY: Record<string, keyof typeof TOOLS> = {
@@ -128,13 +105,13 @@ export default function Dashboard() {
                                 </span>
                                 <div className="flex-1 min-w-0">
                                     <h2 className="m-0 text-[20px] font-bold">
-                                        <Link to={tool.link} className="no-underline hover:underline underline-offset-4">
+                                        <Link to={tool.path} className="no-underline hover:underline underline-offset-4">
                                             {tool.title}
                                         </Link>
                                     </h2>
                                     <p className="m-0 mt-1 text-ink-2 max-w-[60ch]">{tool.desc}</p>
                                 </div>
-                                <Link to={tool.link} className="lam-btn lam-btn-sm lam-btn-ghost self-center shrink-0">
+                                <Link to={tool.path} className="lam-btn lam-btn-sm lam-btn-ghost self-center shrink-0">
                                     Abrir
                                 </Link>
                             </li>

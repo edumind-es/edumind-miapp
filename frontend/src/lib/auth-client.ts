@@ -17,6 +17,7 @@
  */
 
 import { buildApiUrl } from "@/lib/api-base";
+import { isAuthFlowPath, notifySessionExpired } from "@/lib/auth-events";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const CSRF_COOKIE_NAME = "edumind_csrf_token";
@@ -83,16 +84,22 @@ export function buildAuthHeaders(method: string, headers?: HeadersInit): Record<
     return merged;
 }
 
-export function authFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}) {
     const method = (init.method || "GET").toUpperCase();
     const headers = buildAuthHeaders(method, init.headers);
     const resolvedInput = typeof input === "string" ? buildApiUrl(input) : input;
-    return fetch(resolvedInput, {
+    const response = await fetch(resolvedInput, {
         ...init,
         method,
         headers,
         credentials: "include",
     });
+    // Sesión caducada o revocada: se avisa una sola vez al proveedor de sesión.
+    const url = typeof input === "string" ? input : input instanceof URL ? input.pathname : input.url;
+    if (response.status === 401 && !isAuthFlowPath(url)) {
+        notifySessionExpired();
+    }
+    return response;
 }
 
 export function clearLegacyAuthState() {

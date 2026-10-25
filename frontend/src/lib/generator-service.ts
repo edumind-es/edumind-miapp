@@ -138,7 +138,7 @@ async function streamOrLocal(
 
     if (!response.ok) {
         const msg = await response.text();
-        const errorMessage = msg || `Generator request failed (${response.status})`;
+        const errorMessage = msg || `La generación falló (HTTP ${response.status}).`;
         const serverFallbackHint = (response.headers.get("X-EDUMIND-FALLBACK") || "").toLowerCase();
         if (
             normalizedProvider === "edumind" &&

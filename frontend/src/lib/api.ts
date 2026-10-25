@@ -20,6 +20,7 @@ import axios, { AxiosHeaders, type InternalAxiosRequestConfig } from 'axios';
 
 import { buildApiUrl, API_BASE_URL } from "./api-base";
 import { buildAuthHeaders } from './auth-client';
+import { isAuthFlowPath, notifySessionExpired } from './auth-events';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -42,6 +43,19 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     config.withCredentials = true;
     return config;
 });
+
+// Misma política que authFetch: un 401 fuera del flujo de autenticación significa sesión caducada.
+api.interceptors.response.use(
+    (response) => response,
+    (error: unknown) => {
+        const status = (error as { response?: { status?: number } })?.response?.status;
+        const url = String((error as { config?: { url?: string } })?.config?.url ?? "");
+        if (status === 401 && !isAuthFlowPath(url)) {
+            notifySessionExpired();
+        }
+        return Promise.reject(error);
+    }
+);
 
 export { buildApiUrl };
 
