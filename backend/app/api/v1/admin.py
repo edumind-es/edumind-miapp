@@ -458,10 +458,11 @@ async def delete_user(
     if user.id == admin.id:
         raise HTTPException(status_code=400, detail="Cannot delete yourself")
     
-    session.delete(user)
-    session.commit()
-    
-    return {"message": "User deleted"}
+    from app.services.account_service import delete_user_account
+
+    counts = delete_user_account(session, user)
+
+    return {"message": "User deleted", "deleted": counts}
 
 
 # ============ Config ============

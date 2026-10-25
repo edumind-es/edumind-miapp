@@ -113,6 +113,26 @@ export async function fetchCurrentUser(): Promise<SessionUser | null> {
     return await response.json() as SessionUser;
 }
 
+// Supresión de cuenta: el servidor exige repetir el nombre de usuario y borra todos los datos personales.
+export async function deleteCurrentAccount(confirmUsername: string): Promise<void> {
+    const response = await authFetch("/auth/me", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm_username: confirmUsername }),
+    });
+    if (!response.ok) {
+        let detail = "No se pudo eliminar la cuenta.";
+        try {
+            const payload = await response.json() as { detail?: string };
+            if (payload?.detail) detail = payload.detail;
+        } catch {
+            // sin cuerpo JSON: se mantiene el mensaje genérico
+        }
+        throw new Error(detail);
+    }
+    clearLegacyAuthState();
+}
+
 export async function fetchAuthConfig(): Promise<AuthConfig> {
     const response = await fetch(buildApiUrl("/auth/config"), {
         credentials: "include",

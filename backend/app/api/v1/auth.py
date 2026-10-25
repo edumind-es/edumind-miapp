@@ -94,6 +94,11 @@ class DefaultDestinationResponse(BaseModel):
     path: str
 
 
+class AccountDeleteRequest(BaseModel):
+    # El usuario repite su nombre de usuario para confirmar una acción irreversible.
+    confirm_username: str
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -793,6 +798,39 @@ async def get_me(current_user: User = Depends(get_current_user)):
         role=current_user.role.value,
         is_active=current_user.is_active,
     )
+
+
+@router.delete("/me", response_model=LogoutResponse)
+async def delete_me(
+    payload: AccountDeleteRequest,
+    request: Request,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    """Elimina la cuenta del usuario autenticado y todos sus datos personales (derecho de supresión)."""
+    if payload.confirm_username.strip().lower() != current_user.username.lower():
+        raise HTTPException(status_code=400, detail="El nombre de usuario de confirmación no coincide.")
+
+    if current_user.role == UserRole.ADMIN:
+        otros_admins = session.exec(
+            select(User).where(User.role == UserRole.ADMIN, User.is_active == True, User.id != current_user.id)  # noqa: E712
+        ).first()
+        if otros_admins is None:
+            raise HTTPException(
+                status_code=409,
+                detail="No puedes eliminar la única cuenta de administración activa.",
+            )
+
+    from app.services.account_service import delete_user_account
+
+    delete_user_account(session, current_user)
+    # Registro sin vínculo con la persona: solo cuenta el hecho, no quién.
+    session.add(ActivityLog(action="account_deleted", ip_address=get_client_ip_for_log(request)))
+    session.commit()
+
+    _clear_auth_cookies(response)
+    return LogoutResponse(message="Cuenta eliminada", logout_url=None)
 
 
 @router.post("/logout", response_model=LogoutResponse)

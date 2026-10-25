@@ -19,8 +19,11 @@
 // Panel de herramientas en modo EDUmind-Lámina: lista de filete numerada, sin rejilla
 // de tarjetas, sin iconos. El perfil se resuelve igual que antes (sesión o ?role=).
 
-import { Link, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { deleteCurrentAccount } from "@/lib/auth-client";
 
 interface Tool {
     id: string;
@@ -76,8 +79,31 @@ const PROFILE_SWITCH: Array<{ key: keyof typeof TOOLS; label: string }> = [
 ];
 
 export default function Dashboard() {
-    const { user } = useAuthSession();
+    const { user, refreshSession } = useAuthSession();
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    // Supresión de cuenta: el docente escribe su usuario, confirma en el diálogo y el servidor borra todo.
+    const [deleteConfirm, setDeleteConfirm] = useState("");
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+    const canRequestDelete = Boolean(user) && deleteConfirm.trim().toLowerCase() === (user?.username ?? "").toLowerCase();
+
+    async function handleDeleteAccount() {
+        if (!user) return;
+        setDeleting(true);
+        setDeleteError(null);
+        try {
+            await deleteCurrentAccount(deleteConfirm.trim());
+            setDeleteDialogOpen(false);
+            await refreshSession();
+            navigate("/", { replace: true });
+        } catch (error) {
+            setDeleteError(error instanceof Error ? error.message : "No se pudo eliminar la cuenta.");
+        } finally {
+            setDeleting(false);
+        }
+    }
     const sessionRole = user?.role ?? "";
     const requestedRole = searchParams.get("role") ?? "";
     const toolsKey = ROLE_TO_TOOLS_KEY[requestedRole] ?? ROLE_TO_TOOLS_KEY[sessionRole] ?? "docente";
@@ -151,8 +177,50 @@ export default function Dashboard() {
                             <dd>Sin nombre ni identificadores del alumnado</dd>
                         </div>
                     </dl>
+
+                    {user ? (
+                        <section className="mt-8 border-t border-ink pt-5" aria-labelledby="eliminar-cuenta">
+                            <div id="eliminar-cuenta" className="lam-mono mb-2">Tu cuenta</div>
+                            <p className="m-0 text-ink-2 text-[14px] leading-snug">
+                                Puedes eliminar tu cuenta cuando quieras. Se borran tus clases, códigos de alumnado,
+                                recursos, planificador, claves API y registros. No se puede deshacer.
+                            </p>
+                            <label className="block mt-3 text-[12px] font-mono uppercase tracking-[0.12em]" htmlFor="eliminar-cuenta-usuario">
+                                Escribe tu usuario para confirmar
+                            </label>
+                            <input
+                                id="eliminar-cuenta-usuario"
+                                className="lam-input w-full mt-1"
+                                autoComplete="off"
+                                value={deleteConfirm}
+                                onChange={(event) => setDeleteConfirm(event.target.value)}
+                                placeholder={user.username}
+                            />
+                            <button
+                                type="button"
+                                className="lam-btn lam-btn-sm mt-3 !bg-alert !border-alert"
+                                disabled={!canRequestDelete || deleting}
+                                onClick={() => setDeleteDialogOpen(true)}
+                            >
+                                Eliminar mi cuenta
+                            </button>
+                            {deleteError ? <p className="m-0 mt-2 text-alert text-[13px]">{deleteError}</p> : null}
+                        </section>
+                    ) : null}
                 </aside>
             </div>
+
+            <ConfirmationDialog
+                open={deleteDialogOpen}
+                title="Eliminar tu cuenta de EDUmind"
+                description="Se eliminarán de forma definitiva tu usuario y todos tus datos personales. Las aportaciones al dataset ya verificadas quedan sin autor."
+                confirmLabel="Sí, eliminar mi cuenta"
+                cancelLabel="Cancelar"
+                destructive
+                busy={deleting}
+                onConfirm={() => void handleDeleteAccount()}
+                onCancel={() => setDeleteDialogOpen(false)}
+            />
         </main>
     );
 }
