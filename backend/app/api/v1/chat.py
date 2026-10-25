@@ -20,6 +20,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from app.schemas import ChatRequest
 from app.services.ai_service import AIService
+from app.services.chat_memory import trim_chat_history
 from app.services.admission_control_service import admission_control
 from app.core.config import settings
 from app.core.queue_manager import queue_manager
@@ -102,10 +103,16 @@ async def chat_completions(
             headers={"Retry-After": str(queue_status.estimated_wait_seconds)},
         )
 
+    historial = trim_chat_history(
+        [m.dict() for m in chat_request.messages],
+        max_messages=settings.CHAT_MAX_MESSAGES,
+        max_chars=settings.CHAT_MAX_CONTEXT_CHARS,
+    )
+
     return StreamingResponse(
         AIService.stream_chat(
             provider=provider,
-            messages=[m.dict() for m in chat_request.messages],
+            messages=historial,
             api_key=api_key,
             model=chat_request.model
         ),

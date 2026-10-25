@@ -34,7 +34,7 @@ def _usuario() -> dict:
 
 
 def _falso_stream(respuestas: dict[str, list[str]], llamadas: list[str]):
-    async def _stream_chat(provider, messages, api_key, model=None, generator_type=None):
+    async def _stream_chat(provider, messages, api_key, model=None, generator_type=None, json_mode=False):
         llamadas.append(provider)
         for chunk in respuestas.get(provider, ["Error: motor sin respuesta"]):
             yield chunk

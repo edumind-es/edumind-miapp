@@ -175,3 +175,44 @@ async def export_html(request: Request, payload: ExportRequest):
     except Exception:
         logger.exception("Error generando HTML")
         raise HTTPException(status_code=500, detail="No se pudo generar el HTML.")
+
+
+def _build_docx(payload: ExportRequest) -> bytes:
+    """Documento Word sencillo: título, encabezados (líneas cortas en mayúsculas) y viñetas (líneas con guion)."""
+    from docx import Document
+
+    documento = Document()
+    if payload.title:
+        documento.add_heading(payload.title, level=1)
+    for linea in html.unescape(payload.content).replace("\r\n", "\n").split("\n"):
+        texto = linea.rstrip()
+        if not texto.strip():
+            continue
+        limpio = texto.strip()
+        if limpio.startswith(("- ", "• ", "* ")):
+            documento.add_paragraph(limpio[2:].strip(), style="List Bullet")
+        elif re.match(r"^\d+[.)]\s+\S", limpio) and len(limpio) <= 120 and limpio.upper() == limpio:
+            documento.add_heading(limpio, level=2)
+        elif len(limpio) <= 90 and limpio.upper() == limpio and any(ch.isalpha() for ch in limpio):
+            documento.add_heading(limpio.rstrip(":"), level=2)
+        else:
+            documento.add_paragraph(limpio)
+    buffer = BytesIO()
+    documento.save(buffer)
+    return buffer.getvalue()
+
+
+@router.post("/docx")
+@limiter.limit("12/minute")
+async def export_docx(request: Request, payload: ExportRequest):
+    """Exporta el contenido a Word (.docx), el formato que piden los centros."""
+    try:
+        datos = _build_docx(payload)
+        return StreamingResponse(
+            BytesIO(datos),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers=_content_disposition(payload.filename, "docx"),
+        )
+    except Exception:
+        logger.exception("Error generando DOCX")
+        raise HTTPException(status_code=500, detail="No se pudo generar el DOCX.")

@@ -116,6 +116,9 @@ class Settings(BaseSettings):
     # Si EDUmind Core falla, servir con Gemma 4 del servidor: off | registered | all
     MANAGED_FALLBACK_TO_OLLAMA: str = "registered"
     AI_TRANSIENT_RETRIES: int = 1
+    # Memoria acotada del chat (turnos y caracteres que llegan al modelo)
+    CHAT_MAX_MESSAGES: int = 12
+    CHAT_MAX_CONTEXT_CHARS: int = 16000
 
     # Cache / Redis
     REDIS_URL: Optional[str] = None

@@ -117,8 +117,10 @@ class AIService:
         api_key: str,
         model: Optional[str] = None,
         generator_type: Optional[str] = None,
+        json_mode: bool = False,
     ) -> AsyncGenerator[str, None]:
-        
+        """json_mode activa el modo JSON nativo donde el proveedor lo ofrece (OpenAI, Mistral, Gemini, Ollama)."""
+
         provider = provider.lower()
         
         # Inject system prompt with knowledge context for all providers
@@ -138,7 +140,8 @@ class AIService:
                 model=model,
                 messages=enriched_messages,
                 stream=True,
-                temperature=temperature
+                temperature=temperature,
+                **({"response_format": {"type": "json_object"}} if json_mode else {}),
             ):
                 content = chunk.choices[0].delta.content
                 if content:
@@ -153,7 +156,8 @@ class AIService:
                 messages=enriched_messages,
                 stream=True,
                 max_tokens=settings.AI_MAX_OUTPUT_TOKENS,
-                temperature=temperature
+                temperature=temperature,
+                **({"response_format": {"type": "json_object"}} if json_mode else {}),
             ):
                 content = chunk.choices[0].delta.content
                 if content:
@@ -205,6 +209,7 @@ class AIService:
                 system_instruction="\n".join(system_parts) or None,
                 temperature=temperature,
                 max_output_tokens=settings.AI_MAX_OUTPUT_TOKENS,
+                response_mime_type="application/json" if json_mode else None,
             )
             # Cliente asíncrono: la versión síncrona bloqueaba el event loop durante todo el stream.
             response = await client.aio.models.generate_content_stream(
@@ -300,6 +305,8 @@ class AIService:
                     "num_predict": settings.AI_MAX_OUTPUT_TOKENS,
                 },
             }
+            if json_mode:
+                payload["format"] = "json"
             
             try:
                 async with httpx.AsyncClient() as client:

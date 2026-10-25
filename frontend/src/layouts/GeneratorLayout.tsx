@@ -189,7 +189,7 @@ export function GeneratorLayout({
         }
     };
 
-    const handleExport = async (format: 'pdf' | 'txt' | 'html') => {
+    const handleExport = async (format: 'pdf' | 'docx' | 'txt' | 'html') => {
         if (!effectiveOutput) return;
         try {
             const options = {
@@ -199,6 +199,7 @@ export function GeneratorLayout({
             };
 
             if (format === 'pdf') await exportService.toPdf(options);
+            else if (format === 'docx') await exportService.toDocx(options);
             else if (format === 'txt') await exportService.toTxt(options);
             else if (format === 'html') await exportService.toHtml(options);
             setNotice({
@@ -214,8 +215,9 @@ export function GeneratorLayout({
         }
     };
 
-    const exportButtons: Array<{ format: "pdf" | "html" | "txt"; label: string }> = [
+    const exportButtons: Array<{ format: "pdf" | "docx" | "html" | "txt"; label: string }> = [
         { format: "pdf", label: "PDF" },
+        { format: "docx", label: "Word" },
         { format: "html", label: "HTML" },
         { format: "txt", label: "TXT" },
     ];

@@ -463,6 +463,7 @@ async def _provider_stream(
     tool_name: str,
     current_user: Optional[User],
     served_by: dict[str, str],
+    json_mode: bool = False,
 ):
     """Stream del proveedor con reintento ante fallos transitorios y degradación real.
 
@@ -484,7 +485,7 @@ async def _provider_stream(
         intento = 0
         while True:
             try:
-                stream = AIService.stream_chat(candidato, messages, api_key, generator_type=tool_name)
+                stream = AIService.stream_chat(candidato, messages, api_key, generator_type=tool_name, json_mode=json_mode)
                 primero = None
                 async for chunk in stream:
                     if chunk and chunk.strip():
@@ -516,6 +517,36 @@ async def _provider_stream(
     elif tipo == "exception":
         raise dato  # type: ignore[misc]
     # "empty": no se emite nada y el llamador lo reporta como salida vacía
+
+
+async def _repair_structured_output(
+    provider: str,
+    api_key: Optional[str],
+    tool_name: str,
+    prompt_bundle: PromptBundle,
+    raw_response: str,
+    errores: str,
+) -> str:
+    """Segunda llamada acotada: el modelo recibe su JSON y los errores y debe devolver solo JSON válido."""
+    mensajes = [
+        {"role": "user", "content": prompt_bundle.prompt_text},
+        {"role": "assistant", "content": raw_response[:20000]},
+        {
+            "role": "user",
+            "content": (
+                "Tu respuesta anterior no cumple el esquema. Errores: "
+                f"{errores}. Devuelve EXCLUSIVAMENTE el JSON corregido, completo y válido, "
+                "sin comentarios ni texto fuera del JSON, con exactamente estas claves:\n"
+                + json.dumps(prompt_bundle.output_schema or {}, ensure_ascii=False)
+            ),
+        },
+    ]
+    partes: list[str] = []
+    async for chunk in AIService.stream_chat(provider, mensajes, api_key, generator_type=tool_name, json_mode=True):
+        limpio = _strip_provider_artifacts(chunk)
+        if limpio:
+            partes.append(limpio)
+    return "".join(partes)
 
 
 def _curriculum_review(prompt_bundle: PromptBundle, text: str) -> Optional[dict[str, Any]]:
@@ -564,6 +595,7 @@ async def _stream_generator(
                 tool_name,
                 current_user,
                 served_by,
+                json_mode=True,
             ):
                 cleaned_chunk = _strip_provider_artifacts(chunk)
                 if not cleaned_chunk:
@@ -597,7 +629,16 @@ async def _stream_generator(
                 yield stripped_response
             else:
                 try:
-                    full_response = _normalize_structured_output(raw_response, prompt_bundle)
+                    try:
+                        full_response = _normalize_structured_output(raw_response, prompt_bundle)
+                    except Exception as primer_error:
+                        # Pase de reparación: se devuelve al modelo su salida con los errores del esquema.
+                        logger.info("Salida JSON no válida (%s); se intenta reparar con %s", primer_error, served_by["provider"])
+                        reparada = await _repair_structured_output(
+                            served_by["provider"], api_key, tool_name, prompt_bundle, raw_response, str(primer_error)
+                        )
+                        full_response = _normalize_structured_output(reparada, prompt_bundle)
+                        outcome = "repaired"
                     revision = _curriculum_review(prompt_bundle, full_response)
                     if revision:
                         documento = json.loads(full_response)
